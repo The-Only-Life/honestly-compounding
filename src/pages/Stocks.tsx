@@ -3,67 +3,47 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Building, Plus, TrendingUp, TrendingDown, Download, Eye } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useEffect, useState } from 'react';
 
 export default function Stocks() {
   const { userRole } = useAuth();
+  const [stocks, setStocks] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    totalStocks: 0
+  });
 
-  const mockStocks = [
-    {
-      id: 1,
-      symbol: "AAPL",
-      companyName: "Apple Inc.",
-      theme: "Technology Innovation",
-      riskBucket: "Moderate Growth",
-      price: "$175.43",
-      change: "+2.34%",
-      positive: true,
-      lastUpdated: "2024-01-15"
-    },
-    {
-      id: 2,
-      symbol: "TSLA",
-      companyName: "Tesla Inc.",
-      theme: "Green Energy Transition",
-      riskBucket: "High Growth", 
-      price: "$248.92",
-      change: "-1.87%",
-      positive: false,
-      lastUpdated: "2024-01-15"
-    },
-    {
-      id: 3,
-      symbol: "NVDA",
-      companyName: "NVIDIA Corporation",
-      theme: "Technology Innovation",
-      riskBucket: "High Growth",
-      price: "$591.78",
-      change: "+5.12%",
-      positive: true,
-      lastUpdated: "2024-01-15"
-    },
-    {
-      id: 4,
-      symbol: "JNJ",
-      companyName: "Johnson & Johnson",
-      theme: "Healthcare Revolution",
-      riskBucket: "Conservative",
-      price: "$158.34",
-      change: "+0.45%",
-      positive: true,
-      lastUpdated: "2024-01-15"
-    },
-    {
-      id: 5,
-      symbol: "AMZN",
-      companyName: "Amazon.com Inc.",
-      theme: "Consumer Trends",
-      riskBucket: "Moderate Growth",
-      price: "$142.67",
-      change: "+1.23%",
-      positive: true,
-      lastUpdated: "2024-01-15"
+  useEffect(() => {
+    fetchStocks();
+  }, []);
+
+  const fetchStocks = async () => {
+    try {
+      const { data: stocksData, error: stocksError } = await supabase
+        .from('stocks')
+        .select(`
+          *,
+          themes:theme_id(name),
+          risk_buckets:risk_bucket_id(name)
+        `);
+
+      if (stocksError) throw stocksError;
+
+      setStocks(stocksData || []);
+      setStats({
+        totalStocks: stocksData?.length || 0
+      });
+    } catch (error) {
+      console.error('Error fetching stocks:', error);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
+
+  if (loading) {
+    return <div className="flex items-center justify-center h-96">Loading...</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -87,41 +67,8 @@ export default function Stocks() {
             <Building className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">245</div>
+            <div className="text-2xl font-bold">{stats.totalStocks}</div>
             <p className="text-xs text-muted-foreground">Under coverage</p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Gainers</CardTitle>
-            <TrendingUp className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">189</div>
-            <p className="text-xs text-muted-foreground">77% positive</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Decliners</CardTitle>
-            <TrendingDown className="h-4 w-4 text-red-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">56</div>
-            <p className="text-xs text-muted-foreground">23% negative</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Reports</CardTitle>
-            <Eye className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">198</div>
-            <p className="text-xs text-muted-foreground">Available reports</p>
           </CardContent>
         </Card>
       </div>
@@ -132,31 +79,24 @@ export default function Stocks() {
           <CardDescription>Browse all stocks under research coverage</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {mockStocks.map((stock) => (
-              <div key={stock.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-3">
-                    <h3 className="font-bold text-lg">{stock.symbol}</h3>
-                    <Badge 
-                      variant={stock.positive ? "default" : "destructive"}
-                      className={stock.positive ? "text-green-600 bg-green-100" : "text-red-600 bg-red-100"}
-                    >
-                      {stock.change}
-                    </Badge>
-                  </div>
-                  <h4 className="font-medium">{stock.companyName}</h4>
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    <span>Theme: {stock.theme}</span>
-                    <span>Risk: {stock.riskBucket}</span>
-                    <span>Updated: {stock.lastUpdated}</span>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-4">
-                  <div className="text-right">
-                    <div className="text-2xl font-bold">{stock.price}</div>
-                    <div className="text-xs text-muted-foreground">Current Price</div>
+          {stocks.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">No stocks found in database</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {stocks.map((stock) => (
+                <div key={stock.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-3">
+                      <h3 className="font-bold text-lg">{stock.symbol}</h3>
+                    </div>
+                    <h4 className="font-medium">{stock.company_name}</h4>
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                      <span>Theme: {stock.themes?.name || 'N/A'}</span>
+                      <span>Risk: {stock.risk_buckets?.name || 'N/A'}</span>
+                      <span>Updated: {new Date(stock.updated_at).toLocaleDateString()}</span>
+                    </div>
                   </div>
                   
                   <div className="flex gap-2">
@@ -164,9 +104,15 @@ export default function Stocks() {
                       <Eye className="w-4 h-4 mr-1" />
                       View
                     </Button>
-                    <Button variant="outline" size="sm">
-                      <Download className="w-4 h-4" />
-                    </Button>
+                    {stock.pdf_url && (
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => window.open(stock.pdf_url, '_blank')}
+                      >
+                        <Download className="w-4 h-4" />
+                      </Button>
+                    )}
                     {(userRole === 'admin' || userRole === 'analyst') && (
                       <Button variant="outline" size="sm">
                         Edit
@@ -174,9 +120,9 @@ export default function Stocks() {
                     )}
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

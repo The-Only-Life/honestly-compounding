@@ -3,48 +3,54 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Briefcase, Plus, Eye, Download, TrendingUp } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useEffect, useState } from 'react';
 
 export default function Themes() {
   const { userRole } = useAuth();
+  const [themes, setThemes] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    totalThemes: 0,
+    totalStocks: 0
+  });
 
-  const mockThemes = [
-    {
-      id: 1,
-      name: "Technology Innovation",
-      description: "Focused on emerging tech companies and digital transformation",
-      stockCount: 24,
-      lastUpdated: "2024-01-15",
-      performance: "+12.5%",
-      status: "active"
-    },
-    {
-      id: 2,
-      name: "Green Energy Transition", 
-      description: "Renewable energy and sustainable technology investments",
-      stockCount: 18,
-      lastUpdated: "2024-01-14",
-      performance: "+8.2%",
-      status: "active"
-    },
-    {
-      id: 3,
-      name: "Healthcare Revolution",
-      description: "Biotech, pharmaceuticals, and medical device companies",
-      stockCount: 31,
-      lastUpdated: "2024-01-13",
-      performance: "+15.7%",
-      status: "active"
-    },
-    {
-      id: 4,
-      name: "Consumer Trends",
-      description: "Retail and consumer goods adapting to changing demographics",
-      stockCount: 22,
-      lastUpdated: "2024-01-12",
-      performance: "+4.1%",
-      status: "draft"
+  useEffect(() => {
+    fetchThemes();
+  }, []);
+
+  const fetchThemes = async () => {
+    try {
+      const { data: themesData, error: themesError } = await supabase
+        .from('themes')
+        .select(`
+          *,
+          stocks:stocks(count)
+        `);
+
+      if (themesError) throw themesError;
+
+      const { data: stocksData, error: stocksError } = await supabase
+        .from('stocks')
+        .select('count');
+
+      if (stocksError) throw stocksError;
+
+      setThemes(themesData || []);
+      setStats({
+        totalThemes: themesData?.length || 0,
+        totalStocks: stocksData?.length || 0
+      });
+    } catch (error) {
+      console.error('Error fetching themes:', error);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
+
+  if (loading) {
+    return <div className="flex items-center justify-center h-96">Loading...</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -68,41 +74,19 @@ export default function Themes() {
             <Briefcase className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">12</div>
-            <p className="text-xs text-muted-foreground">+2 this quarter</p>
+            <div className="text-2xl font-bold">{stats.totalThemes}</div>
+            <p className="text-xs text-muted-foreground">Investment themes</p>
           </CardContent>
         </Card>
         
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Themes</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">9</div>
-            <p className="text-xs text-muted-foreground">75% active rate</p>
-          </CardContent>
-        </Card>
-
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Stocks</CardTitle>
             <Eye className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">245</div>
+            <div className="text-2xl font-bold">{stats.totalStocks}</div>
             <p className="text-xs text-muted-foreground">Across all themes</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg Performance</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">+10.1%</div>
-            <p className="text-xs text-muted-foreground">YTD average</p>
           </CardContent>
         </Card>
       </div>
@@ -113,55 +97,59 @@ export default function Themes() {
           <CardDescription>Browse and manage investment themes</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-2">
-            {mockThemes.map((theme) => (
-              <Card key={theme.id} className="relative">
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="space-y-1">
-                      <CardTitle className="text-lg">{theme.name}</CardTitle>
-                      <div className="flex items-center gap-2">
-                        <Badge variant={theme.status === 'active' ? 'default' : 'secondary'}>
-                          {theme.status}
-                        </Badge>
-                        <Badge variant="outline" className="text-green-600">
-                          {theme.performance}
-                        </Badge>
+          {themes.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">No themes found in database</p>
+            </div>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2">
+              {themes.map((theme) => (
+                <Card key={theme.id} className="relative">
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <div className="space-y-1">
+                        <CardTitle className="text-lg">{theme.name}</CardTitle>
                       </div>
                     </div>
-                  </div>
-                  <CardDescription>{theme.description}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Stocks:</span>
-                      <span className="font-medium">{theme.stockCount}</span>
+                    <CardDescription>{theme.description || 'No description available'}</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Created:</span>
+                        <span className="font-medium">{new Date(theme.created_at).toLocaleDateString()}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Updated:</span>
+                        <span className="font-medium">{new Date(theme.updated_at).toLocaleDateString()}</span>
+                      </div>
                     </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Last Updated:</span>
-                      <span className="font-medium">{theme.lastUpdated}</span>
-                    </div>
-                  </div>
-                  
-                  <div className="flex gap-2 mt-4">
-                    <Button variant="outline" size="sm" className="flex-1">
-                      <Eye className="w-4 h-4 mr-1" />
-                      View
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      <Download className="w-4 h-4" />
-                    </Button>
-                    {(userRole === 'admin' || userRole === 'analyst') && (
-                      <Button variant="outline" size="sm">
-                        Edit
+                    
+                    <div className="flex gap-2 mt-4">
+                      <Button variant="outline" size="sm" className="flex-1">
+                        <Eye className="w-4 h-4 mr-1" />
+                        View
                       </Button>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                      {theme.pdf_url && (
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => window.open(theme.pdf_url, '_blank')}
+                        >
+                          <Download className="w-4 h-4" />
+                        </Button>
+                      )}
+                      {(userRole === 'admin' || userRole === 'analyst') && (
+                        <Button variant="outline" size="sm">
+                          Edit
+                        </Button>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

@@ -2,53 +2,55 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Shield, Plus, AlertTriangle, TrendingDown, TrendingUp } from 'lucide-react';
+import { Shield, Plus, AlertTriangle, TrendingDown, TrendingUp, Download } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useEffect, useState } from 'react';
 
 export default function RiskBuckets() {
   const { userRole } = useAuth();
+  const [riskBuckets, setRiskBuckets] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    totalBuckets: 0,
+    totalStocks: 0
+  });
 
-  const mockRiskBuckets = [
-    {
-      id: 1,
-      name: "Conservative",
-      description: "Low volatility, stable dividend-paying companies",
-      riskLevel: "Low",
-      stockCount: 45,
-      avgVolatility: "12%",
-      color: "green",
-      allocation: "35%"
-    },
-    {
-      id: 2,
-      name: "Moderate Growth", 
-      description: "Balanced growth potential with moderate risk",
-      riskLevel: "Medium",
-      stockCount: 38,
-      avgVolatility: "18%",
-      color: "blue",
-      allocation: "40%"
-    },
-    {
-      id: 3,
-      name: "High Growth",
-      description: "High growth potential with increased volatility",
-      riskLevel: "High",
-      stockCount: 28,
-      avgVolatility: "25%",
-      color: "orange",
-      allocation: "20%"
-    },
-    {
-      id: 4,
-      name: "Speculative",
-      description: "Emerging companies and high-risk opportunities",
-      riskLevel: "Very High",
-      stockCount: 15,
-      avgVolatility: "35%",
-      color: "red",
-      allocation: "5%"
+  useEffect(() => {
+    fetchRiskBuckets();
+  }, []);
+
+  const fetchRiskBuckets = async () => {
+    try {
+      const { data: bucketsData, error: bucketsError } = await supabase
+        .from('risk_buckets')
+        .select(`
+          *,
+          stocks:stocks(count)
+        `);
+
+      if (bucketsError) throw bucketsError;
+
+      const { data: stocksData, error: stocksError } = await supabase
+        .from('stocks')
+        .select('count');
+
+      if (stocksError) throw stocksError;
+
+      setRiskBuckets(bucketsData || []);
+      setStats({
+        totalBuckets: bucketsData?.length || 0,
+        totalStocks: stocksData?.length || 0
+      });
+    } catch (error) {
+      console.error('Error fetching risk buckets:', error);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
+
+  if (loading) {
+    return <div className="flex items-center justify-center h-96">Loading...</div>;
+  }
 
   const getRiskColor = (level: string) => {
     switch (level) {
@@ -92,7 +94,7 @@ export default function RiskBuckets() {
             <Shield className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">4</div>
+            <div className="text-2xl font-bold">{stats.totalBuckets}</div>
             <p className="text-xs text-muted-foreground">Risk categories</p>
           </CardContent>
         </Card>
@@ -103,30 +105,8 @@ export default function RiskBuckets() {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">126</div>
+            <div className="text-2xl font-bold">{stats.totalStocks}</div>
             <p className="text-xs text-muted-foreground">Categorized stocks</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg Volatility</CardTitle>
-            <TrendingDown className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">20%</div>
-            <p className="text-xs text-muted-foreground">Portfolio average</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Conservative Allocation</CardTitle>
-            <Shield className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">75%</div>
-            <p className="text-xs text-muted-foreground">Low-medium risk</p>
           </CardContent>
         </Card>
       </div>
@@ -137,53 +117,61 @@ export default function RiskBuckets() {
           <CardDescription>Portfolio risk distribution and characteristics</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-2">
-            {mockRiskBuckets.map((bucket) => (
-              <Card key={bucket.id} className="relative">
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="space-y-2">
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        {getRiskIcon(bucket.riskLevel)}
-                        {bucket.name}
-                      </CardTitle>
-                      <Badge className={getRiskColor(bucket.riskLevel)}>
-                        {bucket.riskLevel} Risk
-                      </Badge>
+          {riskBuckets.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">No risk buckets found in database</p>
+            </div>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2">
+              {riskBuckets.map((bucket) => (
+                <Card key={bucket.id} className="relative">
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <div className="space-y-2">
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          <Shield className="h-4 w-4" />
+                          {bucket.name}
+                        </CardTitle>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <div className="text-2xl font-bold">{bucket.allocation}</div>
-                      <div className="text-xs text-muted-foreground">allocation</div>
-                    </div>
-                  </div>
-                  <CardDescription>{bucket.description}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Stocks:</span>
-                      <span className="font-medium">{bucket.stockCount}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Avg Volatility:</span>
-                      <span className="font-medium">{bucket.avgVolatility}</span>
-                    </div>
-                    
-                    <div className="flex gap-2 mt-4">
-                      <Button variant="outline" size="sm" className="flex-1">
-                        View Stocks
-                      </Button>
-                      {(userRole === 'admin' || userRole === 'analyst') && (
-                        <Button variant="outline" size="sm">
-                          Edit
+                    <CardDescription>{bucket.description || 'No description available'}</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Created:</span>
+                        <span className="font-medium">{new Date(bucket.created_at).toLocaleDateString()}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Updated:</span>
+                        <span className="font-medium">{new Date(bucket.updated_at).toLocaleDateString()}</span>
+                      </div>
+                      
+                      <div className="flex gap-2 mt-4">
+                        <Button variant="outline" size="sm" className="flex-1">
+                          View Stocks
                         </Button>
-                      )}
+                        {bucket.pdf_url && (
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => window.open(bucket.pdf_url, '_blank')}
+                          >
+                            <Download className="w-4 h-4" />
+                          </Button>
+                        )}
+                        {(userRole === 'admin' || userRole === 'analyst') && (
+                          <Button variant="outline" size="sm">
+                            Edit
+                          </Button>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
