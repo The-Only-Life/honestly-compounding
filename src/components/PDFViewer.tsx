@@ -30,25 +30,41 @@ export function PDFViewer({ isOpen, onClose, pdfUrl, title, fileName }: PDFViewe
   }, [isOpen, pdfUrl, fileName]);
 
   const fetchPDFBlob = async () => {
-    if (!fileName) return;
+    if (!fileName) {
+      console.log('No fileName provided');
+      return;
+    }
     
+    console.log('Fetching PDF blob for:', fileName);
     setLoading(true);
     setError(null);
     
     try {
+      console.log('Downloading from Supabase storage...');
       const { data, error: downloadError } = await supabase.storage
         .from('research-pdfs')
         .download(fileName);
 
-      if (downloadError) throw downloadError;
+      if (downloadError) {
+        console.error('Download error:', downloadError);
+        throw downloadError;
+      }
+
+      console.log('Downloaded data:', data);
+      console.log('Data size:', data?.size);
+
+      if (!data) {
+        throw new Error('No data received');
+      }
 
       const blob = new Blob([data], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
+      console.log('Created blob URL:', url);
       setBlobUrl(url);
+      setLoading(false);
     } catch (err) {
       console.error('Error loading PDF:', err);
-      setError('Failed to load PDF');
-    } finally {
+      setError(`Failed to load PDF: ${err.message}`);
       setLoading(false);
     }
   };
