@@ -6,6 +6,7 @@ import { Briefcase, Plus, Eye, Download, TrendingUp } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useEffect, useState } from 'react';
 import { PDFViewer } from '@/components/PDFViewer';
+import { SecurePDFViewer } from '@/components/SecurePDFViewer';
 
 export default function Themes() {
   const { userRole } = useAuth();
@@ -224,12 +225,11 @@ export default function Themes() {
         </CardContent>
       </Card>
 
-      <PDFViewer 
+      <SecurePDFViewer 
         isOpen={!!selectedPDF}
         onClose={() => setSelectedPDF(null)}
-        pdfUrl={selectedPDF?.url || null}
-        title={selectedPDF?.title || ''}
         fileName={selectedPDF?.fileName}
+        title={selectedPDF?.title || ''}
       />
     </div>
   );

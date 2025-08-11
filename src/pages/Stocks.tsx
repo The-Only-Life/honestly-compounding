@@ -6,6 +6,7 @@ import { Building, Plus, TrendingUp, TrendingDown, Download, Eye } from 'lucide-
 import { supabase } from '@/integrations/supabase/client';
 import { useEffect, useState } from 'react';
 import { PDFViewer } from '@/components/PDFViewer';
+import { SecurePDFViewer } from '@/components/SecurePDFViewer';
 
 export default function Stocks() {
   const { userRole } = useAuth();
@@ -200,12 +201,11 @@ export default function Stocks() {
         </CardContent>
       </Card>
 
-      <PDFViewer 
+      <SecurePDFViewer 
         isOpen={!!selectedPDF}
         onClose={() => setSelectedPDF(null)}
-        pdfUrl={selectedPDF?.url || null}
-        title={selectedPDF?.title || ''}
         fileName={selectedPDF?.fileName}
+        title={selectedPDF?.title || ''}
       />
     </div>
   );
