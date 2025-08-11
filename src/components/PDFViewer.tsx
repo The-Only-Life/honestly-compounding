@@ -141,11 +141,30 @@ export function PDFViewer({ isOpen, onClose, pdfUrl, title, fileName }: PDFViewe
           )}
           
           {blobUrl && !loading && !error && (
-            <iframe
-              src={blobUrl}
-              className="w-full h-full border-0 rounded-lg"
-              title={title}
-            />
+            <div className="flex flex-col items-center justify-center h-full space-y-4">
+              <div className="text-center">
+                <h3 className="text-lg font-semibold mb-2">PDF Ready to View</h3>
+                <p className="text-muted-foreground mb-4">
+                  Due to browser security restrictions, PDFs cannot be displayed inline.
+                  Please use one of the options below to view the document.
+                </p>
+              </div>
+              
+              <div className="flex gap-4">
+                <Button onClick={handleOpenInNewTab} size="lg">
+                  <ExternalLink className="h-5 w-5 mr-2" />
+                  Open PDF in New Tab
+                </Button>
+                <Button variant="outline" onClick={handleDownload} size="lg">
+                  <Download className="h-5 w-5 mr-2" />
+                  Download PDF
+                </Button>
+              </div>
+              
+              <div className="text-xs text-muted-foreground max-w-md text-center">
+                The PDF will open in a new browser tab where you can view, zoom, and navigate through the document.
+              </div>
+            </div>
           )}
         </div>
       </SheetContent>
