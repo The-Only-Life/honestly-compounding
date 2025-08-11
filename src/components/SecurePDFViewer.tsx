@@ -23,7 +23,7 @@ interface SecurePDFViewerProps {
 export function SecurePDFViewer({ isOpen, onClose, fileName, title }: SecurePDFViewerProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [pdfData, setPdfData] = useState<ArrayBuffer | null>(null);
+  const [pdfData, setPdfData] = useState<{ data: Uint8Array } | null>(null);
   const [pageNum, setPageNum] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [scale, setScale] = useState(1.0);
@@ -42,20 +42,42 @@ export function SecurePDFViewer({ isOpen, onClose, fileName, title }: SecurePDFV
   }, [isOpen, fileName]);
 
   const loadPDF = async () => {
-    if (!fileName) return;
+    if (!fileName) {
+      console.log('No fileName provided');
+      return;
+    }
     
+    console.log('Loading PDF:', fileName);
     setLoading(true);
     setError(null);
     
     try {
+      console.log('Downloading from Supabase...');
       const { data, error: downloadError } = await supabase.storage
         .from('research-pdfs')
         .download(fileName);
 
-      if (downloadError) throw downloadError;
+      if (downloadError) {
+        console.error('Download error:', downloadError);
+        throw downloadError;
+      }
+
+      console.log('Downloaded data:', data);
+      console.log('Data size:', data?.size);
+      console.log('Data type:', data?.type);
+
+      if (!data) {
+        throw new Error('No data received from download');
+      }
 
       const arrayBuffer = await data.arrayBuffer();
-      setPdfData(arrayBuffer);
+      console.log('ArrayBuffer size:', arrayBuffer.byteLength);
+      
+      // Try creating a Uint8Array instead of using ArrayBuffer directly
+      const uint8Array = new Uint8Array(arrayBuffer);
+      console.log('Uint8Array created, length:', uint8Array.length);
+      
+      setPdfData({ data: uint8Array });
     } catch (err) {
       console.error('Error loading PDF:', err);
       setError(`Failed to load PDF: ${err.message}`);
@@ -65,13 +87,14 @@ export function SecurePDFViewer({ isOpen, onClose, fileName, title }: SecurePDFV
   };
 
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
+    console.log('Document loaded successfully, pages:', numPages);
     setTotalPages(numPages);
     setPageNum(1);
   };
 
   const onDocumentLoadError = (error: any) => {
     console.error('Error loading document:', error);
-    setError('Failed to load PDF document');
+    setError(`Failed to load PDF document: ${error.message || 'Unknown error'}`);
   };
 
   const goToPrevPage = () => {
