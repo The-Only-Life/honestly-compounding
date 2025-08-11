@@ -5,11 +5,14 @@ import { Badge } from '@/components/ui/badge';
 import { Briefcase, Plus, Eye, Download, TrendingUp } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useEffect, useState } from 'react';
+import { PDFViewer } from '@/components/PDFViewer';
 
 export default function Themes() {
   const { userRole } = useAuth();
   const [themes, setThemes] = useState<any[]>([]);
+  const [storagePDFs, setStoragePDFs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedPDF, setSelectedPDF] = useState<{ url: string; title: string } | null>(null);
   const [stats, setStats] = useState({
     totalThemes: 0,
     totalStocks: 0
@@ -17,7 +20,45 @@ export default function Themes() {
 
   useEffect(() => {
     fetchThemes();
+    fetchStoragePDFs();
   }, []);
+
+  const fetchStoragePDFs = async () => {
+    try {
+      const { data, error } = await supabase.storage
+        .from('research-pdfs')
+        .list('', { limit: 100 });
+
+      if (error) throw error;
+
+      const themePDFs = data?.filter(file => 
+        file.name.toLowerCase().includes('theme') || 
+        file.name.toLowerCase().includes('investment')
+      ) || [];
+
+      const pdfUrls = await Promise.all(
+        themePDFs.map(async (file) => {
+          const { data: urlData } = supabase.storage
+            .from('research-pdfs')
+            .getPublicUrl(file.name);
+          
+          return {
+            name: file.name,
+            url: urlData.publicUrl,
+            created_at: file.created_at
+          };
+        })
+      );
+
+      setStoragePDFs(pdfUrls);
+    } catch (error) {
+      console.error('Error fetching storage PDFs:', error);
+    }
+  };
+
+  const handleViewPDF = (pdfUrl: string, title: string) => {
+    setSelectedPDF({ url: pdfUrl, title });
+  };
 
   const fetchThemes = async () => {
     try {
@@ -94,64 +135,109 @@ export default function Themes() {
       <Card>
         <CardHeader>
           <CardTitle>Theme Library</CardTitle>
-          <CardDescription>Browse and manage investment themes</CardDescription>
+          <CardDescription>Browse investment themes and research documents</CardDescription>
         </CardHeader>
         <CardContent>
-          {themes.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground">No themes found in database</p>
-            </div>
-          ) : (
-            <div className="grid gap-4 md:grid-cols-2">
-              {themes.map((theme) => (
-                <Card key={theme.id} className="relative">
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div className="space-y-1">
-                        <CardTitle className="text-lg">{theme.name}</CardTitle>
-                      </div>
-                    </div>
-                    <CardDescription>{theme.description || 'No description available'}</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Created:</span>
-                        <span className="font-medium">{new Date(theme.created_at).toLocaleDateString()}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Updated:</span>
-                        <span className="font-medium">{new Date(theme.updated_at).toLocaleDateString()}</span>
-                      </div>
-                    </div>
-                    
-                    <div className="flex gap-2 mt-4">
-                      <Button variant="outline" size="sm" className="flex-1">
-                        <Eye className="w-4 h-4 mr-1" />
-                        View
-                      </Button>
-                      {theme.pdf_url && (
+          {/* Storage PDFs Section */}
+          {storagePDFs.length > 0 && (
+            <div className="mb-8">
+              <h3 className="text-lg font-semibold mb-4">Research Documents</h3>
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {storagePDFs.map((pdf, index) => (
+                  <Card key={index} className="relative hover:shadow-md transition-shadow">
+                    <CardHeader>
+                      <CardTitle className="text-base">{pdf.name}</CardTitle>
+                      <CardDescription>
+                        Uploaded: {new Date(pdf.created_at || '').toLocaleDateString()}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex gap-2">
                         <Button 
                           variant="outline" 
-                          size="sm"
-                          onClick={() => window.open(theme.pdf_url, '_blank')}
+                          size="sm" 
+                          className="flex-1"
+                          onClick={() => handleViewPDF(pdf.url, pdf.name)}
                         >
-                          <Download className="w-4 h-4" />
+                          <Eye className="w-4 h-4 mr-1" />
+                          View PDF
                         </Button>
-                      )}
-                      {(userRole === 'admin' || userRole === 'analyst') && (
-                        <Button variant="outline" size="sm">
-                          Edit
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Database Themes Section */}
+          {themes.length > 0 && (
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Database Themes</h3>
+              <div className="grid gap-4 md:grid-cols-2">
+                {themes.map((theme) => (
+                  <Card key={theme.id} className="relative">
+                    <CardHeader>
+                      <div className="flex items-start justify-between">
+                        <div className="space-y-1">
+                          <CardTitle className="text-lg">{theme.name}</CardTitle>
+                        </div>
+                      </div>
+                      <CardDescription>{theme.description || 'No description available'}</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">Created:</span>
+                          <span className="font-medium">{new Date(theme.created_at).toLocaleDateString()}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">Updated:</span>
+                          <span className="font-medium">{new Date(theme.updated_at).toLocaleDateString()}</span>
+                        </div>
+                      </div>
+                      
+                      <div className="flex gap-2 mt-4">
+                        <Button variant="outline" size="sm" className="flex-1">
+                          <Eye className="w-4 h-4 mr-1" />
+                          View
                         </Button>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                        {theme.pdf_url && (
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleViewPDF(theme.pdf_url, theme.name)}
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                        )}
+                        {(userRole === 'admin' || userRole === 'analyst') && (
+                          <Button variant="outline" size="sm">
+                            Edit
+                          </Button>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {themes.length === 0 && storagePDFs.length === 0 && (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">No themes or documents found</p>
             </div>
           )}
         </CardContent>
       </Card>
+
+      <PDFViewer 
+        isOpen={!!selectedPDF}
+        onClose={() => setSelectedPDF(null)}
+        pdfUrl={selectedPDF?.url || null}
+        title={selectedPDF?.title || ''}
+      />
     </div>
   );
 }

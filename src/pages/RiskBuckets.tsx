@@ -2,14 +2,17 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Shield, Plus, AlertTriangle, TrendingDown, TrendingUp, Download } from 'lucide-react';
+import { Shield, Plus, AlertTriangle, TrendingDown, TrendingUp, Download, Eye } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useEffect, useState } from 'react';
+import { PDFViewer } from '@/components/PDFViewer';
 
 export default function RiskBuckets() {
   const { userRole } = useAuth();
   const [riskBuckets, setRiskBuckets] = useState<any[]>([]);
+  const [storagePDFs, setStoragePDFs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedPDF, setSelectedPDF] = useState<{ url: string; title: string } | null>(null);
   const [stats, setStats] = useState({
     totalBuckets: 0,
     totalStocks: 0
@@ -17,7 +20,45 @@ export default function RiskBuckets() {
 
   useEffect(() => {
     fetchRiskBuckets();
+    fetchStoragePDFs();
   }, []);
+
+  const fetchStoragePDFs = async () => {
+    try {
+      const { data, error } = await supabase.storage
+        .from('research-pdfs')
+        .list('', { limit: 100 });
+
+      if (error) throw error;
+
+      const bucketPDFs = data?.filter(file => 
+        file.name.toLowerCase().includes('bucket') || 
+        file.name.toLowerCase().includes('risk')
+      ) || [];
+
+      const pdfUrls = await Promise.all(
+        bucketPDFs.map(async (file) => {
+          const { data: urlData } = supabase.storage
+            .from('research-pdfs')
+            .getPublicUrl(file.name);
+          
+          return {
+            name: file.name,
+            url: urlData.publicUrl,
+            created_at: file.created_at
+          };
+        })
+      );
+
+      setStoragePDFs(pdfUrls);
+    } catch (error) {
+      console.error('Error fetching storage PDFs:', error);
+    }
+  };
+
+  const handleViewPDF = (pdfUrl: string, title: string) => {
+    setSelectedPDF({ url: pdfUrl, title });
+  };
 
   const fetchRiskBuckets = async () => {
     try {
@@ -114,66 +155,111 @@ export default function RiskBuckets() {
       <Card>
         <CardHeader>
           <CardTitle>Risk Bucket Analysis</CardTitle>
-          <CardDescription>Portfolio risk distribution and characteristics</CardDescription>
+          <CardDescription>Portfolio risk distribution and research documents</CardDescription>
         </CardHeader>
         <CardContent>
-          {riskBuckets.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground">No risk buckets found in database</p>
-            </div>
-          ) : (
-            <div className="grid gap-4 md:grid-cols-2">
-              {riskBuckets.map((bucket) => (
-                <Card key={bucket.id} className="relative">
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div className="space-y-2">
-                        <CardTitle className="text-lg flex items-center gap-2">
-                          <Shield className="h-4 w-4" />
-                          {bucket.name}
-                        </CardTitle>
-                      </div>
-                    </div>
-                    <CardDescription>{bucket.description || 'No description available'}</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Created:</span>
-                        <span className="font-medium">{new Date(bucket.created_at).toLocaleDateString()}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Updated:</span>
-                        <span className="font-medium">{new Date(bucket.updated_at).toLocaleDateString()}</span>
-                      </div>
-                      
-                      <div className="flex gap-2 mt-4">
-                        <Button variant="outline" size="sm" className="flex-1">
-                          View Stocks
+          {/* Storage PDFs Section */}
+          {storagePDFs.length > 0 && (
+            <div className="mb-8">
+              <h3 className="text-lg font-semibold mb-4">Risk Research Documents</h3>
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {storagePDFs.map((pdf, index) => (
+                  <Card key={index} className="relative hover:shadow-md transition-shadow">
+                    <CardHeader>
+                      <CardTitle className="text-base">{pdf.name}</CardTitle>
+                      <CardDescription>
+                        Uploaded: {new Date(pdf.created_at || '').toLocaleDateString()}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="flex-1"
+                          onClick={() => handleViewPDF(pdf.url, pdf.name)}
+                        >
+                          <Eye className="w-4 h-4 mr-1" />
+                          View PDF
                         </Button>
-                        {bucket.pdf_url && (
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => window.open(bucket.pdf_url, '_blank')}
-                          >
-                            <Download className="w-4 h-4" />
-                          </Button>
-                        )}
-                        {(userRole === 'admin' || userRole === 'analyst') && (
-                          <Button variant="outline" size="sm">
-                            Edit
-                          </Button>
-                        )}
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Database Risk Buckets Section */}
+          {riskBuckets.length > 0 && (
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Database Risk Buckets</h3>
+              <div className="grid gap-4 md:grid-cols-2">
+                {riskBuckets.map((bucket) => (
+                  <Card key={bucket.id} className="relative">
+                    <CardHeader>
+                      <div className="flex items-start justify-between">
+                        <div className="space-y-2">
+                          <CardTitle className="text-lg flex items-center gap-2">
+                            <Shield className="h-4 w-4" />
+                            {bucket.name}
+                          </CardTitle>
+                        </div>
+                      </div>
+                      <CardDescription>{bucket.description || 'No description available'}</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">Created:</span>
+                          <span className="font-medium">{new Date(bucket.created_at).toLocaleDateString()}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">Updated:</span>
+                          <span className="font-medium">{new Date(bucket.updated_at).toLocaleDateString()}</span>
+                        </div>
+                        
+                        <div className="flex gap-2 mt-4">
+                          <Button variant="outline" size="sm" className="flex-1">
+                            View Stocks
+                          </Button>
+                          {bucket.pdf_url && (
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleViewPDF(bucket.pdf_url, bucket.name)}
+                            >
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                          )}
+                          {(userRole === 'admin' || userRole === 'analyst') && (
+                            <Button variant="outline" size="sm">
+                              Edit
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {riskBuckets.length === 0 && storagePDFs.length === 0 && (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">No risk buckets or documents found</p>
             </div>
           )}
         </CardContent>
       </Card>
+
+      <PDFViewer 
+        isOpen={!!selectedPDF}
+        onClose={() => setSelectedPDF(null)}
+        pdfUrl={selectedPDF?.url || null}
+        title={selectedPDF?.title || ''}
+      />
     </div>
   );
 }
