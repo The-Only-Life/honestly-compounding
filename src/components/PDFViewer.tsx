@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { X, Loader2 } from 'lucide-react';
+import { X, Loader2, Download, ExternalLink } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 interface PDFViewerProps {
@@ -9,20 +9,65 @@ interface PDFViewerProps {
   onClose: () => void;
   pdfUrl: string | null;
   title: string;
+  fileName?: string;
 }
 
-export function PDFViewer({ isOpen, onClose, pdfUrl, title }: PDFViewerProps) {
+export function PDFViewer({ isOpen, onClose, pdfUrl, title, fileName }: PDFViewerProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [blobUrl, setBlobUrl] = useState<string | null>(null);
 
-  const handleLoad = () => {
-    setLoading(false);
+  useEffect(() => {
+    if (isOpen && pdfUrl && fileName) {
+      fetchPDFBlob();
+    }
+    
+    return () => {
+      if (blobUrl) {
+        URL.revokeObjectURL(blobUrl);
+      }
+    };
+  }, [isOpen, pdfUrl, fileName]);
+
+  const fetchPDFBlob = async () => {
+    if (!fileName) return;
+    
+    setLoading(true);
     setError(null);
+    
+    try {
+      const { data, error: downloadError } = await supabase.storage
+        .from('research-pdfs')
+        .download(fileName);
+
+      if (downloadError) throw downloadError;
+
+      const blob = new Blob([data], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      setBlobUrl(url);
+    } catch (err) {
+      console.error('Error loading PDF:', err);
+      setError('Failed to load PDF');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleError = () => {
-    setLoading(false);
-    setError('Failed to load PDF');
+  const handleDownload = () => {
+    if (blobUrl && fileName) {
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
+
+  const handleOpenInNewTab = () => {
+    if (blobUrl) {
+      window.open(blobUrl, '_blank');
+    }
   };
 
   return (
@@ -31,9 +76,23 @@ export function PDFViewer({ isOpen, onClose, pdfUrl, title }: PDFViewerProps) {
         <SheetHeader className="pb-4">
           <div className="flex items-center justify-between">
             <SheetTitle>{title}</SheetTitle>
-            <Button variant="ghost" size="sm" onClick={onClose}>
-              <X className="h-4 w-4" />
-            </Button>
+            <div className="flex items-center gap-2">
+              {blobUrl && (
+                <>
+                  <Button variant="outline" size="sm" onClick={handleDownload}>
+                    <Download className="h-4 w-4 mr-1" />
+                    Download
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={handleOpenInNewTab}>
+                    <ExternalLink className="h-4 w-4 mr-1" />
+                    Open in Tab
+                  </Button>
+                </>
+              )}
+              <Button variant="ghost" size="sm" onClick={onClose}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
           <SheetDescription>
             View research document in PDF format
@@ -54,19 +113,17 @@ export function PDFViewer({ isOpen, onClose, pdfUrl, title }: PDFViewerProps) {
             <div className="absolute inset-0 flex items-center justify-center bg-muted/50">
               <div className="text-center">
                 <p className="text-destructive mb-2">{error}</p>
-                <Button onClick={() => window.location.reload()}>
+                <Button onClick={fetchPDFBlob}>
                   Try Again
                 </Button>
               </div>
             </div>
           )}
           
-          {pdfUrl && (
+          {blobUrl && !loading && !error && (
             <iframe
-              src={`${pdfUrl}#toolbar=0&navpanes=0&scrollbar=1`}
+              src={blobUrl}
               className="w-full h-full border-0 rounded-lg"
-              onLoad={handleLoad}
-              onError={handleError}
               title={title}
             />
           )}

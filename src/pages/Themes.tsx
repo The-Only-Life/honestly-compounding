@@ -12,7 +12,7 @@ export default function Themes() {
   const [themes, setThemes] = useState<any[]>([]);
   const [storagePDFs, setStoragePDFs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedPDF, setSelectedPDF] = useState<{ url: string; title: string } | null>(null);
+  const [selectedPDF, setSelectedPDF] = useState<{ url: string; title: string; fileName?: string } | null>(null);
   const [stats, setStats] = useState({
     totalThemes: 0,
     totalStocks: 0
@@ -36,34 +36,20 @@ export default function Themes() {
         file.name.toLowerCase().includes('investment')
       ) || [];
 
-      const pdfUrls = await Promise.all(
-        themePDFs.map(async (file) => {
-          // Generate signed URL instead of public URL for better access
-          const { data: urlData, error: urlError } = await supabase.storage
-            .from('research-pdfs')
-            .createSignedUrl(file.name, 3600); // 1 hour expiry
-          
-          if (urlError) {
-            console.error('Error creating signed URL:', urlError);
-            return null;
-          }
-          
-          return {
-            name: file.name,
-            url: urlData.signedUrl,
-            created_at: file.created_at
-          };
-        })
-      );
+      const pdfUrls = themePDFs.map((file) => ({
+        name: file.name,
+        fileName: file.name,
+        created_at: file.created_at
+      }));
 
-      setStoragePDFs(pdfUrls.filter(Boolean));
+      setStoragePDFs(pdfUrls);
     } catch (error) {
       console.error('Error fetching storage PDFs:', error);
     }
   };
 
-  const handleViewPDF = (pdfUrl: string, title: string) => {
-    setSelectedPDF({ url: pdfUrl, title });
+  const handleViewPDF = (fileName: string, title: string) => {
+    setSelectedPDF({ url: '', title, fileName });
   };
 
   const fetchThemes = async () => {
@@ -163,7 +149,7 @@ export default function Themes() {
                           variant="outline" 
                           size="sm" 
                           className="flex-1"
-                          onClick={() => handleViewPDF(pdf.url, pdf.name)}
+                          onClick={() => handleViewPDF(pdf.fileName, pdf.name)}
                         >
                           <Eye className="w-4 h-4 mr-1" />
                           View PDF
@@ -208,12 +194,12 @@ export default function Themes() {
                           <Eye className="w-4 h-4 mr-1" />
                           View
                         </Button>
-                        {theme.pdf_url && (
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => handleViewPDF(theme.pdf_url, theme.name)}
-                          >
+                          {theme.pdf_url && (
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleViewPDF(theme.pdf_url.split('/').pop() || '', theme.name)}
+                            >
                             <Eye className="w-4 h-4" />
                           </Button>
                         )}
@@ -243,6 +229,7 @@ export default function Themes() {
         onClose={() => setSelectedPDF(null)}
         pdfUrl={selectedPDF?.url || null}
         title={selectedPDF?.title || ''}
+        fileName={selectedPDF?.fileName}
       />
     </div>
   );
