@@ -38,19 +38,25 @@ export default function RiskBuckets() {
 
       const pdfUrls = await Promise.all(
         bucketPDFs.map(async (file) => {
-          const { data: urlData } = supabase.storage
+          // Generate signed URL instead of public URL for better access
+          const { data: urlData, error: urlError } = await supabase.storage
             .from('research-pdfs')
-            .getPublicUrl(file.name);
+            .createSignedUrl(file.name, 3600); // 1 hour expiry
+          
+          if (urlError) {
+            console.error('Error creating signed URL:', urlError);
+            return null;
+          }
           
           return {
             name: file.name,
-            url: urlData.publicUrl,
+            url: urlData.signedUrl,
             created_at: file.created_at
           };
         })
       );
 
-      setStoragePDFs(pdfUrls);
+      setStoragePDFs(pdfUrls.filter(Boolean));
     } catch (error) {
       console.error('Error fetching storage PDFs:', error);
     }

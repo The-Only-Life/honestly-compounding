@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { X, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -35,6 +35,9 @@ export function PDFViewer({ isOpen, onClose, pdfUrl, title }: PDFViewerProps) {
               <X className="h-4 w-4" />
             </Button>
           </div>
+          <SheetDescription>
+            View research document in PDF format
+          </SheetDescription>
         </SheetHeader>
         
         <div className="h-[calc(100vh-120px)] relative">
