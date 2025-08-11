@@ -9,6 +9,12 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
+import Users from "./pages/Users";
+import Themes from "./pages/Themes";
+import RiskBuckets from "./pages/RiskBuckets";
+import Stocks from "./pages/Stocks";
+import ContentManagement from "./pages/ContentManagement";
+import Account from "./pages/Account";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -33,7 +39,66 @@ const App = () => (
                 </ProtectedRoute>
               } 
             />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route 
+              path="/dashboard/users" 
+              element={
+                <ProtectedRoute requiredRoles={['admin']}>
+                  <DashboardLayout>
+                    <Users />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/dashboard/themes" 
+              element={
+                <ProtectedRoute requiredRoles={['admin', 'analyst']}>
+                  <DashboardLayout>
+                    <Themes />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/dashboard/risk-buckets" 
+              element={
+                <ProtectedRoute requiredRoles={['admin', 'analyst']}>
+                  <DashboardLayout>
+                    <RiskBuckets />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/dashboard/stocks" 
+              element={
+                <ProtectedRoute requiredRoles={['admin', 'analyst']}>
+                  <DashboardLayout>
+                    <Stocks />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/dashboard/content-management" 
+              element={
+                <ProtectedRoute requiredRoles={['admin', 'analyst']}>
+                  <DashboardLayout>
+                    <ContentManagement />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/dashboard/account" 
+              element={
+                <ProtectedRoute requiredRoles={['admin', 'analyst']}>
+                  <DashboardLayout>
+                    <Account />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              } 
+            />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
