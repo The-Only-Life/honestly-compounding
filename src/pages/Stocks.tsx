@@ -42,6 +42,7 @@ export default function Stocks() {
         created_at: file.created_at
       }));
 
+      console.log('Stock PDFs found:', pdfUrls);
       setStoragePDFs(pdfUrls);
     } catch (error) {
       console.error('Error fetching storage PDFs:', error);
@@ -49,6 +50,7 @@ export default function Stocks() {
   };
 
   const handleViewPDF = (fileName: string, title: string) => {
+    console.log('handleViewPDF called with:', { fileName, title });
     setSelectedPDF({ url: '', title, fileName });
   };
 

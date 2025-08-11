@@ -18,12 +18,16 @@ export function PDFViewer({ isOpen, onClose, pdfUrl, title, fileName }: PDFViewe
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    if (isOpen && pdfUrl && fileName) {
+    console.log('PDFViewer useEffect triggered with:', { isOpen, pdfUrl, fileName });
+    
+    if (isOpen && fileName) {
+      console.log('Calling fetchPDFBlob...');
       fetchPDFBlob();
     }
     
     return () => {
       if (blobUrl) {
+        console.log('Cleaning up blob URL:', blobUrl);
         URL.revokeObjectURL(blobUrl);
       }
     };
