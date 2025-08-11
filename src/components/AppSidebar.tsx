@@ -4,10 +4,11 @@ import {
   FileText, 
   Briefcase, 
   PieChart,
-  Settings,
   LogOut,
   Shield,
-  Building
+  Building,
+  User,
+  FolderOpen
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -29,8 +30,8 @@ const adminItems = [
   { title: "Themes", url: "/dashboard/themes", icon: Briefcase },
   { title: "Risk Buckets", url: "/dashboard/risk-buckets", icon: Shield },
   { title: "Stocks", url: "/dashboard/stocks", icon: Building },
-  { title: "Content Access", url: "/dashboard/content-access", icon: FileText },
-  { title: "Settings", url: "/dashboard/settings", icon: Settings },
+  { title: "Content Management", url: "/dashboard/content-management", icon: FolderOpen },
+  { title: "Account", url: "/dashboard/account", icon: User },
 ];
 
 const analystItems = [
@@ -38,7 +39,8 @@ const analystItems = [
   { title: "Themes", url: "/dashboard/themes", icon: Briefcase },
   { title: "Risk Buckets", url: "/dashboard/risk-buckets", icon: Shield },
   { title: "Stocks", url: "/dashboard/stocks", icon: Building },
-  { title: "Content Access", url: "/dashboard/content-access", icon: FileText },
+  { title: "Content Management", url: "/dashboard/content-management", icon: FolderOpen },
+  { title: "Account", url: "/dashboard/account", icon: User },
 ];
 
 export function AppSidebar() {
