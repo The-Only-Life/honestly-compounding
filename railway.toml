@@ -10,7 +10,3 @@ restartPolicyType = "never"
 [[deploy.variables]]
 name = "NODE_ENV"
 value = "production"
-
-[[deploy.variables]]
-name = "PORT"
-value = "3001"
