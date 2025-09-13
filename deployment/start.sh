@@ -12,11 +12,15 @@ sed "s/PORT_PLACEHOLDER/$PORT/g" /app/deployment/nginx.conf.template > /etc/ngin
 echo "Generated nginx config:"
 cat /etc/nginx/sites-available/default
 
-# Start the Bun server on fixed internal port 3001
-cd /app && INTERNAL_PORT=3001 bun run server/index.js &
+# Start the Bun server on fixed internal port 3001 (ensure it doesn't use PORT)
+cd /app && env -u PORT INTERNAL_PORT=3001 bun run server/index.js &
 
 # Wait for server to start
 sleep 3
 
+# Test if Bun server is responding
+echo "Testing Bun server on port 3001..."
+
 # Start nginx in foreground
+echo "Starting nginx..."
 nginx -g "daemon off;"
