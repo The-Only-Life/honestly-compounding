@@ -8,8 +8,8 @@ echo "Starting on port $PORT"
 # Install envsubst for environment variable substitution
 apt-get update && apt-get install -y gettext-base && rm -rf /var/lib/apt/lists/*
 
-# Create nginx config with PORT substitution
-envsubst < /app/deployment/nginx.conf.template > /etc/nginx/sites-available/default
+# Create nginx config with PORT substitution only (preserve nginx variables)
+envsubst '${PORT}' < /app/deployment/nginx.conf.template > /etc/nginx/sites-available/default
 
 # Start the Bun server on fixed internal port 3001
 cd /app && INTERNAL_PORT=3001 bun run server/index.js &
