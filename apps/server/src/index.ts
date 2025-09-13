@@ -156,7 +156,9 @@ app.get('/api/risk-buckets', async (c) => {
   }
 });
 
-const port = process.env.PORT || 3001;
+// Use INTERNAL_PORT for the Bun server (internal communication with Nginx)
+// Railway's PORT is used by Nginx for external traffic
+const port = process.env.INTERNAL_PORT || 3001;
 
 console.log(`🔥 Server is running on port ${port}`);
 

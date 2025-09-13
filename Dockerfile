@@ -51,41 +51,11 @@ COPY --from=base /app/package.json ./
 # Copy server dependencies
 COPY --from=base /app/apps/server/package.json ./apps/server/
 
-# Create nginx configuration
-RUN echo 'server { \
-    listen 3000; \
-    root /app/web; \
-    index index.html; \
-    try_files $uri $uri/ /index.html; \
-    \
-    # Proxy API requests to the Bun server \
-    location /api/ { \
-        proxy_pass http://localhost:3001; \
-        proxy_http_version 1.1; \
-        proxy_set_header Upgrade $http_upgrade; \
-        proxy_set_header Connection "upgrade"; \
-        proxy_set_header Host $host; \
-        proxy_set_header X-Real-IP $remote_addr; \
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; \
-        proxy_set_header X-Forwarded-Proto $scheme; \
-    } \
-    \
-    # Health check endpoint \
-    location /health { \
-        proxy_pass http://localhost:3001; \
-        proxy_http_version 1.1; \
-        proxy_set_header Host $host; \
-        proxy_set_header X-Real-IP $remote_addr; \
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; \
-        proxy_set_header X-Forwarded-Proto $scheme; \
-    } \
-}' > /etc/nginx/sites-available/default
+# Create startup script that adapts to Railway's PORT
+RUN printf '#!/bin/bash\nset -e\n\n# Use Railway PORT or default to 8080\nPORT=${PORT:-8080}\necho "Starting on port $PORT"\n\n# Create nginx config dynamically based on PORT\ncat > /etc/nginx/sites-available/default << EOF\nserver {\n    listen $PORT;\n    root /app/web;\n    index index.html;\n    try_files \\$uri \\$uri/ /index.html;\n\n    # Serve static files directly\n    location ~* \\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {\n        expires 1y;\n        add_header Cache-Control \"public, immutable\";\n    }\n\n    # Proxy API requests to the Bun server on internal port\n    location /api/ {\n        proxy_pass http://localhost:3001;\n        proxy_http_version 1.1;\n        proxy_set_header Upgrade \\$http_upgrade;\n        proxy_set_header Connection \"upgrade\";\n        proxy_set_header Host \\$host;\n        proxy_set_header X-Real-IP \\$remote_addr;\n        proxy_set_header X-Forwarded-For \\$proxy_add_x_forwarded_for;\n        proxy_set_header X-Forwarded-Proto \\$scheme;\n    }\n\n    # Health check endpoint\n    location /health {\n        proxy_pass http://localhost:3001;\n        proxy_http_version 1.1;\n        proxy_set_header Host \\$host;\n        proxy_set_header X-Real-IP \\$remote_addr;\n        proxy_set_header X-Forwarded-For \\$proxy_add_x_forwarded_for;\n        proxy_set_header X-Forwarded-Proto \\$scheme;\n    }\n}\nEOF\n\n# Start the Bun server on fixed internal port 3001\ncd /app && INTERNAL_PORT=3001 bun run server/index.js &\n\n# Wait for server to start\nsleep 3\n\n# Start nginx in foreground\nnginx -g "daemon off;"\n' > /app/start.sh && chmod +x /app/start.sh
 
-# Create startup script
-RUN printf '#!/bin/bash\nset -e\n\n# Start the Bun server in the background\ncd /app && bun run server/index.js &\n\n# Wait a moment for the server to start\nsleep 2\n\n# Start nginx in the foreground\nnginx -g "daemon off;"\n' > /app/start.sh && chmod +x /app/start.sh
-
-# Expose port 3000 (web app with API proxy)
-EXPOSE 3000
+# Don't expose a specific port - let Railway handle it
+# EXPOSE is removed so Railway can assign whatever port it wants
 
 # Start both services
 CMD ["/app/start.sh"]
