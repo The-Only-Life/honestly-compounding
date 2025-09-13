@@ -1,0 +1,19 @@
+{
+  "name": "@honestly-insight-hub/server",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun --hot src/index.ts",
+    "build": "bun build src/index.ts --outdir ./dist --target bun",
+    "start": "bun dist/index.js"
+  },
+  "dependencies": {
+    "@honestly-insight-hub/db": "workspace:*",
+    "@types/node": "^24.3.3",
+    "hono": "^4.9.7"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  }
+}

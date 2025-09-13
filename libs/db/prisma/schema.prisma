@@ -1,0 +1,181 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider      = "prisma-client-js"
+  output        = "../src/generated"
+  binaryTargets = ["native", "linux-arm64-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Enums
+enum AppRole {
+  admin
+  analyst
+  sponsor
+  subscriber
+}
+
+// Users table (replacing auth.users from Supabase)
+model User {
+  id             String   @id @default(cuid())
+  email          String   @unique
+  passwordHash   String
+  emailVerified  Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  profile      Profile?
+  userRoles    UserRole[]
+  userSessions UserSession[]
+
+  @@map("users")
+}
+
+// User profiles table (extends users)
+model Profile {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  fullName      String
+  mobileNumber  String
+  emailVerified Boolean? @default(false)
+  isEnabled     Boolean? @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  user                User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userRoles           UserRole[]
+  themesCreated       Theme[]       @relation("ThemeCreator")
+  riskBucketsCreated  RiskBucket[]  @relation("RiskBucketCreator")
+  stocksCreated       Stock[]       @relation("StockCreator")
+  contentAccessGranted ContentAccess[] @relation("ContentAccessGrantor")
+  contentAccessReceived ContentAccess[] @relation("ContentAccessReceiver")
+  auditLogs           AuditLog[]
+
+  @@map("profiles")
+}
+
+// User roles table
+model UserRole {
+  id        String    @id @default(cuid())
+  userId    String
+  role      AppRole
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+
+  // Relations
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade, map: "user_roles_user_fkey")
+  profile Profile @relation(fields: [userId], references: [userId], onDelete: Cascade, map: "user_roles_profile_fkey")
+
+  @@unique([userId, role])
+  @@map("user_roles")
+}
+
+// Investment themes table
+model Theme {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  pdfUrl      String?
+  createdBy   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  creator Profile @relation("ThemeCreator", fields: [createdBy], references: [userId])
+  stocks  Stock[]
+
+  @@map("themes")
+}
+
+// Risk buckets table
+model RiskBucket {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  pdfUrl      String?
+  createdBy   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  creator Profile @relation("RiskBucketCreator", fields: [createdBy], references: [userId])
+  stocks  Stock[]
+
+  @@map("risk_buckets")
+}
+
+// Stocks table
+model Stock {
+  id           String   @id @default(cuid())
+  symbol       String   @unique
+  companyName  String
+  themeId      String
+  riskBucketId String
+  pdfUrl       String?
+  createdBy    String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  theme       Theme      @relation(fields: [themeId], references: [id], onDelete: Restrict)
+  riskBucket  RiskBucket @relation(fields: [riskBucketId], references: [id], onDelete: Restrict)
+  creator     Profile    @relation("StockCreator", fields: [createdBy], references: [userId])
+
+  @@map("stocks")
+}
+
+// Content access table
+model ContentAccess {
+  id          String   @id @default(cuid())
+  userId      String
+  contentType String // 'stock', 'theme', 'bucket'
+  contentId   String
+  grantedBy   String
+  grantedAt   DateTime @default(now())
+
+  // Relations
+  user      Profile @relation("ContentAccessReceiver", fields: [userId], references: [userId], onDelete: Cascade)
+  grantor   Profile @relation("ContentAccessGrantor", fields: [grantedBy], references: [userId])
+
+  @@map("content_access")
+}
+
+// Audit logs table
+model AuditLog {
+  id           String    @id @default(cuid())
+  userId       String?
+  action       String
+  resourceType String
+  resourceId   String?
+  ipAddress    String?
+  userAgent    String?
+  createdAt    DateTime  @default(now())
+
+  // Relations
+  user Profile? @relation(fields: [userId], references: [userId], onDelete: SetNull)
+
+  @@map("audit_logs")
+}
+
+// User sessions table
+model UserSession {
+  id        String    @id @default(cuid())
+  userId    String
+  loginAt   DateTime  @default(now())
+  logoutAt  DateTime?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime  @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_sessions")
+}
