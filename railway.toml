@@ -1,0 +1,16 @@
+[build]
+builder = "dockerfile"
+
+[deploy]
+startCommand = "/app/start.sh"
+healthcheckPath = "/health"
+healthcheckTimeout = 300
+restartPolicyType = "never"
+
+[[deploy.variables]]
+name = "NODE_ENV"
+value = "production"
+
+[[deploy.variables]]
+name = "PORT"
+value = "3001"
