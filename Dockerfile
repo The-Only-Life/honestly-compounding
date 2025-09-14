@@ -16,8 +16,6 @@ RUN bun install --frozen-lockfile
 # Copy all source code
 COPY . .
 
-# Remove node_modules to avoid host/container binary conflicts
-RUN rm -rf node_modules apps/*/node_modules libs/*/node_modules
 # Reinstall with container-specific binaries  
 RUN bun install --frozen-lockfile
 
@@ -56,8 +54,8 @@ COPY --from=base /app/deployment ./deployment
 COPY --from=base /app/deployment/start.sh /app/start.sh
 RUN chmod +x /app/start.sh
 
-# Don't expose a specific port - let Railway handle it
-# EXPOSE is removed so Railway can assign whatever port it wants
+# Expose port 8080 for Railway
+EXPOSE 8080
 
 # Start both services
 CMD ["/app/start.sh"]

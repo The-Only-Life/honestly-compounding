@@ -1,26 +1,18 @@
 #!/bin/bash
 set -e
 
-# Use Railway PORT or default to 8080
-PORT=${PORT:-8080}
-echo "Starting on port $PORT"
+echo "Starting honestly-insight-hub container..."
 
-# Create nginx config using sed to replace only the port placeholder
-sed "s/PORT_PLACEHOLDER/$PORT/g" /app/deployment/nginx.conf.template > /etc/nginx/sites-available/default
+# Copy nginx config to sites-available
+cp /app/deployment/nginx.conf /etc/nginx/sites-available/default
 
-# Debug: show the generated config
-echo "Generated nginx config:"
-cat /etc/nginx/sites-available/default
-
-# Start the Bun server on fixed internal port 3001 (ensure it doesn't use PORT)
-cd /app && env -u PORT INTERNAL_PORT=3001 bun run server/index.js &
+# Start the Bun server on port 3001 in background
+echo "Starting Bun server on port 3001..."
+cd /app && INTERNAL_PORT=3001 bun run server/index.js &
 
 # Wait for server to start
 sleep 3
 
-# Test if Bun server is responding
-echo "Testing Bun server on port 3001..."
-
-# Start nginx in foreground
-echo "Starting nginx..."
+# Start nginx on port 8080 in foreground
+echo "Starting nginx on port 8080..."
 nginx -g "daemon off;"
