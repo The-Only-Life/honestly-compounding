@@ -23,3 +23,32 @@ export const CreateUserSchema = Type.Omit(UserSchema, ['id', "_created_at", "_up
 export const InviteUserSchema = Type.Object({
     email: Type.String({ format: "email" })
 })
+
+// Login schemas
+export const LoginSchema = Type.Object({
+    email: Type.String({ format: "email" }),
+    password: Type.String({ minLength: 6 })
+})
+
+export const PhoneLoginSchema = Type.Object({
+    phone: Type.String({ pattern: '^(\\+91[- ]?)?[6-9]\\d{9}$' }),
+    password: Type.String({ minLength: 6 })
+})
+
+// Auth response schemas
+export const AuthUserSchema = Type.Object({
+    id: Type.String(),
+    email: Type.String({ format: "email" }),
+    role: Type.Optional(Type.String()),
+    emailVerified: Type.Boolean(),
+    createdAt: Type.String()
+})
+
+export const LoginResponseSchema = Type.Object({
+    user: AuthUserSchema,
+    message: Type.String()
+})
+
+export const LogoutResponseSchema = Type.Object({
+    message: Type.String()
+})

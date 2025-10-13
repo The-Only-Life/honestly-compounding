@@ -1,25 +1,15 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useMemo } from 'react';
+import { useCurrentUser, useLogin, useLogout } from '@/hooks/use-auth-api';
 import { toast } from '@/hooks/use-toast';
-
-interface User {
-  id: string;
-  email: string;
-  full_name?: string;
-}
-
-interface Session {
-  user: User;
-  access_token: string;
-}
+import type { AuthUser } from '@/lib/api-client';
 
 interface AuthContextType {
-  user: User | null;
-  session: Session | null;
-  userRole: string | null;
-  signUp: (email: string, password: string, fullName: string) => Promise<{ error: any }>;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
+  user: AuthUser | null;
+  isLoading: boolean;
+  isAuthenticated: boolean;
+  signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
-  loading: boolean;
+  signUp: (email: string, password: string, fullName: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -33,52 +23,39 @@ export const useAuth = () => {
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [userRole, setUserRole] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const { data: currentUserData, isLoading } = useCurrentUser();
+  const loginMutation = useLogin();
+  const logoutMutation = useLogout();
 
-  const signUp = async (_email: string, _password: string, _fullName: string) => {
-    // TODO: Implement with Bun server API
-    toast({
-      title: "Feature coming soon",
-      description: "Sign up will be available once the server is set up.",
-    });
+  const user = currentUserData?.user || null;
+  const isAuthenticated = !!user;
 
-    return { error: null };
-  };
-
-  const signIn = async (_email: string, _password: string) => {
-    // TODO: Implement with Bun server API
-    toast({
-      title: "Feature coming soon",
-      description: "Sign in will be available once the server is set up.",
-    });
-
-    return { error: null };
+  const signIn = async (email: string, password: string) => {
+    await loginMutation.mutateAsync({ email, password });
   };
 
   const signOut = async () => {
-    // TODO: Implement with Bun server API
-    setUser(null);
-    setSession(null);
-    setUserRole(null);
-    
+    await logoutMutation.mutateAsync();
+  };
+
+  const signUp = async (_email: string, _password: string, _fullName: string) => {
     toast({
-      title: "Signed out",
-      description: "You have been signed out successfully.",
+      title: "Feature coming soon",
+      description: "Sign up will be available soon.",
     });
   };
 
-  const value = {
-    user,
-    session,
-    userRole,
-    signUp,
-    signIn,
-    signOut,
-    loading
-  };
+  const value: AuthContextType = useMemo(
+    () => ({
+      user,
+      isLoading,
+      isAuthenticated,
+      signIn,
+      signOut,
+      signUp,
+    }),
+    [user, isLoading, isAuthenticated, signIn, signOut, signUp]
+  );
 
   return (
     <AuthContext.Provider value={value}>

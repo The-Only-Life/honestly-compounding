@@ -25,6 +25,7 @@
     "concurrently": "^8.2.2"
   },
   "dependencies": {
+    "@fastify/cookie": "^11.0.2",
     "@supabase/supabase-js": "^2.75.0",
     "esbuild": "0.21.5"
   }

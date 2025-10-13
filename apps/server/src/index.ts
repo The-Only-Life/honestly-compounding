@@ -8,6 +8,17 @@ const server = Fastify({
   logger: true,
 }).withTypeProvider<TypeBoxTypeProvider>();
 
+// Register cookie plugin
+await server.register(import("@fastify/cookie"), {
+  secret: Config.COOKIE_SECRET,
+  parseOptions: {
+    httpOnly: true,
+    secure: Config.IS_PRODUCTION,
+    sameSite: "lax",
+    path: "/",
+  },
+});
+
 await server.register(import("@fastify/swagger"), {
   openapi: {
     openapi: "3.0.0",

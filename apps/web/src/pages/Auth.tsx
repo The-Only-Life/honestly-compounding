@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const Auth = () => {
   const { user, signIn, signUp } = useAuth();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
 
   // Redirect if already logged in
@@ -20,25 +21,36 @@ const Auth = () => {
     e.preventDefault();
     setLoading(true);
 
-    const formData = new FormData(e.currentTarget);
-    const email = formData.get('email') as string;
-    const password = formData.get('password') as string;
+    try {
+      const formData = new FormData(e.currentTarget);
+      const email = formData.get('email') as string;
+      const password = formData.get('password') as string;
 
-    await signIn(email, password);
-    setLoading(false);
+      await signIn(email, password);
+      // Navigation will happen automatically due to user state change
+      navigate('/dashboard', { replace: true });
+    } catch (error) {
+      // Error is already handled by the useLogin hook
+      console.error('Login failed:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
 
-    const formData = new FormData(e.currentTarget);
-    const email = formData.get('email') as string;
-    const password = formData.get('password') as string;
-    const fullName = formData.get('fullName') as string;
+    try {
+      const formData = new FormData(e.currentTarget);
+      const email = formData.get('email') as string;
+      const password = formData.get('password') as string;
+      const fullName = formData.get('fullName') as string;
 
-    await signUp(email, password, fullName);
-    setLoading(false);
+      await signUp(email, password, fullName);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
