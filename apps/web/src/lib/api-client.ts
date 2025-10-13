@@ -1,5 +1,10 @@
 // API Client configuration
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+// Use relative URL if VITE_API_URL is not set (works for same-origin deployments)
+const API_BASE_URL = import.meta.env.VITE_API_URL || (
+  typeof window !== 'undefined' && window.location.hostname !== 'localhost'
+    ? '' // Same origin - no base URL needed
+    : 'http://localhost:3001' // Local dev
+);
 
 export interface ApiError {
   error: string;
@@ -32,7 +37,7 @@ export interface CurrentUserResponse {
 }
 
 class ApiClient {
-  private baseUrl: string;
+  private readonly baseUrl: string;
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl;
