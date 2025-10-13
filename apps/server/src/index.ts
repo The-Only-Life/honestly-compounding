@@ -55,7 +55,7 @@ const supabase = createClient(
   }
 );
 
-await server.register(authRouter, { prefix: "/auth", supabase });
+await server.register(authRouter, { prefix: "/api/auth", supabase });
 
 // Health check endpoint
 server.get("/health", async (_req, reply) => {
