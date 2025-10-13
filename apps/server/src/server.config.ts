@@ -16,7 +16,7 @@ const cfg: Record<string, Omit<TConfig, "PROTOCOL">> = {
   [Environment.DEVELOPMENT]: {
     AUTH_HOST:
       process.env.SUPABASE_URL || "https://uzscnckjhxzjeowjqywa.supabase.co",
-    FRONTEND_URL: process.env.FRONTEND_URL || "http://localhost:5173",
+    FRONTEND_URL: process.env.FRONTEND_URL || "http://localhost:3000",
     SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY!,
     COOKIE_SECRET:
       process.env.COOKIE_SECRET || "dev-secret-change-in-production",

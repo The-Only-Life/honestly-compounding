@@ -1,10 +1,7 @@
 // API Client configuration
-// Use relative URL if VITE_API_URL is not set (works for same-origin deployments)
-const API_BASE_URL = import.meta.env.VITE_API_URL || (
-  typeof window !== 'undefined' && window.location.hostname !== 'localhost'
-    ? '' // Same origin - no base URL needed
-    : 'http://localhost:3001' // Local dev
-);
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL ||
+  "https://application-development.up.railway.app";
 
 export interface ApiError {
   error: string;
@@ -37,7 +34,7 @@ export interface CurrentUserResponse {
 }
 
 class ApiClient {
-  private readonly baseUrl: string;
+  private baseUrl: string;
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl;
@@ -52,10 +49,10 @@ class ApiClient {
     const config: RequestInit = {
       ...options,
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         ...options.headers,
       },
-      credentials: 'include', // Important: Include cookies in requests
+      credentials: "include", // Important: Include cookies in requests
     };
 
     const response = await fetch(url, config);
@@ -72,31 +69,31 @@ class ApiClient {
 
   // Auth endpoints
   async login(data: LoginRequest): Promise<LoginResponse> {
-    return this.request<LoginResponse>('/api/auth/login', {
-      method: 'POST',
+    return this.request<LoginResponse>("/api/auth/login", {
+      method: "POST",
       body: JSON.stringify(data),
     });
   }
 
   async logout(): Promise<LogoutResponse> {
-    return this.request<LogoutResponse>('/api/auth/logout', {
-      method: 'POST',
+    return this.request<LogoutResponse>("/api/auth/logout", {
+      method: "POST",
     });
   }
 
   async logoutAll(): Promise<LogoutResponse> {
-    return this.request<LogoutResponse>('/api/auth/logout-all', {
-      method: 'POST',
+    return this.request<LogoutResponse>("/api/auth/logout-all", {
+      method: "POST",
     });
   }
 
   async getCurrentUser(): Promise<CurrentUserResponse> {
-    return this.request<CurrentUserResponse>('/api/auth/me');
+    return this.request<CurrentUserResponse>("/api/auth/me");
   }
 
   async refreshToken(): Promise<LoginResponse> {
-    return this.request<LoginResponse>('/api/auth/refresh', {
-      method: 'POST',
+    return this.request<LoginResponse>("/api/auth/refresh", {
+      method: "POST",
     });
   }
 }
