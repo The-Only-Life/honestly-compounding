@@ -1,5 +1,5 @@
 {
-  "name": "honestly-insight-hub",
+  "name": "honestly-compounding",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -25,6 +25,7 @@
     "concurrently": "^8.2.2"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.75.0",
     "esbuild": "0.21.5"
   }
 }

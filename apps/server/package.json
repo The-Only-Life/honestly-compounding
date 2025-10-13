@@ -1,19 +1,23 @@
 {
-  "name": "@honestly-insight-hub/server",
-  "version": "0.0.0",
-  "private": true,
+  "name": "server",
+  "module": "index.ts",
   "type": "module",
+  "private": true,
   "scripts": {
-    "dev": "bun --hot src/index.ts",
-    "build": "bun build src/index.ts --outdir ./dist --target bun",
-    "start": "bun dist/index.js"
-  },
-  "dependencies": {
-    "@honestly-insight-hub/db": "workspace:*",
-    "@types/node": "^24.3.3",
-    "hono": "^4.9.7"
+    "dev": "bun --watch --env-file=.env.development src/index.ts",
+    "start": "bun --env-file=.env.development src/index.ts"
   },
   "devDependencies": {
     "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@fastify/swagger": "^9.5.2",
+    "@fastify/swagger-ui": "^5.2.3",
+    "@fastify/type-provider-typebox": "^6.0.0",
+    "@supabase/gotrue-js": "^2.72.0",
+    "fastify": "^5.6.1"
   }
 }

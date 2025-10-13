@@ -22,11 +22,8 @@ RUN bun install --frozen-lockfile
 # Generate Prisma client
 RUN cd libs/db && bun run generate
 
-# Build the applications
+# Build the web application
 WORKDIR /app/apps/web
-RUN bun run build
-
-WORKDIR /app/apps/server  
 RUN bun run build
 
 WORKDIR /app
@@ -34,20 +31,21 @@ WORKDIR /app
 # Production stage
 FROM oven/bun:1.2-slim as production
 
-# Install nginx for serving the web app
-RUN apt-get update && apt-get install -y nginx && rm -rf /var/lib/apt/lists/*
+# Install nginx and curl for serving the web app
+RUN apt-get update && apt-get install -y nginx curl && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# Copy built applications
+# Copy built web application
 COPY --from=base /app/apps/web/dist ./web
-COPY --from=base /app/apps/server/dist ./server
+
+# Copy server source code (Bun runs TypeScript directly)
+COPY --from=base /app/apps/server ./apps/server
+
+# Copy necessary files
 COPY --from=base /app/libs/db/src/generated ./libs/db/src/generated
 COPY --from=base /app/node_modules ./node_modules
 COPY --from=base /app/package.json ./
-
-# Copy server dependencies and deployment files
-COPY --from=base /app/apps/server/package.json ./apps/server/
 COPY --from=base /app/deployment ./deployment
 
 # Copy startup script and make it executable
