@@ -35,29 +35,24 @@ const CompleteProfile = () => {
           return;
         }
 
-        // Fetch user info from token to determine what they were invited with
-        const response = await fetch(`${AppConfig.API_BASE_URL}/api/auth/me`, {
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-          },
-          credentials: 'include',
-        });
+        // Decode JWT token to get user info (email/phone)
+        // JWT format: header.payload.signature
+        try {
+          const payload = JSON.parse(atob(accessToken.split('.')[1]));
 
-        if (!response.ok) {
-          throw new Error('Could not verify invitation');
+          // Extract email and phone from the JWT payload
+          if (payload.email) {
+            setInvitedEmail(payload.email);
+          }
+          if (payload.phone) {
+            setInvitedPhone(payload.phone);
+          }
+
+          setTokenValid(true);
+        } catch (decodeError) {
+          console.error('Failed to decode token:', decodeError);
+          throw new Error('Invalid token format');
         }
-
-        const data = await response.json();
-
-        // Determine if invited with email or phone
-        if (data.user.email) {
-          setInvitedEmail(data.user.email);
-        }
-        if (data.user.phone) {
-          setInvitedPhone(data.user.phone);
-        }
-
-        setTokenValid(true);
       } catch (error) {
         console.error('Token verification failed:', error);
         toast({
