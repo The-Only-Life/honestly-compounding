@@ -1,7 +1,7 @@
+import { AppConfig } from '@/config';
+
 // API Client configuration
-const API_BASE_URL =
-  import.meta.env.VITE_API_URL ||
-  "https://application-development.up.railway.app";
+const API_BASE_URL = AppConfig.API_BASE_URL;
 
 export interface ApiError {
   error: string;

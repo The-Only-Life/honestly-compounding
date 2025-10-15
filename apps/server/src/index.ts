@@ -55,16 +55,12 @@ await server.register(import("@fastify/swagger-ui"), {
   transformStaticCSP: (header) => header,
 });
 
-const supabase = createClient(
-  Config.AUTH_HOST,
-  Config.SERVICE_ROLE_KEY,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
-  }
-);
+const supabase = createClient(Config.AUTH_HOST, Config.SERVICE_ROLE_KEY, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false,
+  },
+});
 
 await server.register(authRouter, { prefix: "/api/auth", supabase });
 
