@@ -24,6 +24,12 @@ export const InviteUserSchema = Type.Object({
     email: Type.String({ format: "email" })
 })
 
+export const CompleteProfileSchema = Type.Object({
+    email: Type.Optional(Type.String({ format: "email" })),
+    phone: Type.Optional(Type.String({ pattern: '^(\\+91[- ]?)?[6-9]\\d{9}$' })),
+    password: Type.String({ minLength: 6 })
+})
+
 // Login schemas
 export const LoginSchema = Type.Object({
     email: Type.String({ format: "email" }),
