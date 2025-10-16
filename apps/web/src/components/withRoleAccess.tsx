@@ -1,6 +1,5 @@
 import { useAuth } from '@/contexts/AuthContext';
-import { ReactElement, useEffect } from 'react';
-import { toast } from '@/hooks/use-toast';
+import { ReactElement } from 'react';
 import type { UserRole } from '@/types/roles';
 
 interface RoleAccessConfig {
@@ -33,21 +32,9 @@ export function withRoleAccess(config: RoleAccessConfig) {
     Component: React.ComponentType<P>
   ): React.FC<P> {
     return function RoleAccessWrapper(props: P) {
-      const { userRole, signOut } = useAuth();
+      const { userRole } = useAuth();
 
-      useEffect(() => {
-        // If no role is assigned, log out the user
-        if (userRole === null || userRole === undefined || userRole === '') {
-          toast({
-            title: 'Access Denied',
-            description: 'You do not have a role assigned. Please contact support at support@honestlycompounding.com',
-            variant: 'destructive',
-          });
-          signOut();
-        }
-      }, [userRole, signOut]);
-
-      // If no role is set, don't render
+      // If no role is set, don't render (ProtectedRoute will handle the error UI)
       if (!userRole) {
         return config.fallback || null;
       }
