@@ -27,7 +27,8 @@ export default async function usersRouter(
       return res.status(401).send({ error: "Invalid token" });
     }
 
-    if (user.role !== "admin") {
+    const userRole = user.user_metadata?.role || user.role;
+    if (userRole !== "admin") {
       return res.status(403).send({ error: "Forbidden: Admin access required" });
     }
 
@@ -49,7 +50,7 @@ export default async function usersRouter(
         id: user.id,
         email: user.email,
         phone: user.phone,
-        role: user.role,
+        role: user.user_metadata?.role || user.role,
         emailVerified: !!user.email_confirmed_at,
         createdAt: user.created_at,
         lastSignInAt: user.last_sign_in_at,
@@ -105,7 +106,9 @@ export default async function usersRouter(
         const { error: updateError } = await supabase.auth.admin.updateUserById(
           data.user.id,
           {
-            role,
+            user_metadata: {
+              role,
+            },
           }
         );
 
@@ -146,7 +149,9 @@ export default async function usersRouter(
 
         // Update user role
         const { data, error } = await supabase.auth.admin.updateUserById(id, {
-          role,
+          user_metadata: {
+            role,
+          },
         });
 
         if (error) {
@@ -161,7 +166,7 @@ export default async function usersRouter(
             id: data.user.id,
             email: data.user.email,
             phone: data.user.phone,
-            role: data.user.role,
+            role: data.user.user_metadata?.role || role,
             emailVerified: !!data.user.email_confirmed_at,
             createdAt: data.user.created_at,
           },
