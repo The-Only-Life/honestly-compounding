@@ -1,4 +1,4 @@
-import { AppConfig } from '@/config';
+import { AppConfig } from "@/config";
 
 // API Client configuration
 const API_BASE_URL = AppConfig.API_BASE_URL;
@@ -51,7 +51,7 @@ export interface UsersResponse {
 export interface CreateUserRequest {
   email?: string;
   phone?: string;
-  role: 'admin' | 'sponsor' | 'subscriber';
+  role: "admin" | "sponsor" | "subscriber";
 }
 
 export interface CreateUserResponse {
@@ -60,7 +60,7 @@ export interface CreateUserResponse {
 }
 
 export interface UpdateUserRoleRequest {
-  role: 'admin' | 'sponsor' | 'subscriber';
+  role: "admin" | "sponsor" | "subscriber";
 }
 
 export interface UpdateUserRoleResponse {
@@ -113,6 +113,7 @@ class ApiClient {
   async logout(): Promise<LogoutResponse> {
     return this.request<LogoutResponse>("/api/auth/logout", {
       method: "POST",
+      body: JSON.stringify({}),
     });
   }
 
@@ -144,7 +145,10 @@ class ApiClient {
     });
   }
 
-  async updateUserRole(userId: string, data: UpdateUserRoleRequest): Promise<UpdateUserRoleResponse> {
+  async updateUserRole(
+    userId: string,
+    data: UpdateUserRoleRequest
+  ): Promise<UpdateUserRoleResponse> {
     return this.request<UpdateUserRoleResponse>(`/api/users/${userId}/role`, {
       method: "PATCH",
       body: JSON.stringify(data),

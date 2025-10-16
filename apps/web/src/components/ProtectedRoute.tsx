@@ -1,7 +1,7 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ShieldAlert, Home, Mail } from 'lucide-react';
+import { ShieldAlert, Home, Mail, LogOut } from 'lucide-react';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -91,6 +91,14 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
             >
               <Mail className="mr-2 h-4 w-4" />
               Request Access
+            </Button>
+            <Button
+              variant="ghost"
+              className="w-full"
+              onClick={() => signOut()}
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              Sign Out
             </Button>
           </div>
         </div>
