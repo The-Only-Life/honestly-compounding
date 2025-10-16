@@ -7,6 +7,7 @@ interface AuthContextType {
   user: AuthUser | null;
   isLoading: boolean;
   isAuthenticated: boolean;
+  userRole: string | null;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   signUp: (email: string, password: string, fullName: string) => Promise<void>;
@@ -29,6 +30,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const user = currentUserData?.user || null;
   const isAuthenticated = !!user;
+  const userRole = user?.role || null;
 
   const signIn = async (email: string, password: string) => {
     await loginMutation.mutateAsync({ email, password });
@@ -50,11 +52,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       user,
       isLoading,
       isAuthenticated,
+      userRole,
       signIn,
       signOut,
       signUp,
     }),
-    [user, isLoading, isAuthenticated, signIn, signOut, signUp]
+    [user, isLoading, isAuthenticated, userRole, signIn, signOut, signUp]
   );
 
   return (

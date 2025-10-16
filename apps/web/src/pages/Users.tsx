@@ -1,41 +1,97 @@
-import { useAuth } from '@/contexts/AuthContext';
+import { useState } from 'react';
+import { useUsers, useCreateUser, useUpdateUserRole } from '@/hooks/use-users-api';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { UserIcon, Plus, Mail, Shield, Clock } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { UserIcon, Plus, Mail, Phone, Shield } from 'lucide-react';
+import type { UserRole } from '@/types/roles';
 
 export default function Users() {
-  const { userRole } = useAuth();
+  const { data: usersData, isLoading } = useUsers();
+  const createUserMutation = useCreateUser();
+  const updateUserRoleMutation = useUpdateUserRole();
 
-  const mockUsers = [
-    {
-      id: 1,
-      name: "John Smith",
-      email: "john.smith@company.com",
-      role: "analyst",
-      status: "active",
-      lastLogin: "2024-01-15",
-      emailVerified: true
-    },
-    {
-      id: 2,
-      name: "Sarah Johnson", 
-      email: "sarah.j@company.com",
-      role: "admin",
-      status: "active",
-      lastLogin: "2024-01-14",
-      emailVerified: true
-    },
-    {
-      id: 3,
-      name: "Mike Chen",
-      email: "mike.chen@company.com", 
-      role: "subscriber",
-      status: "pending",
-      lastLogin: "Never",
-      emailVerified: false
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [newUserEmail, setNewUserEmail] = useState('');
+  const [newUserPhone, setNewUserPhone] = useState('');
+  const [newUserRole, setNewUserRole] = useState<UserRole>('subscriber');
+  const [contactMethod, setContactMethod] = useState<'email' | 'phone'>('email');
+
+  const users = usersData?.users || [];
+
+  // Calculate statistics
+  const totalUsers = users.length;
+  const activeUsers = users.filter((u) => u.emailVerified).length;
+  const verifiedEmails = users.filter((u) => u.emailVerified).length;
+  const pendingUsers = users.filter((u) => !u.emailVerified).length;
+
+  const handleCreateUser = async () => {
+    if (contactMethod === 'email' && !newUserEmail) {
+      return;
     }
-  ];
+    if (contactMethod === 'phone' && !newUserPhone) {
+      return;
+    }
+
+    await createUserMutation.mutateAsync({
+      email: contactMethod === 'email' ? newUserEmail : undefined,
+      phone: contactMethod === 'phone' ? newUserPhone : undefined,
+      role: newUserRole,
+    });
+
+    // Reset form
+    setNewUserEmail('');
+    setNewUserPhone('');
+    setNewUserRole('subscriber');
+    setContactMethod('email');
+    setIsDialogOpen(false);
+  };
+
+  const handleRoleChange = async (userId: string, newRole: UserRole) => {
+    await updateUserRoleMutation.mutateAsync({ userId, role: newRole });
+  };
+
+  const getRoleBadgeVariant = (role?: string) => {
+    switch (role) {
+      case 'admin':
+        return 'destructive';
+      case 'sponsor':
+        return 'default';
+      case 'subscriber':
+        return 'secondary';
+      default:
+        return 'outline';
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading users...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -44,12 +100,85 @@ export default function Users() {
           <h1 className="text-3xl font-bold">User Management</h1>
           <p className="text-muted-foreground">Manage user accounts and permissions</p>
         </div>
-        {userRole === 'admin' && (
-          <Button>
-            <Plus className="mr-2 h-4 w-4" />
-            Add User
-          </Button>
-        )}
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="mr-2 h-4 w-4" />
+              Add User
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Create New User</DialogTitle>
+              <DialogDescription>
+                Add a new user to the platform. They will receive an invitation to complete their
+                profile.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label>Contact Method</Label>
+                <Select
+                  value={contactMethod}
+                  onValueChange={(value) => setContactMethod(value as 'email' | 'phone')}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="email">Email</SelectItem>
+                    <SelectItem value="phone">Phone Number</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {contactMethod === 'email' ? (
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="user@example.com"
+                    value={newUserEmail}
+                    onChange={(e) => setNewUserEmail(e.target.value)}
+                  />
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Phone Number</Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    placeholder="+1234567890"
+                    value={newUserPhone}
+                    onChange={(e) => setNewUserPhone(e.target.value)}
+                  />
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <Label>Role</Label>
+                <Select value={newUserRole} onValueChange={(value) => setNewUserRole(value as UserRole)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="subscriber">Subscriber</SelectItem>
+                    <SelectItem value="sponsor">Sponsor</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleCreateUser} disabled={createUserMutation.isPending}>
+                {createUserMutation.isPending ? 'Creating...' : 'Create User'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -59,19 +188,21 @@ export default function Users() {
             <UserIcon className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">324</div>
-            <p className="text-xs text-muted-foreground">+12 from last month</p>
+            <div className="text-2xl font-bold">{totalUsers}</div>
+            <p className="text-xs text-muted-foreground">All registered users</p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Active Users</CardTitle>
             <Shield className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">298</div>
-            <p className="text-xs text-muted-foreground">92% active rate</p>
+            <div className="text-2xl font-bold">{activeUsers}</div>
+            <p className="text-xs text-muted-foreground">
+              {totalUsers > 0 ? Math.round((activeUsers / totalUsers) * 100) : 0}% active rate
+            </p>
           </CardContent>
         </Card>
 
@@ -81,18 +212,20 @@ export default function Users() {
             <Mail className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">289</div>
-            <p className="text-xs text-muted-foreground">89% verified</p>
+            <div className="text-2xl font-bold">{verifiedEmails}</div>
+            <p className="text-xs text-muted-foreground">
+              {totalUsers > 0 ? Math.round((verifiedEmails / totalUsers) * 100) : 0}% verified
+            </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Pending</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
+            <Phone className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">26</div>
+            <div className="text-2xl font-bold">{pendingUsers}</div>
             <p className="text-xs text-muted-foreground">Awaiting verification</p>
           </CardContent>
         </Card>
@@ -105,37 +238,55 @@ export default function Users() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {mockUsers.map((user) => (
-              <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-medium">{user.name}</h3>
-                    <Badge variant={user.status === 'active' ? 'default' : 'secondary'}>
-                      {user.status}
-                    </Badge>
-                    {user.emailVerified && (
-                      <Badge variant="outline" className="text-green-600">
-                        <Mail className="w-3 h-3 mr-1" />
-                        Verified
-                      </Badge>
+            {users.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                No users found. Create your first user to get started.
+              </div>
+            ) : (
+              users.map((user) => (
+                <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="space-y-1 flex-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-medium">{user.email || user.phone || 'Unknown'}</h3>
+                      <Badge variant={getRoleBadgeVariant(user.role)}>{user.role || 'No Role'}</Badge>
+                      {user.emailVerified && (
+                        <Badge variant="outline" className="text-green-600">
+                          <Mail className="w-3 h-3 mr-1" />
+                          Verified
+                        </Badge>
+                      )}
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      ID: {user.id.slice(0, 8)}... • Created:{' '}
+                      {new Date(user.createdAt).toLocaleDateString()}
+                    </p>
+                    {user.lastSignInAt && (
+                      <p className="text-xs text-muted-foreground">
+                        Last sign in: {new Date(user.lastSignInAt).toLocaleDateString()}
+                      </p>
                     )}
                   </div>
-                  <p className="text-sm text-muted-foreground">{user.email}</p>
-                  <p className="text-xs text-muted-foreground">
-                    Role: {user.role} • Last login: {user.lastLogin}
-                  </p>
-                </div>
-                
-                {userRole === 'admin' && (
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm">Edit</Button>
-                    <Button variant="outline" size="sm">
-                      {user.status === 'active' ? 'Suspend' : 'Activate'}
-                    </Button>
+
+                  <div className="flex gap-2 items-center">
+                    {user.role !== 'admin' && (
+                      <Select
+                        value={user.role}
+                        onValueChange={(value) => handleRoleChange(user.id, value as UserRole)}
+                        disabled={updateUserRoleMutation.isPending}
+                      >
+                        <SelectTrigger className="w-[140px]">
+                          <SelectValue placeholder="Select role" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="subscriber">Subscriber</SelectItem>
+                          <SelectItem value="sponsor">Sponsor</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
                   </div>
-                )}
-              </div>
-            ))}
+                </div>
+              ))
+            )}
           </div>
         </CardContent>
       </Card>

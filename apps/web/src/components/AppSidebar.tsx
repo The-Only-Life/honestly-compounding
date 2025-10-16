@@ -1,8 +1,7 @@
-import { NavLink, useLocation } from "react-router-dom";
-import { 
-  Users, 
-  FileText, 
-  Briefcase, 
+import { NavLink } from "react-router-dom";
+import {
+  Users,
+  Briefcase,
   PieChart,
   LogOut,
   Shield,
@@ -23,35 +22,34 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
+import type { UserRole } from "@/types/roles";
 
-const adminItems = [
-  { title: "Dashboard", url: "/dashboard", icon: PieChart },
-  { title: "User Management", url: "/dashboard/users", icon: Users },
-  { title: "Themes", url: "/dashboard/themes", icon: Briefcase },
-  { title: "Risk Buckets", url: "/dashboard/risk-buckets", icon: Shield },
-  { title: "Stocks", url: "/dashboard/stocks", icon: Building },
-  { title: "Content Management", url: "/dashboard/content-management", icon: FolderOpen },
-  { title: "Account", url: "/dashboard/account", icon: User },
-];
+type MenuItem = {
+  title: string;
+  url: string;
+  icon: any;
+  allowedRoles: UserRole[];
+};
 
-const analystItems = [
-  { title: "Dashboard", url: "/dashboard", icon: PieChart },
-  { title: "Themes", url: "/dashboard/themes", icon: Briefcase },
-  { title: "Risk Buckets", url: "/dashboard/risk-buckets", icon: Shield },
-  { title: "Stocks", url: "/dashboard/stocks", icon: Building },
-  { title: "Content Management", url: "/dashboard/content-management", icon: FolderOpen },
-  { title: "Account", url: "/dashboard/account", icon: User },
+const menuItems: MenuItem[] = [
+  { title: "Dashboard", url: "/dashboard", icon: PieChart, allowedRoles: ['admin', 'sponsor', 'subscriber'] },
+  { title: "User Management", url: "/dashboard/users", icon: Users, allowedRoles: ['admin'] },
+  { title: "Themes", url: "/dashboard/themes", icon: Briefcase, allowedRoles: ['admin', 'sponsor', 'subscriber'] },
+  { title: "Risk Buckets", url: "/dashboard/risk-buckets", icon: Shield, allowedRoles: ['admin', 'sponsor', 'subscriber'] },
+  { title: "Stocks", url: "/dashboard/stocks", icon: Building, allowedRoles: ['admin', 'sponsor', 'subscriber'] },
+  { title: "Content Management", url: "/dashboard/content-management", icon: FolderOpen, allowedRoles: ['admin', 'sponsor', 'subscriber'] },
+  { title: "Account", url: "/dashboard/account", icon: User, allowedRoles: ['admin', 'sponsor', 'subscriber'] },
 ];
 
 export function AppSidebar() {
   const { state } = useSidebar();
   const { userRole, signOut } = useAuth();
-  const location = useLocation();
-  const currentPath = location.pathname;
 
-  const items = userRole === 'admin' ? adminItems : analystItems;
-  const isActive = (path: string) => currentPath === path;
-  
+  // Filter menu items based on user role
+  const visibleItems = menuItems.filter(item =>
+    userRole && item.allowedRoles.includes(userRole as UserRole)
+  );
+
   const getNavCls = ({ isActive }: { isActive: boolean }) =>
     isActive ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium" : "hover:bg-sidebar-accent/50";
 
@@ -71,7 +69,7 @@ export function AppSidebar() {
 
           <SidebarGroupContent>
             <SidebarMenu>
-              {items.map((item) => (
+              {visibleItems.map((item: MenuItem) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink to={item.url} end className={getNavCls}>
