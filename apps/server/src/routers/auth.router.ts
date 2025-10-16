@@ -56,7 +56,7 @@ export default async function authRouter(
         user: {
           id: data.user.id,
           email: data.user.email!,
-          role: data.user.role,
+          role: data.user.user_metadata?.role || data.user.role,
           emailVerified: !!data.user.email_confirmed_at,
           createdAt: data.user.created_at,
         },
@@ -104,7 +104,7 @@ export default async function authRouter(
         user: {
           id: data.user.id,
           email: data.user.email!,
-          role: data.user.role,
+          role: data.user.user_metadata?.role || data.user.role,
           emailVerified: !!data.user.email_confirmed_at,
           createdAt: data.user.created_at,
         },
@@ -205,7 +205,7 @@ export default async function authRouter(
         user: {
           id: user.id,
           email: user.email!,
-          role: user.role,
+          role: user.user_metadata?.role || user.role,
           emailVerified: !!user.email_confirmed_at,
           createdAt: user.created_at,
         },
@@ -333,7 +333,7 @@ export default async function authRouter(
             id: sessionData.user.id,
             email: sessionData.user.email!,
             phone: sessionData.user.phone,
-            role: sessionData.user.role,
+            role: sessionData.user.user_metadata?.role || sessionData.user.role,
             emailVerified: !!sessionData.user.email_confirmed_at,
             createdAt: sessionData.user.created_at,
           },
