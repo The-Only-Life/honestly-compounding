@@ -52,11 +52,24 @@ export default async function authRouter(
         maxAge: 604800, // 7 days
       });
 
+      // Fetch user metadata from user_metadata table
+      const { data: metadata, error: metadataError } = await supabase
+        .from("user_metadata")
+        .select("role, access_approved")
+        .eq("user_id", data.user.id)
+        .single();
+
+      if (metadataError && metadataError.code !== "PGRST116") {
+        // PGRST116 is "not found" error
+        console.error("Error fetching user metadata:", metadataError);
+      }
+
       return res.send({
         user: {
           id: data.user.id,
           email: data.user.email!,
-          role: data.user.user_metadata?.role || data.user.role,
+          role: metadata?.role || null,
+          accessApproved: metadata?.access_approved || false,
           emailVerified: !!data.user.email_confirmed_at,
           createdAt: data.user.created_at,
         },
@@ -100,11 +113,24 @@ export default async function authRouter(
         maxAge: 604800,
       });
 
+      // Fetch user metadata from user_metadata table
+      const { data: metadata, error: metadataError } = await supabase
+        .from("user_metadata")
+        .select("role, access_approved")
+        .eq("user_id", data.user.id)
+        .single();
+
+      if (metadataError && metadataError.code !== "PGRST116") {
+        // PGRST116 is "not found" error
+        console.error("Error fetching user metadata:", metadataError);
+      }
+
       return res.send({
         user: {
           id: data.user.id,
           email: data.user.email!,
-          role: data.user.user_metadata?.role || data.user.role,
+          role: metadata?.role || null,
+          accessApproved: metadata?.access_approved || false,
           emailVerified: !!data.user.email_confirmed_at,
           createdAt: data.user.created_at,
         },

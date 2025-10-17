@@ -45,7 +45,7 @@ const App = () => (
               <Route
                 path="/dashboard"
                 element={
-                  <ProtectedRoute requiredRoles={["admin", "analyst"]}>
+                  <ProtectedRoute requiredRoles={["admin", "sponsor", "subscriber"]}>
                     <DashboardLayout>
                       <Dashboard />
                     </DashboardLayout>
@@ -65,7 +65,7 @@ const App = () => (
               <Route
                 path="/dashboard/themes"
                 element={
-                  <ProtectedRoute requiredRoles={["admin", "analyst"]}>
+                  <ProtectedRoute requiredRoles={["admin", "sponsor", "subscriber"]}>
                     <DashboardLayout>
                       <Themes />
                     </DashboardLayout>
@@ -75,7 +75,7 @@ const App = () => (
               <Route
                 path="/dashboard/risk-buckets"
                 element={
-                  <ProtectedRoute requiredRoles={["admin", "analyst"]}>
+                  <ProtectedRoute requiredRoles={["admin", "sponsor", "subscriber"]}>
                     <DashboardLayout>
                       <RiskBuckets />
                     </DashboardLayout>
@@ -85,7 +85,7 @@ const App = () => (
               <Route
                 path="/dashboard/stocks"
                 element={
-                  <ProtectedRoute requiredRoles={["admin", "analyst"]}>
+                  <ProtectedRoute requiredRoles={["admin", "sponsor", "subscriber"]}>
                     <DashboardLayout>
                       <Stocks />
                     </DashboardLayout>
@@ -95,7 +95,7 @@ const App = () => (
               <Route
                 path="/dashboard/content-management"
                 element={
-                  <ProtectedRoute requiredRoles={["admin", "analyst"]}>
+                  <ProtectedRoute requiredRoles={["admin", "sponsor", "subscriber"]}>
                     <DashboardLayout>
                       <ContentManagement />
                     </DashboardLayout>
@@ -105,7 +105,7 @@ const App = () => (
               <Route
                 path="/dashboard/account"
                 element={
-                  <ProtectedRoute requiredRoles={["admin", "analyst"]}>
+                  <ProtectedRoute requiredRoles={["admin", "sponsor", "subscriber"]}>
                     <DashboardLayout>
                       <Account />
                     </DashboardLayout>
