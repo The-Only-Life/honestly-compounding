@@ -67,3 +67,29 @@ export const useUpdateUserRole = () => {
     },
   });
 };
+
+// Hook to update user access approval
+export const useUpdateUserAccess = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ userId, accessApproved }: { userId: string; accessApproved: boolean }) =>
+      apiClient.updateUserAccess(userId, accessApproved),
+    onSuccess: (response) => {
+      // Invalidate users list to refetch
+      queryClient.invalidateQueries({ queryKey: usersKeys.list() });
+
+      toast({
+        title: 'Success',
+        description: response.message,
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Failed to update user access',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+};
