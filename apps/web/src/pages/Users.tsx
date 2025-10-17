@@ -32,6 +32,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { UserIcon, Plus, Mail, Phone, Shield, CheckCircle, XCircle, Users as UsersIcon } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
 import type { UserRole } from '@/types/roles';
 
 export default function Users() {
@@ -48,8 +56,16 @@ export default function Users() {
   const [newUserRole, setNewUserRole] = useState<UserRole>('subscriber');
   const [contactMethod, setContactMethod] = useState<'email' | 'phone'>('email');
   const [bulkInviteText, setBulkInviteText] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const users = usersData?.users || [];
+
+  // Pagination logic
+  const totalPages = Math.ceil(users.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedUsers = users.slice(startIndex, endIndex);
 
   // Calculate statistics
   const totalUsers = users.length;
@@ -317,82 +333,118 @@ export default function Users() {
               No users found. Create your first user to get started.
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>User</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Access Approved</TableHead>
-                  <TableHead>Email Verified</TableHead>
-                  <TableHead>Created</TableHead>
-                  <TableHead>Last Sign In</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {users.map((user) => (
-                  <TableRow key={user.id}>
-                    <TableCell>
-                      <div className="space-y-1">
-                        <div className="font-medium">{user.email || user.phone || 'Unknown'}</div>
-                        <div className="text-xs text-muted-foreground">
-                          ID: {user.id.slice(0, 8)}...
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Select
-                        value={user.role || ''}
-                        onValueChange={(value) => handleRoleChange(user.id, value as UserRole)}
-                        disabled={updateUserRoleMutation.isPending}
-                      >
-                        <SelectTrigger className="w-[140px]">
-                          <SelectValue placeholder="Select role" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="admin">Admin</SelectItem>
-                          <SelectItem value="sponsor">Sponsor</SelectItem>
-                          <SelectItem value="subscriber">Subscriber</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Switch
-                          checked={user.accessApproved || false}
-                          onCheckedChange={() => handleAccessToggle(user.id, user.accessApproved || false)}
-                          disabled={updateUserAccessMutation.isPending}
-                        />
-                        {user.accessApproved ? (
-                          <CheckCircle className="h-4 w-4 text-green-600" />
-                        ) : (
-                          <XCircle className="h-4 w-4 text-muted-foreground" />
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {user.emailVerified ? (
-                        <Badge variant="outline" className="text-green-600">
-                          <Mail className="w-3 h-3 mr-1" />
-                          Verified
-                        </Badge>
-                      ) : (
-                        <Badge variant="outline" className="text-muted-foreground">
-                          Pending
-                        </Badge>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
-                      {new Date(user.createdAt).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
-                      {user.lastSignInAt
-                        ? new Date(user.lastSignInAt).toLocaleDateString()
-                        : 'Never'}
-                    </TableCell>
+            <div className="space-y-4">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>User</TableHead>
+                    <TableHead>Role</TableHead>
+                    <TableHead>Access Approved</TableHead>
+                    <TableHead>Email Verified</TableHead>
+                    <TableHead>Invited By</TableHead>
+                    <TableHead>Created</TableHead>
+                    <TableHead>Last Sign In</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {paginatedUsers.map((user) => (
+                    <TableRow key={user.id}>
+                      <TableCell>
+                        <div className="space-y-1">
+                          <div className="font-medium">{user.email || user.phone || 'Unknown'}</div>
+                          <div className="text-xs text-muted-foreground">
+                            ID: {user.id.slice(0, 8)}...
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Select
+                          value={user.role || ''}
+                          onValueChange={(value) => handleRoleChange(user.id, value as UserRole)}
+                          disabled={updateUserRoleMutation.isPending}
+                        >
+                          <SelectTrigger className="w-[140px]">
+                            <SelectValue placeholder="Select role" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="admin">Admin</SelectItem>
+                            <SelectItem value="sponsor">Sponsor</SelectItem>
+                            <SelectItem value="subscriber">Subscriber</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Switch
+                            checked={user.accessApproved || false}
+                            onCheckedChange={() => handleAccessToggle(user.id, user.accessApproved || false)}
+                            disabled={updateUserAccessMutation.isPending}
+                          />
+                          {user.accessApproved ? (
+                            <CheckCircle className="h-4 w-4 text-green-600" />
+                          ) : (
+                            <XCircle className="h-4 w-4 text-muted-foreground" />
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {user.emailVerified ? (
+                          <Badge variant="outline" className="text-green-600">
+                            <Mail className="w-3 h-3 mr-1" />
+                            Verified
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-muted-foreground">
+                            Pending
+                          </Badge>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {user.invitedBy || '-'}
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {new Date(user.createdAt).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {user.lastSignInAt
+                          ? new Date(user.lastSignInAt).toLocaleDateString()
+                          : 'Never'}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+
+              {totalPages > 1 && (
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious
+                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                        className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                      />
+                    </PaginationItem>
+                    {[...Array(totalPages)].map((_, i) => (
+                      <PaginationItem key={i + 1}>
+                        <PaginationLink
+                          onClick={() => setCurrentPage(i + 1)}
+                          isActive={currentPage === i + 1}
+                          className="cursor-pointer"
+                        >
+                          {i + 1}
+                        </PaginationLink>
+                      </PaginationItem>
+                    ))}
+                    <PaginationItem>
+                      <PaginationNext
+                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                        className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              )}
+            </div>
           )}
         </CardContent>
       </Card>

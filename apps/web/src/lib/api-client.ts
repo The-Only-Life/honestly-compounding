@@ -44,6 +44,7 @@ export interface User {
   emailVerified: boolean;
   createdAt: string;
   lastSignInAt?: string;
+  invitedBy?: string | null;
 }
 
 export interface UsersResponse {
