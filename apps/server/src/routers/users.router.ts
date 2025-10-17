@@ -51,7 +51,7 @@ export default async function usersRouter(
         return res.status(500).send({ error: error.message });
       }
 
-      // Fetch all user metadata
+      // Fetch all user metadata with invited_by information
       const { data: metadataList, error: metadataError } = await supabase
         .from("user_metadata")
         .select("user_id, role, access_approved, invited_by");
