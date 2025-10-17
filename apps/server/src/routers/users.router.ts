@@ -54,16 +54,7 @@ export default async function usersRouter(
       // Fetch all user metadata with invited_by information
       const { data: metadataList, error: metadataError } = await supabase
         .from("user_metadata")
-        .select(`
-          user_id,
-          role,
-          access_approved,
-          invited_by,
-          inviter:invited_by (
-            email,
-            raw_user_meta_data
-          )
-        `);
+        .select("user_id, role, access_approved, invited_by");
 
       if (metadataError) {
         console.error("Error fetching user metadata:", metadataError);
@@ -74,10 +65,28 @@ export default async function usersRouter(
         metadataList?.map((m) => [m.user_id, m]) || []
       );
 
+      // Fetch inviter information for users who have invited_by set
+      const inviterIds = metadataList
+        ?.map((m) => m.invited_by)
+        .filter((id): id is string => id !== null) || [];
+
+      let inviterEmailMap = new Map<string, string>();
+
+      if (inviterIds.length > 0) {
+        // Fetch inviter users from auth
+        const { data: inviters } = await supabase.auth.admin.listUsers();
+
+        inviters?.users.forEach((inviter) => {
+          inviterEmailMap.set(inviter.id, inviter.email || '');
+        });
+      }
+
       // Map users to a cleaner format with metadata
       const users = data.users.map((user) => {
-        const metadata = metadataMap.get(user.id) as any;
-        const inviterEmail = metadata?.inviter?.email || null;
+        const metadata = metadataMap.get(user.id);
+        const inviterEmail = metadata?.invited_by
+          ? inviterEmailMap.get(metadata.invited_by) || null
+          : null;
 
         return {
           id: user.id,
