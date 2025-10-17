@@ -594,13 +594,26 @@ export default async function authRouter(
           maxAge: 604800,
         });
 
+        // Fetch user metadata from user_metadata table
+        const { data: metadata, error: metadataError } = await supabase
+          .from("user_metadata")
+          .select("role, access_approved")
+          .eq("user_id", sessionData.user.id)
+          .single();
+
+        if (metadataError && metadataError.code !== "PGRST116") {
+          // PGRST116 is "not found" error
+          console.error("Error fetching user metadata:", metadataError);
+        }
+
         return res.send({
           message: "Profile completed successfully",
           user: {
             id: sessionData.user.id,
             email: sessionData.user.email!,
             phone: sessionData.user.phone,
-            role: sessionData.user.user_metadata?.role || sessionData.user.role,
+            role: metadata?.role || null,
+            accessApproved: metadata?.access_approved || false,
             emailVerified: !!sessionData.user.email_confirmed_at,
             createdAt: sessionData.user.created_at,
           },
