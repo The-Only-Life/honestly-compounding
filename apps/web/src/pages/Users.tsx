@@ -1,8 +1,17 @@
 import { useState } from 'react';
-import { useUsers, useCreateUser, useUpdateUserRole } from '@/hooks/use-users-api';
+import { useUsers, useCreateUser, useUpdateUserRole, useUpdateUserAccess } from '@/hooks/use-users-api';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import {
   Select,
   SelectContent,
@@ -21,13 +30,14 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { UserIcon, Plus, Mail, Phone, Shield } from 'lucide-react';
+import { UserIcon, Plus, Mail, Phone, Shield, CheckCircle, XCircle } from 'lucide-react';
 import type { UserRole } from '@/types/roles';
 
 export default function Users() {
   const { data: usersData, isLoading } = useUsers();
   const createUserMutation = useCreateUser();
   const updateUserRoleMutation = useUpdateUserRole();
+  const updateUserAccessMutation = useUpdateUserAccess();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newUserEmail, setNewUserEmail] = useState('');
@@ -39,9 +49,9 @@ export default function Users() {
 
   // Calculate statistics
   const totalUsers = users.length;
-  const activeUsers = users.filter((u) => u.emailVerified).length;
+  const approvedUsers = users.filter((u) => u.accessApproved).length;
   const verifiedEmails = users.filter((u) => u.emailVerified).length;
-  const pendingUsers = users.filter((u) => !u.emailVerified).length;
+  const pendingApproval = users.filter((u) => !u.accessApproved).length;
 
   const handleCreateUser = async () => {
     if (contactMethod === 'email' && !newUserEmail) {
@@ -69,17 +79,8 @@ export default function Users() {
     await updateUserRoleMutation.mutateAsync({ userId, role: newRole });
   };
 
-  const getRoleBadgeVariant = (role?: string) => {
-    switch (role) {
-      case 'admin':
-        return 'destructive';
-      case 'sponsor':
-        return 'default';
-      case 'subscriber':
-        return 'secondary';
-      default:
-        return 'outline';
-    }
+  const handleAccessToggle = async (userId: string, currentAccess: boolean) => {
+    await updateUserAccessMutation.mutateAsync({ userId, accessApproved: !currentAccess });
   };
 
   if (isLoading) {
@@ -195,13 +196,13 @@ export default function Users() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Users</CardTitle>
+            <CardTitle className="text-sm font-medium">Approved Users</CardTitle>
             <Shield className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{activeUsers}</div>
+            <div className="text-2xl font-bold">{approvedUsers}</div>
             <p className="text-xs text-muted-foreground">
-              {totalUsers > 0 ? Math.round((activeUsers / totalUsers) * 100) : 0}% active rate
+              {totalUsers > 0 ? Math.round((approvedUsers / totalUsers) * 100) : 0}% approved
             </p>
           </CardContent>
         </Card>
@@ -221,12 +222,12 @@ export default function Users() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending</CardTitle>
+            <CardTitle className="text-sm font-medium">Pending Approval</CardTitle>
             <Phone className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{pendingUsers}</div>
-            <p className="text-xs text-muted-foreground">Awaiting verification</p>
+            <div className="text-2xl font-bold">{pendingApproval}</div>
+            <p className="text-xs text-muted-foreground">Awaiting access approval</p>
           </CardContent>
         </Card>
       </div>
@@ -234,43 +235,39 @@ export default function Users() {
       <Card>
         <CardHeader>
           <CardTitle>User List</CardTitle>
-          <CardDescription>Manage user accounts and their access levels</CardDescription>
+          <CardDescription>Manage user accounts, roles, and access approvals</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {users.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                No users found. Create your first user to get started.
-              </div>
-            ) : (
-              users.map((user) => (
-                <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="space-y-1 flex-1">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-medium">{user.email || user.phone || 'Unknown'}</h3>
-                      <Badge variant={getRoleBadgeVariant(user.role)}>{user.role || 'No Role'}</Badge>
-                      {user.emailVerified && (
-                        <Badge variant="outline" className="text-green-600">
-                          <Mail className="w-3 h-3 mr-1" />
-                          Verified
-                        </Badge>
-                      )}
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      ID: {user.id.slice(0, 8)}... • Created:{' '}
-                      {new Date(user.createdAt).toLocaleDateString()}
-                    </p>
-                    {user.lastSignInAt && (
-                      <p className="text-xs text-muted-foreground">
-                        Last sign in: {new Date(user.lastSignInAt).toLocaleDateString()}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="flex gap-2 items-center">
-                    {user.role !== 'admin' && (
+          {users.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              No users found. Create your first user to get started.
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>User</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead>Access Approved</TableHead>
+                  <TableHead>Email Verified</TableHead>
+                  <TableHead>Created</TableHead>
+                  <TableHead>Last Sign In</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {users.map((user) => (
+                  <TableRow key={user.id}>
+                    <TableCell>
+                      <div className="space-y-1">
+                        <div className="font-medium">{user.email || user.phone || 'Unknown'}</div>
+                        <div className="text-xs text-muted-foreground">
+                          ID: {user.id.slice(0, 8)}...
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
                       <Select
-                        value={user.role}
+                        value={user.role || ''}
                         onValueChange={(value) => handleRoleChange(user.id, value as UserRole)}
                         disabled={updateUserRoleMutation.isPending}
                       >
@@ -278,16 +275,51 @@ export default function Users() {
                           <SelectValue placeholder="Select role" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="subscriber">Subscriber</SelectItem>
+                          <SelectItem value="admin">Admin</SelectItem>
                           <SelectItem value="sponsor">Sponsor</SelectItem>
+                          <SelectItem value="subscriber">Subscriber</SelectItem>
                         </SelectContent>
                       </Select>
-                    )}
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          checked={user.accessApproved || false}
+                          onCheckedChange={() => handleAccessToggle(user.id, user.accessApproved || false)}
+                          disabled={updateUserAccessMutation.isPending}
+                        />
+                        {user.accessApproved ? (
+                          <CheckCircle className="h-4 w-4 text-green-600" />
+                        ) : (
+                          <XCircle className="h-4 w-4 text-muted-foreground" />
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {user.emailVerified ? (
+                        <Badge variant="outline" className="text-green-600">
+                          <Mail className="w-3 h-3 mr-1" />
+                          Verified
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-muted-foreground">
+                          Pending
+                        </Badge>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {new Date(user.createdAt).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {user.lastSignInAt
+                        ? new Date(user.lastSignInAt).toLocaleDateString()
+                        : 'Never'}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
     </div>

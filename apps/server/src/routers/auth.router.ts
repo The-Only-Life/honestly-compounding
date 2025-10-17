@@ -201,11 +201,24 @@ export default async function authRouter(
         return res.status(401).send({ error: "Invalid token" });
       }
 
+      // Fetch user metadata from user_metadata table
+      const { data: metadata, error: metadataError } = await supabase
+        .from("user_metadata")
+        .select("role, access_approved")
+        .eq("user_id", user.id)
+        .single();
+
+      if (metadataError && metadataError.code !== "PGRST116") {
+        // PGRST116 is "not found" error
+        console.error("Error fetching user metadata:", metadataError);
+      }
+
       return res.send({
         user: {
           id: user.id,
           email: user.email!,
-          role: user.user_metadata?.role || user.role,
+          role: metadata?.role || null,
+          accessApproved: metadata?.access_approved || false,
           emailVerified: !!user.email_confirmed_at,
           createdAt: user.created_at,
         },

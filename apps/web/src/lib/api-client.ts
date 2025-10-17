@@ -15,7 +15,8 @@ export interface LoginRequest {
 export interface AuthUser {
   id: string;
   email: string;
-  role?: string;
+  role?: string | null;
+  accessApproved?: boolean;
   emailVerified: boolean;
   createdAt: string;
 }
@@ -38,7 +39,8 @@ export interface User {
   id: string;
   email?: string;
   phone?: string;
-  role?: string;
+  role?: string | null;
+  accessApproved?: boolean;
   emailVerified: boolean;
   createdAt: string;
   lastSignInAt?: string;
@@ -81,12 +83,18 @@ class ApiClient {
   ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
 
+    const headers: HeadersInit = {
+      ...options.headers,
+    };
+
+    // Only set Content-Type if there's a body
+    if (options.body) {
+      headers["Content-Type"] = "application/json";
+    }
+
     const config: RequestInit = {
       ...options,
-      headers: {
-        "Content-Type": "application/json",
-        ...options.headers,
-      },
+      headers,
       credentials: "include", // Important: Include cookies in requests
     };
 
@@ -113,7 +121,6 @@ class ApiClient {
   async logout(): Promise<LogoutResponse> {
     return this.request<LogoutResponse>("/api/auth/logout", {
       method: "POST",
-      body: JSON.stringify({}),
     });
   }
 
@@ -152,6 +159,16 @@ class ApiClient {
     return this.request<UpdateUserRoleResponse>(`/api/users/${userId}/role`, {
       method: "PATCH",
       body: JSON.stringify(data),
+    });
+  }
+
+  async updateUserAccess(
+    userId: string,
+    accessApproved: boolean
+  ): Promise<{ message: string }> {
+    return this.request<{ message: string }>(`/api/users/${userId}/access`, {
+      method: "PATCH",
+      body: JSON.stringify({ accessApproved }),
     });
   }
 }

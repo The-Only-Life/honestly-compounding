@@ -27,8 +27,14 @@ export default async function usersRouter(
       return res.status(401).send({ error: "Invalid token" });
     }
 
-    const userRole = user.user_metadata?.role || user.role;
-    if (userRole !== "admin") {
+    // Fetch user role from user_metadata table
+    const { data: metadata, error: metadataError } = await supabase
+      .from("user_metadata")
+      .select("role")
+      .eq("user_id", user.id)
+      .single();
+
+    if (metadataError || !metadata || metadata.role !== "admin") {
       return res.status(403).send({ error: "Forbidden: Admin access required" });
     }
 
@@ -45,16 +51,34 @@ export default async function usersRouter(
         return res.status(500).send({ error: error.message });
       }
 
-      // Map users to a cleaner format
-      const users = data.users.map((user) => ({
-        id: user.id,
-        email: user.email,
-        phone: user.phone,
-        role: user.user_metadata?.role || user.role,
-        emailVerified: !!user.email_confirmed_at,
-        createdAt: user.created_at,
-        lastSignInAt: user.last_sign_in_at,
-      }));
+      // Fetch all user metadata
+      const { data: metadataList, error: metadataError } = await supabase
+        .from("user_metadata")
+        .select("user_id, role, access_approved");
+
+      if (metadataError) {
+        console.error("Error fetching user metadata:", metadataError);
+      }
+
+      // Create a map for quick lookup
+      const metadataMap = new Map(
+        metadataList?.map((m) => [m.user_id, m]) || []
+      );
+
+      // Map users to a cleaner format with metadata
+      const users = data.users.map((user) => {
+        const metadata = metadataMap.get(user.id);
+        return {
+          id: user.id,
+          email: user.email,
+          phone: user.phone,
+          role: metadata?.role || null,
+          accessApproved: metadata?.access_approved || false,
+          emailVerified: !!user.email_confirmed_at,
+          createdAt: user.created_at,
+          lastSignInAt: user.last_sign_in_at,
+        };
+      });
 
       return res.send({ users });
     } catch (error: any) {
@@ -91,9 +115,6 @@ export default async function usersRouter(
           phone,
           password: tempPassword,
           email_confirm: false, // User will confirm via invite
-          user_metadata: {
-            role,
-          },
         });
 
         if (error) {
@@ -102,18 +123,26 @@ export default async function usersRouter(
           });
         }
 
-        // Update user role in auth.users
-        const { error: updateError } = await supabase.auth.admin.updateUserById(
-          data.user.id,
-          {
-            user_metadata: {
-              role,
-            },
-          }
-        );
+        // Determine access_approved based on role
+        // Subscribers need approval, sponsors and admins are auto-approved
+        const accessApproved = role === 'subscriber' ? false : true;
 
-        if (updateError) {
-          console.error("Failed to update user role:", updateError);
+        // Insert into user_metadata table
+        const { error: metadataError } = await supabase
+          .from("user_metadata")
+          .insert({
+            user_id: data.user.id,
+            role,
+            access_approved: accessApproved,
+          });
+
+        if (metadataError) {
+          console.error("Failed to create user metadata:", metadataError);
+          // Rollback: delete the auth user if metadata creation fails
+          await supabase.auth.admin.deleteUser(data.user.id);
+          return res.status(500).send({
+            error: "Failed to create user metadata: " + metadataError.message,
+          });
         }
 
         return res.status(201).send({
@@ -123,6 +152,7 @@ export default async function usersRouter(
             email: data.user.email,
             phone: data.user.phone,
             role,
+            accessApproved,
             emailVerified: !!data.user.email_confirmed_at,
             createdAt: data.user.created_at,
           },
@@ -147,29 +177,84 @@ export default async function usersRouter(
         const { id } = req.params as { id: string };
         const { role } = req.body as Static<typeof UpdateUserRoleSchema>;
 
-        // Update user role
-        const { data, error } = await supabase.auth.admin.updateUserById(id, {
-          user_metadata: {
-            role,
-          },
-        });
+        // Check if user exists
+        const { data: userData, error: userError } = await supabase.auth.admin.getUserById(id);
 
-        if (error) {
-          return res.status(400).send({
-            error: "Failed to update user role: " + error.message,
+        if (userError || !userData.user) {
+          return res.status(404).send({
+            error: "User not found",
           });
         }
+
+        // Update role in user_metadata table (upsert to handle if row doesn't exist)
+        const { error: metadataError } = await supabase
+          .from("user_metadata")
+          .upsert({
+            user_id: id,
+            role,
+            access_approved: role === 'subscriber' ? false : true, // Auto-approve non-subscribers
+          }, {
+            onConflict: 'user_id'
+          });
+
+        if (metadataError) {
+          return res.status(500).send({
+            error: "Failed to update user metadata: " + metadataError.message,
+          });
+        }
+
+        // Fetch updated metadata
+        const { data: metadata } = await supabase
+          .from("user_metadata")
+          .select("role, access_approved")
+          .eq("user_id", id)
+          .single();
 
         return res.send({
           message: "User role updated successfully",
           user: {
-            id: data.user.id,
-            email: data.user.email,
-            phone: data.user.phone,
-            role: data.user.user_metadata?.role || role,
-            emailVerified: !!data.user.email_confirmed_at,
-            createdAt: data.user.created_at,
+            id: userData.user.id,
+            email: userData.user.email,
+            phone: userData.user.phone,
+            role: metadata?.role || role,
+            accessApproved: metadata?.access_approved || false,
+            emailVerified: !!userData.user.email_confirmed_at,
+            createdAt: userData.user.created_at,
           },
+        });
+      } catch (error: any) {
+        return res.status(500).send({
+          error: "Internal server error: " + error.message,
+        });
+      }
+    }
+  );
+
+  // PATCH /users/:id/access - Update user access approval (Admin only)
+  server.patch(
+    "/:id/access",
+    {
+      preHandler: verifyAdmin,
+    },
+    async (req, res) => {
+      try {
+        const { id } = req.params as { id: string };
+        const { accessApproved } = req.body as { accessApproved: boolean };
+
+        // Update access_approved in user_metadata table
+        const { error: metadataError } = await supabase
+          .from("user_metadata")
+          .update({ access_approved: accessApproved })
+          .eq("user_id", id);
+
+        if (metadataError) {
+          return res.status(500).send({
+            error: "Failed to update user access: " + metadataError.message,
+          });
+        }
+
+        return res.send({
+          message: "User access updated successfully",
         });
       } catch (error: any) {
         return res.status(500).send({
