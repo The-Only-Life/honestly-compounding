@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useUsers, useCreateUser, useUpdateUserRole, useUpdateUserAccess } from '@/hooks/use-users-api';
+import { useUsers, useInviteUser, useInviteUsersBulk, useUpdateUserRole, useUpdateUserAccess } from '@/hooks/use-users-api';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -30,20 +30,24 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { UserIcon, Plus, Mail, Phone, Shield, CheckCircle, XCircle } from 'lucide-react';
+import { UserIcon, Plus, Mail, Phone, Shield, CheckCircle, XCircle, Users as UsersIcon } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
 import type { UserRole } from '@/types/roles';
 
 export default function Users() {
   const { data: usersData, isLoading } = useUsers();
-  const createUserMutation = useCreateUser();
+  const inviteUserMutation = useInviteUser();
+  const inviteUsersBulkMutation = useInviteUsersBulk();
   const updateUserRoleMutation = useUpdateUserRole();
   const updateUserAccessMutation = useUpdateUserAccess();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isBulkDialogOpen, setIsBulkDialogOpen] = useState(false);
   const [newUserEmail, setNewUserEmail] = useState('');
   const [newUserPhone, setNewUserPhone] = useState('');
   const [newUserRole, setNewUserRole] = useState<UserRole>('subscriber');
   const [contactMethod, setContactMethod] = useState<'email' | 'phone'>('email');
+  const [bulkInviteText, setBulkInviteText] = useState('');
 
   const users = usersData?.users || [];
 
@@ -53,7 +57,7 @@ export default function Users() {
   const verifiedEmails = users.filter((u) => u.emailVerified).length;
   const pendingApproval = users.filter((u) => !u.accessApproved).length;
 
-  const handleCreateUser = async () => {
+  const handleInviteUser = async () => {
     if (contactMethod === 'email' && !newUserEmail) {
       return;
     }
@@ -61,7 +65,7 @@ export default function Users() {
       return;
     }
 
-    await createUserMutation.mutateAsync({
+    await inviteUserMutation.mutateAsync({
       email: contactMethod === 'email' ? newUserEmail : undefined,
       phone: contactMethod === 'phone' ? newUserPhone : undefined,
       role: newUserRole,
@@ -73,6 +77,31 @@ export default function Users() {
     setNewUserRole('subscriber');
     setContactMethod('email');
     setIsDialogOpen(false);
+  };
+
+  const handleBulkInvite = async () => {
+    const lines = bulkInviteText.trim().split('\n').filter(line => line.trim());
+
+    const users = lines.map(line => {
+      const parts = line.split(',').map(p => p.trim());
+      const emailOrPhone = parts[0];
+      const role = (parts[1] || 'subscriber') as UserRole;
+
+      // Simple email check
+      const isEmail = emailOrPhone.includes('@');
+
+      return {
+        email: isEmail ? emailOrPhone : undefined,
+        phone: isEmail ? undefined : emailOrPhone,
+        role,
+      };
+    });
+
+    await inviteUsersBulkMutation.mutateAsync({ users });
+
+    // Reset form
+    setBulkInviteText('');
+    setIsBulkDialogOpen(false);
   };
 
   const handleRoleChange = async (userId: string, newRole: UserRole) => {
@@ -101,85 +130,130 @@ export default function Users() {
           <h1 className="text-3xl font-bold">User Management</h1>
           <p className="text-muted-foreground">Manage user accounts and permissions</p>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Add User
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create New User</DialogTitle>
-              <DialogDescription>
-                Add a new user to the platform. They will receive an invitation to complete their
-                profile.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label>Contact Method</Label>
-                <Select
-                  value={contactMethod}
-                  onValueChange={(value) => setContactMethod(value as 'email' | 'phone')}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="email">Email</SelectItem>
-                    <SelectItem value="phone">Phone Number</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {contactMethod === 'email' ? (
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="user@example.com"
-                    value={newUserEmail}
-                    onChange={(e) => setNewUserEmail(e.target.value)}
-                  />
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Phone Number</Label>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    placeholder="+1234567890"
-                    value={newUserPhone}
-                    onChange={(e) => setNewUserPhone(e.target.value)}
-                  />
-                </div>
-              )}
-
-              <div className="space-y-2">
-                <Label>Role</Label>
-                <Select value={newUserRole} onValueChange={(value) => setNewUserRole(value as UserRole)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="subscriber">Subscriber</SelectItem>
-                    <SelectItem value="sponsor">Sponsor</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                Cancel
+        <div className="flex gap-2">
+          <Dialog open={isBulkDialogOpen} onOpenChange={setIsBulkDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                <UsersIcon className="mr-2 h-4 w-4" />
+                Bulk Invite
               </Button>
-              <Button onClick={handleCreateUser} disabled={createUserMutation.isPending}>
-                {createUserMutation.isPending ? 'Creating...' : 'Create User'}
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Bulk Invite Users</DialogTitle>
+                <DialogDescription>
+                  Add multiple users at once. Enter one user per line in the format: email/phone, role
+                  <br />
+                  Example: user@example.com, subscriber
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="bulkInvite">User List</Label>
+                  <Textarea
+                    id="bulkInvite"
+                    placeholder="user1@example.com, subscriber&#10;user2@example.com, sponsor&#10;+1234567890, subscriber"
+                    value={bulkInviteText}
+                    onChange={(e) => setBulkInviteText(e.target.value)}
+                    rows={10}
+                    className="font-mono text-sm"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Supported roles: subscriber, sponsor, admin
+                  </p>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsBulkDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleBulkInvite} disabled={inviteUsersBulkMutation.isPending}>
+                  {inviteUsersBulkMutation.isPending ? 'Sending Invites...' : 'Send Invites'}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                Invite User
               </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Invite New User</DialogTitle>
+                <DialogDescription>
+                  Invite a new user to the platform. They will receive an invitation to complete their
+                  profile.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label>Contact Method</Label>
+                  <Select
+                    value={contactMethod}
+                    onValueChange={(value) => setContactMethod(value as 'email' | 'phone')}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="email">Email</SelectItem>
+                      <SelectItem value="phone">Phone Number</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {contactMethod === 'email' ? (
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="user@example.com"
+                      value={newUserEmail}
+                      onChange={(e) => setNewUserEmail(e.target.value)}
+                    />
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Phone Number</Label>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      placeholder="+1234567890"
+                      value={newUserPhone}
+                      onChange={(e) => setNewUserPhone(e.target.value)}
+                    />
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  <Label>Role</Label>
+                  <Select value={newUserRole} onValueChange={(value) => setNewUserRole(value as UserRole)}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="subscriber">Subscriber</SelectItem>
+                      <SelectItem value="sponsor">Sponsor</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleInviteUser} disabled={inviteUserMutation.isPending}>
+                  {inviteUserMutation.isPending ? 'Sending Invite...' : 'Send Invite'}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

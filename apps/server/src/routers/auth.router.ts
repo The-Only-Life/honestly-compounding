@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import {
   InviteUserSchema,
+  BulkInviteUserSchema,
   LoginSchema,
   CompleteProfileSchema,
 } from "../schemas/auth.schema";
@@ -256,41 +257,268 @@ export default async function authRouter(
     }
   });
 
-  // Invite user endpoint (admin only)
+  // Middleware to verify admin/sponsor access
+  const verifyAdminOrSponsor = async (req: any, res: any) => {
+    const accessToken = req.cookies["sb-access-token"];
+
+    if (!accessToken) {
+      return res.status(401).send({ error: "Not authenticated" });
+    }
+
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser(accessToken);
+
+    if (error || !user) {
+      return res.status(401).send({ error: "Invalid token" });
+    }
+
+    // Fetch user role from user_metadata table
+    const { data: metadata, error: metadataError } = await supabase
+      .from("user_metadata")
+      .select("role")
+      .eq("user_id", user.id)
+      .single();
+
+    if (metadataError || !metadata || (metadata.role !== "admin" && metadata.role !== "sponsor")) {
+      return res.status(403).send({ error: "Forbidden: Admin or Sponsor access required" });
+    }
+
+    // Attach user to request
+    req.user = user;
+  };
+
+  // Invite user endpoint (admin/sponsor only)
   server.post(
     "/invite",
     {
       schema: {
         body: InviteUserSchema,
-        security: [{ bearerAuth: [] }],
       },
+      preHandler: verifyAdminOrSponsor,
     },
     async (req, res) => {
       try {
-        const { email } = req.body as Static<typeof InviteUserSchema>;
-        console.log("Inviting user:", email);
-        console.log("Redirect URL:", `${Config.FRONTEND_URL}/complete-profile`);
-        const { data, error } = await supabase.auth.admin.inviteUserByEmail(
+        const { email, phone, role } = req.body as Static<typeof InviteUserSchema>;
+        const invitedBy = (req as any).user.id;
+
+        // Validate that at least email or phone is provided
+        if (!email && !phone) {
+          return res.status(400).send({
+            error: "Either email or phone number is required",
+          });
+        }
+
+        // Generate a random temporary password
+        const tempPassword = Math.random().toString(36).slice(-12) + Math.random().toString(36).slice(-12);
+
+        // Create user via Supabase Admin API
+        const { data, error } = await supabase.auth.admin.createUser({
           email,
-          {
-            redirectTo: `${Config.FRONTEND_URL}/complete-profile`,
-          }
-        );
+          phone,
+          password: tempPassword,
+          email_confirm: false,
+          phone_confirm: false,
+        });
 
         if (error) {
-          return res
-            .status(400)
-            .send({ error: "Error while sending invite: " + error.message });
+          return res.status(400).send({
+            error: "Failed to create user: " + error.message,
+          });
+        }
+
+        // Determine access_approved based on role
+        const accessApproved = role === 'subscriber' ? false : true;
+
+        // Insert into user_metadata table with invited_by
+        const { error: metadataError } = await supabase
+          .from("user_metadata")
+          .insert({
+            user_id: data.user.id,
+            role,
+            access_approved: accessApproved,
+            invited_by: invitedBy,
+          });
+
+        if (metadataError) {
+          console.error("Failed to create user metadata:", metadataError);
+          // Rollback: delete the auth user if metadata creation fails
+          await supabase.auth.admin.deleteUser(data.user.id);
+          return res.status(500).send({
+            error: "Failed to create user metadata: " + metadataError.message,
+          });
+        }
+
+        // Send invite based on contact method
+        if (email) {
+          const { error: inviteError } = await supabase.auth.admin.inviteUserByEmail(
+            email,
+            {
+              redirectTo: `${Config.FRONTEND_URL}/complete-profile`,
+            }
+          );
+
+          if (inviteError) {
+            console.error("Failed to send email invite:", inviteError);
+            return res.status(500).send({
+              error: "User created but failed to send email invite: " + inviteError.message,
+            });
+          }
+        }
+
+        // Note: SMS invites would need to be implemented separately
+        // Supabase doesn't have a built-in admin.inviteUserByPhone method
+        // You'll need to use a service like Twilio, AWS SNS, etc.
+        if (phone && !email) {
+          // TODO: Implement SMS invite sending
+          console.log("SMS invite not yet implemented. User created with phone:", phone);
         }
 
         return res.send({
           message: "Invitation sent successfully",
-          user: data.user,
+          user: {
+            id: data.user.id,
+            email: data.user.email,
+            phone: data.user.phone,
+            role,
+            accessApproved,
+          },
         });
       } catch (error: any) {
-        return res
-          .status(500)
-          .send({ error: "Internal server error: " + error.message });
+        return res.status(500).send({
+          error: "Internal server error: " + error.message,
+        });
+      }
+    }
+  );
+
+  // Bulk invite users endpoint (admin/sponsor only)
+  server.post(
+    "/invite-bulk",
+    {
+      schema: {
+        body: BulkInviteUserSchema,
+      },
+      preHandler: verifyAdminOrSponsor,
+    },
+    async (req, res) => {
+      try {
+        const { users } = req.body as Static<typeof BulkInviteUserSchema>;
+        const invitedBy = (req as any).user.id;
+
+        const results = {
+          successful: [] as any[],
+          failed: [] as any[],
+        };
+
+        for (const userData of users) {
+          const { email, phone, role } = userData;
+
+          // Validate that at least email or phone is provided
+          if (!email && !phone) {
+            results.failed.push({
+              email,
+              phone,
+              error: "Either email or phone number is required",
+            });
+            continue;
+          }
+
+          try {
+            // Generate a random temporary password
+            const tempPassword = Math.random().toString(36).slice(-12) + Math.random().toString(36).slice(-12);
+
+            // Create user via Supabase Admin API
+            const { data, error } = await supabase.auth.admin.createUser({
+              email,
+              phone,
+              password: tempPassword,
+              email_confirm: false,
+              phone_confirm: false,
+            });
+
+            if (error) {
+              results.failed.push({
+                email,
+                phone,
+                error: error.message,
+              });
+              continue;
+            }
+
+            // Determine access_approved based on role
+            const accessApproved = role === 'subscriber' ? false : true;
+
+            // Insert into user_metadata table with invited_by
+            const { error: metadataError } = await supabase
+              .from("user_metadata")
+              .insert({
+                user_id: data.user.id,
+                role,
+                access_approved: accessApproved,
+                invited_by: invitedBy,
+              });
+
+            if (metadataError) {
+              // Rollback: delete the auth user if metadata creation fails
+              await supabase.auth.admin.deleteUser(data.user.id);
+              results.failed.push({
+                email,
+                phone,
+                error: "Failed to create user metadata: " + metadataError.message,
+              });
+              continue;
+            }
+
+            // Send invite based on contact method
+            if (email) {
+              const { error: inviteError } = await supabase.auth.admin.inviteUserByEmail(
+                email,
+                {
+                  redirectTo: `${Config.FRONTEND_URL}/complete-profile`,
+                }
+              );
+
+              if (inviteError) {
+                console.error("Failed to send email invite:", inviteError);
+                results.failed.push({
+                  email,
+                  phone,
+                  error: "User created but failed to send email invite",
+                });
+                continue;
+              }
+            }
+
+            // Note: SMS invites would need to be implemented separately
+            if (phone && !email) {
+              console.log("SMS invite not yet implemented. User created with phone:", phone);
+            }
+
+            results.successful.push({
+              id: data.user.id,
+              email: data.user.email,
+              phone: data.user.phone,
+              role,
+            });
+          } catch (error: any) {
+            results.failed.push({
+              email,
+              phone,
+              error: error.message,
+            });
+          }
+        }
+
+        return res.send({
+          message: `Bulk invite completed. ${results.successful.length} successful, ${results.failed.length} failed.`,
+          results,
+        });
+      } catch (error: any) {
+        return res.status(500).send({
+          error: "Internal server error: " + error.message,
+        });
       }
     }
   );

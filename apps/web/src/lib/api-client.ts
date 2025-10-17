@@ -70,6 +70,45 @@ export interface UpdateUserRoleResponse {
   user: User;
 }
 
+// Invite types
+export interface InviteUserRequest {
+  email?: string;
+  phone?: string;
+  role: "admin" | "sponsor" | "subscriber";
+}
+
+export interface InviteUserResponse {
+  message: string;
+  user: {
+    id: string;
+    email?: string;
+    phone?: string;
+    role: string;
+    accessApproved: boolean;
+  };
+}
+
+export interface BulkInviteUserRequest {
+  users: InviteUserRequest[];
+}
+
+export interface BulkInviteUserResponse {
+  message: string;
+  results: {
+    successful: Array<{
+      id: string;
+      email?: string;
+      phone?: string;
+      role: string;
+    }>;
+    failed: Array<{
+      email?: string;
+      phone?: string;
+      error: string;
+    }>;
+  };
+}
+
 class ApiClient {
   private baseUrl: string;
 
@@ -169,6 +208,21 @@ class ApiClient {
     return this.request<{ message: string }>(`/api/users/${userId}/access`, {
       method: "PATCH",
       body: JSON.stringify({ accessApproved }),
+    });
+  }
+
+  // Invite endpoints
+  async inviteUser(data: InviteUserRequest): Promise<InviteUserResponse> {
+    return this.request<InviteUserResponse>("/api/auth/invite", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async inviteUsersBulk(data: BulkInviteUserRequest): Promise<BulkInviteUserResponse> {
+    return this.request<BulkInviteUserResponse>("/api/auth/invite-bulk", {
+      method: "POST",
+      body: JSON.stringify(data),
     });
   }
 }

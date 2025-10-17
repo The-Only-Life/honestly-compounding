@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { apiClient, type CreateUserRequest, type UpdateUserRoleRequest } from '@/lib/api-client';
+import { apiClient, type CreateUserRequest, type UpdateUserRoleRequest, type InviteUserRequest, type BulkInviteUserRequest } from '@/lib/api-client';
 import { toast } from './use-toast';
 
 // Query keys
@@ -87,6 +87,58 @@ export const useUpdateUserAccess = () => {
     onError: (error: Error) => {
       toast({
         title: 'Failed to update user access',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+};
+
+// Hook to invite a single user
+export const useInviteUser = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: InviteUserRequest) => apiClient.inviteUser(data),
+    onSuccess: (response) => {
+      // Invalidate users list to refetch
+      queryClient.invalidateQueries({ queryKey: usersKeys.list() });
+
+      toast({
+        title: 'Success',
+        description: response.message,
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Failed to send invite',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+};
+
+// Hook to invite users in bulk
+export const useInviteUsersBulk = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: BulkInviteUserRequest) => apiClient.inviteUsersBulk(data),
+    onSuccess: (response) => {
+      // Invalidate users list to refetch
+      queryClient.invalidateQueries({ queryKey: usersKeys.list() });
+
+      const { successful, failed } = response.results;
+
+      toast({
+        title: 'Bulk invite completed',
+        description: `${successful.length} successful, ${failed.length} failed`,
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Failed to send bulk invites',
         description: error.message,
         variant: 'destructive',
       });
