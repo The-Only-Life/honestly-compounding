@@ -9,6 +9,7 @@ import type { FastifyCustomOptions } from "../types";
 import type { Static } from "@fastify/type-provider-typebox";
 import Config from "../server.config";
 import { sendInviteEmail } from "../utils/email";
+import { verifyRecaptcha } from "../utils/recaptcha";
 
 const COOKIE_OPTIONS = {
   httpOnly: true,
@@ -27,7 +28,15 @@ export default async function authRouter(
   // Login with email/password
   server.post("/login", async (req, res) => {
     try {
-      const { email, password } = req.body as Static<typeof LoginSchema>;
+      const { email, password, captchaToken } = req.body as Static<typeof LoginSchema> & { captchaToken?: string };
+
+      // Verify CAPTCHA if provided
+      if (captchaToken) {
+        const captchaValid = await verifyRecaptcha(captchaToken, req.ip);
+        if (!captchaValid) {
+          return res.status(400).send({ error: "Invalid CAPTCHA verification" });
+        }
+      }
 
       // Authenticate with Supabase
       const { data, error } = await supabase.auth.signInWithPassword({

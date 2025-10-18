@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { useAuth } from '@/contexts/AuthContext';
@@ -8,6 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ReCaptcha, ReCaptchaRef } from '@/components/ReCaptcha';
+import { toast } from 'sonner';
 
 const Auth = () => {
   const { user, signIn } = useAuth();
@@ -15,6 +17,8 @@ const Auth = () => {
   const joinWaitlistMutation = useJoinWaitlist();
   const [loading, setLoading] = useState(false);
   const [waitlistEmail, setWaitlistEmail] = useState('');
+  const loginCaptchaRef = useRef<ReCaptchaRef>(null);
+  const waitlistCaptchaRef = useRef<ReCaptchaRef>(null);
 
   // Redirect if already logged in
   if (user) {
@@ -26,16 +30,25 @@ const Auth = () => {
     setLoading(true);
 
     try {
+      // Verify CAPTCHA
+      const captchaToken = await loginCaptchaRef.current?.executeAsync();
+      if (!captchaToken) {
+        toast.error('Please complete the CAPTCHA verification');
+        setLoading(false);
+        return;
+      }
+
       const formData = new FormData(e.currentTarget);
       const email = formData.get('email') as string;
       const password = formData.get('password') as string;
 
-      await signIn(email, password);
+      await signIn(email, password, captchaToken);
       // Navigation will happen automatically due to user state change
       navigate('/dashboard', { replace: true });
     } catch (error) {
       // Error is already handled by the useLogin hook
       console.error('Login failed:', error);
+      loginCaptchaRef.current?.reset();
     } finally {
       setLoading(false);
     }
@@ -44,13 +57,26 @@ const Auth = () => {
   const handleJoinWaitlist = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const formData = new FormData(e.currentTarget);
-    const email = formData.get('email') as string;
+    try {
+      // Verify CAPTCHA
+      const captchaToken = await waitlistCaptchaRef.current?.executeAsync();
+      if (!captchaToken) {
+        toast.error('Please complete the CAPTCHA verification');
+        return;
+      }
 
-    await joinWaitlistMutation.mutateAsync(email);
+      const formData = new FormData(e.currentTarget);
+      const email = formData.get('email') as string;
 
-    // Reset form on success
-    setWaitlistEmail('');
+      await joinWaitlistMutation.mutateAsync({ email, captchaToken });
+
+      // Reset form on success
+      setWaitlistEmail('');
+      waitlistCaptchaRef.current?.reset();
+    } catch (error) {
+      console.error('Join waitlist failed:', error);
+      waitlistCaptchaRef.current?.reset();
+    }
   };
 
   return (
@@ -108,6 +134,7 @@ const Auth = () => {
                     required
                   />
                 </div>
+                <ReCaptcha ref={loginCaptchaRef} size="normal" />
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? 'Signing in...' : 'Sign In'}
                 </Button>
@@ -128,6 +155,7 @@ const Auth = () => {
                     required
                   />
                 </div>
+                <ReCaptcha ref={waitlistCaptchaRef} size="normal" />
                 <Button type="submit" className="w-full" disabled={joinWaitlistMutation.isPending}>
                   {joinWaitlistMutation.isPending ? 'Joining...' : 'Join Waitlist'}
                 </Button>

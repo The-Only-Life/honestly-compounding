@@ -8,6 +8,7 @@ import type { FastifyCustomOptions } from "../types";
 import type { Static } from "@fastify/type-provider-typebox";
 import Config from "../server.config";
 import { sendWaitlistApprovalEmail } from "../utils/email";
+import { verifyRecaptcha } from "../utils/recaptcha";
 
 export default async function waitlistRouter(
   server: FastifyInstance,
@@ -64,7 +65,15 @@ export default async function waitlistRouter(
     },
     async (req, res) => {
       try {
-        const { email } = req.body as Static<typeof JoinWaitlistSchema>;
+        const { email, captchaToken } = req.body as Static<typeof JoinWaitlistSchema> & { captchaToken?: string };
+
+        // Verify CAPTCHA if provided
+        if (captchaToken) {
+          const captchaValid = await verifyRecaptcha(captchaToken, req.ip);
+          if (!captchaValid) {
+            return res.status(400).send({ error: "Invalid CAPTCHA verification" });
+          }
+        }
 
         // Check if email already exists
         const { data: existing } = await supabase

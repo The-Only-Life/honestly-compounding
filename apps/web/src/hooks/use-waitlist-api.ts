@@ -20,7 +20,8 @@ export const useWaitlist = (status?: 'pending' | 'invited') => {
 // Hook to join waitlist (public)
 export const useJoinWaitlist = () => {
   return useMutation({
-    mutationFn: (email: string) => apiClient.joinWaitlist(email),
+    mutationFn: ({ email, captchaToken }: { email: string; captchaToken?: string }) =>
+      apiClient.joinWaitlist(email, captchaToken),
     onSuccess: (response) => {
       toast({
         title: 'Success!',
