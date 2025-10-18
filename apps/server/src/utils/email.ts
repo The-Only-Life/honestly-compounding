@@ -44,6 +44,7 @@ export async function sendInviteEmail({
       INVITE_URL: inviteUrl,
       USER_EMAIL: to,
       CURRENT_YEAR: new Date().getFullYear().toString(),
+      LOGO_URL: `${Config.FRONTEND_URL}/Logo.png`,
     });
 
     const { data, error } = await resend.emails.send({
@@ -81,6 +82,7 @@ export async function sendWaitlistApprovalEmail({
       INVITE_URL: inviteUrl,
       USER_EMAIL: to,
       CURRENT_YEAR: new Date().getFullYear().toString(),
+      LOGO_URL: `${Config.FRONTEND_URL}/Logo.png`,
     });
 
     const { data, error } = await resend.emails.send({
