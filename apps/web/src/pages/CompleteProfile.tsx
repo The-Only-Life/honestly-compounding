@@ -14,14 +14,12 @@ const CompleteProfile = () => {
   const [loading, setLoading] = useState(false);
   const [verifying, setVerifying] = useState(true);
   const [tokenValid, setTokenValid] = useState(false);
-  const [invitedEmail, setInvitedEmail] = useState<string | null>(null);
-  const [invitedPhone, setInvitedPhone] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // Get token from URL and extract user info
+  // Verify token exists in URL
   useEffect(() => {
-    const verifyToken = async () => {
+    const verifyToken = () => {
       try {
         // Check for invitation token in URL hash or query params
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
@@ -38,24 +36,8 @@ const CompleteProfile = () => {
           return;
         }
 
-        // Decode JWT token to get user info (email/phone)
-        // JWT format: header.payload.signature
-        try {
-          const payload = JSON.parse(atob(accessToken.split('.')[1]));
-
-          // Extract email and phone from the JWT payload
-          if (payload.email) {
-            setInvitedEmail(payload.email);
-          }
-          if (payload.phone) {
-            setInvitedPhone(payload.phone);
-          }
-
-          setTokenValid(true);
-        } catch (decodeError) {
-          console.error('Failed to decode token:', decodeError);
-          throw new Error('Invalid token format');
-        }
+        // Token is valid (JWT from Supabase)
+        setTokenValid(true);
       } catch (error) {
         console.error('Token verification failed:', error);
         toast({
@@ -105,8 +87,8 @@ const CompleteProfile = () => {
         },
         credentials: 'include',
         body: JSON.stringify({
-          email: invitedEmail || email,
-          phone: invitedPhone || phone,
+          email,
+          phone,
           password,
         }),
       });
@@ -178,28 +160,17 @@ const CompleteProfile = () => {
                 name="email"
                 type="email"
                 placeholder="Enter your email"
-                defaultValue={invitedEmail || ''}
-                disabled={!!invitedEmail}
                 required
               />
-              {invitedEmail && (
-                <p className="text-xs text-muted-foreground">Email from invitation</p>
-              )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="phone">Phone Number</Label>
+              <Label htmlFor="phone">Phone Number (Optional)</Label>
               <Input
                 id="phone"
                 name="phone"
                 type="tel"
                 placeholder="Enter your phone number"
-                defaultValue={invitedPhone || ''}
-                disabled={!!invitedPhone}
-                required
               />
-              {invitedPhone && (
-                <p className="text-xs text-muted-foreground">Phone from invitation</p>
-              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>

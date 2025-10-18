@@ -1,12 +1,14 @@
 import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
+import { AppConfig } from '@/config';
 
 /**
  * Auth Confirmation Page
  *
  * This page handles Supabase email confirmation links.
- * It exchanges the token_hash for an access_token and redirects to the next page.
+ * It exchanges the token_hash for an access_token by calling Supabase's verify endpoint,
+ * then redirects to the next page.
  *
  * URL format: /auth/confirm?token_hash=xxx&type=invite&next=/complete-profile
  */
@@ -28,13 +30,41 @@ const AuthConfirm = () => {
           return;
         }
 
-        // For invite type, the token_hash IS the access_token from Supabase
-        // We just need to redirect to the next page with it in the hash
+        // For invite type, verify the token with our backend
+        // The backend will exchange the token_hash for a real JWT access_token
         if (type === 'invite') {
-          // Redirect to the next page with the access_token in the URL hash
-          // This allows the CompleteProfile page to use it
-          window.location.href = `${next}#access_token=${tokenHash}&type=${type}`;
-          return;
+          try {
+            // Call our backend to verify the token_hash
+            const response = await fetch(`${AppConfig.API_BASE_URL}/api/auth/verify-invite`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              credentials: 'include',
+              body: JSON.stringify({
+                token_hash: tokenHash,
+                type: type
+              }),
+            });
+
+            if (!response.ok) {
+              const errorData = await response.json().catch(() => ({}));
+              console.error('Token verification failed:', errorData);
+              throw new Error(errorData.error || 'Token verification failed');
+            }
+
+            const data = await response.json();
+
+            // If verification succeeded, redirect to next page with the access_token
+            // Pass the JWT access token in the URL hash so CompleteProfile can use it
+            window.location.href = `${next}#access_token=${data.access_token}&type=${type}`;
+            return;
+          } catch (error) {
+            console.error('Invite verification failed:', error);
+            // On error, redirect to auth page
+            navigate('/auth');
+            return;
+          }
         }
 
         // For other types (signup, recovery, etc.), handle them here

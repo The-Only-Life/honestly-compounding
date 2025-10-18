@@ -42,6 +42,11 @@ export const BulkInviteUserSchema = Type.Object({
     }))
 })
 
+export const VerifyInviteSchema = Type.Object({
+    token_hash: Type.String(),
+    type: Type.Literal("invite")
+})
+
 export const CompleteProfileSchema = Type.Object({
     email: Type.Optional(Type.String({ format: "email" })),
     phone: Type.Optional(Type.String({ pattern: '^(\\+91[- ]?)?[6-9]\\d{9}$' })),

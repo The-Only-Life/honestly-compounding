@@ -3,6 +3,7 @@ import {
   InviteUserSchema,
   BulkInviteUserSchema,
   LoginSchema,
+  VerifyInviteSchema,
   CompleteProfileSchema,
 } from "../schemas/auth.schema";
 import type { FastifyCustomOptions } from "../types";
@@ -557,6 +558,49 @@ export default async function authRouter(
           results,
         });
       } catch (error: any) {
+        return res.status(500).send({
+          error: "Internal server error: " + error.message,
+        });
+      }
+    }
+  );
+
+  // Verify invite token endpoint
+  // This endpoint exchanges the token_hash from the invite email for a real JWT access token
+  server.post(
+    "/verify-invite",
+    {
+      schema: {
+        body: VerifyInviteSchema,
+      },
+    },
+    async (req, res) => {
+      try {
+        const { token_hash, type } = req.body as Static<typeof VerifyInviteSchema>;
+
+        // Verify the token_hash with Supabase to get a session
+        const { data, error } = await supabase.auth.verifyOtp({
+          token_hash,
+          type,
+        });
+
+        if (error) {
+          console.error("Token verification error:", error);
+          return res.status(401).send({ error: error.message || "Invalid or expired invitation token" });
+        }
+
+        if (!data.session) {
+          return res.status(401).send({ error: "Failed to create session from invitation" });
+        }
+
+        // The session was successfully created, now we return the access token
+        // so the frontend can use it in the complete-profile endpoint
+        return res.send({
+          message: "Invitation verified successfully",
+          access_token: data.session.access_token,
+        });
+      } catch (error: any) {
+        console.error("Verify invite error:", error);
         return res.status(500).send({
           error: "Internal server error: " + error.message,
         });
