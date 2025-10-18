@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useUsers, useInviteUser, useInviteUsersBulk, useUpdateUserRole, useUpdateUserAccess } from '@/hooks/use-users-api';
+import { useUsers, useInviteUser, useInviteUsersBulk, useUpdateUserRole, useUpdateUserAccess, useDeleteUser } from '@/hooks/use-users-api';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -28,9 +28,20 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { UserIcon, Plus, Mail, Phone, Shield, CheckCircle, XCircle, Users as UsersIcon } from 'lucide-react';
+import { UserIcon, Plus, Mail, Phone, Shield, CheckCircle, XCircle, Users as UsersIcon, Trash2 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import {
   Pagination,
@@ -48,6 +59,7 @@ export default function Users() {
   const inviteUsersBulkMutation = useInviteUsersBulk();
   const updateUserRoleMutation = useUpdateUserRole();
   const updateUserAccessMutation = useUpdateUserAccess();
+  const deleteUserMutation = useDeleteUser();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isBulkDialogOpen, setIsBulkDialogOpen] = useState(false);
@@ -126,6 +138,10 @@ export default function Users() {
 
   const handleAccessToggle = async (userId: string, currentAccess: boolean) => {
     await updateUserAccessMutation.mutateAsync({ userId, accessApproved: !currentAccess });
+  };
+
+  const handleDeleteUser = async (userId: string) => {
+    await deleteUserMutation.mutateAsync(userId);
   };
 
   if (isLoading) {
@@ -344,6 +360,7 @@ export default function Users() {
                     <TableHead>Invited By</TableHead>
                     <TableHead>Created</TableHead>
                     <TableHead>Last Sign In</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -409,6 +426,37 @@ export default function Users() {
                         {user.lastSignInAt
                           ? new Date(user.lastSignInAt).toLocaleDateString()
                           : 'Never'}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-destructive hover:text-destructive"
+                              disabled={deleteUserMutation.isPending}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete User</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete {user.email || user.phone}? This action cannot be undone and will permanently remove the user and all their data.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDeleteUser(user.id)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </TableCell>
                     </TableRow>
                   ))}

@@ -226,6 +226,12 @@ class ApiClient {
       body: JSON.stringify(data),
     });
   }
+
+  async deleteUser(userId: string): Promise<{ message: string }> {
+    return this.request<{ message: string }>(`/api/users/${userId}`, {
+      method: "DELETE",
+    });
+  }
 }
 
 export const apiClient = new ApiClient(API_BASE_URL);

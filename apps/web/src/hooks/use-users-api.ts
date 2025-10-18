@@ -145,3 +145,28 @@ export const useInviteUsersBulk = () => {
     },
   });
 };
+
+// Hook to delete a user
+export const useDeleteUser = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (userId: string) => apiClient.deleteUser(userId),
+    onSuccess: (response) => {
+      // Invalidate users list to refetch
+      queryClient.invalidateQueries({ queryKey: usersKeys.list() });
+
+      toast({
+        title: 'Success',
+        description: response.message,
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Failed to delete user',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+};

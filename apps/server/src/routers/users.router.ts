@@ -284,4 +284,54 @@ export default async function usersRouter(
       }
     }
   );
+
+  // DELETE /users/:id - Delete a user (Admin only)
+  server.delete(
+    "/:id",
+    {
+      preHandler: verifyAdmin,
+    },
+    async (req, res) => {
+      try {
+        const { id } = req.params as { id: string };
+
+        // Check if user exists
+        const { data: userData, error: userError } = await supabase.auth.admin.getUserById(id);
+
+        if (userError || !userData.user) {
+          return res.status(404).send({
+            error: "User not found",
+          });
+        }
+
+        // Delete user metadata first
+        const { error: metadataError } = await supabase
+          .from("user_metadata")
+          .delete()
+          .eq("user_id", id);
+
+        if (metadataError) {
+          console.error("Failed to delete user metadata:", metadataError);
+          // Continue with auth user deletion even if metadata deletion fails
+        }
+
+        // Delete user from Supabase Auth
+        const { error: deleteError } = await supabase.auth.admin.deleteUser(id);
+
+        if (deleteError) {
+          return res.status(500).send({
+            error: "Failed to delete user: " + deleteError.message,
+          });
+        }
+
+        return res.send({
+          message: "User deleted successfully",
+        });
+      } catch (error: any) {
+        return res.status(500).send({
+          error: "Internal server error: " + error.message,
+        });
+      }
+    }
+  );
 }
