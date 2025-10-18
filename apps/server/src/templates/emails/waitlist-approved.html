@@ -1,66 +1,117 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Waitlist Approved - Honestly Compounding</title>
-  </head>
-  <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9fafb;">
-    <div style="background: linear-gradient(to right, #10b981, #059669); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
-      <h1 style="color: white; margin: 0; font-size: 28px;">🎉 You're In!</h1>
-    </div>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Waitlist Approved</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5;">
+  <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #f5f5f5;">
+    <tr>
+      <td align="center" style="padding: 40px 20px;">
+        <table role="presentation" style="max-width: 600px; width: 100%; border-collapse: collapse; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);">
 
-    <div style="background: #ffffff; padding: 40px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
-      <h2 style="color: #1f2937; margin-top: 0;">Your Waitlist Request Has Been Approved!</h2>
+          <!-- Header with Logo -->
+          <tr>
+            <td style="padding: 48px 48px 32px; text-align: center; border-bottom: 1px solid #e5e7eb;">
+              <img src="{{LOGO_URL}}" alt="Honestly Compounding" style="height: 50px; margin-bottom: 16px;">
+              <h1 style="margin: 0; font-size: 24px; font-weight: 600; color: #0f172a;">You're In!</h1>
+            </td>
+          </tr>
 
-      <p style="font-size: 16px; color: #4b5563;">
-        Great news! Your request to join <strong>Honestly Compounding</strong> has been approved.
-      </p>
+          <!-- Main Content -->
+          <tr>
+            <td style="padding: 48px;">
+              <p style="margin: 0 0 24px; font-size: 16px; line-height: 1.6; color: #475569;">
+                Hello,
+              </p>
 
-      <p style="font-size: 16px; color: #4b5563;">
-        We're excited to have you on board. Click the button below to complete your profile and get started:
-      </p>
+              <p style="margin: 0 0 24px; font-size: 16px; line-height: 1.6; color: #475569;">
+                Great news! Your request to join <strong style="color: #0f172a;">Honestly Compounding</strong> has been approved. We're excited to have you on board.
+              </p>
 
-      <div style="text-align: center; margin: 32px 0;">
-        <a href="{{INVITE_URL}}"
-           style="background: #10b981; color: white; padding: 14px 32px; text-decoration: none; border-radius: 6px; font-weight: 600; display: inline-block; font-size: 16px;">
-          Complete Your Profile
-        </a>
-      </div>
+              <p style="margin: 0 0 32px; font-size: 16px; line-height: 1.6; color: #475569;">
+                Click the button below to complete your profile and get started:
+              </p>
 
-      <p style="font-size: 14px; color: #6b7280;">
-        If the button doesn't work, copy and paste this link into your browser:
-      </p>
-      <p style="font-size: 14px; color: #10b981; word-break: break-all;">
-        {{INVITE_URL}}
-      </p>
+              <!-- CTA Button -->
+              <table role="presentation" style="width: 100%; border-collapse: collapse;">
+                <tr>
+                  <td align="center">
+                    <a href="{{INVITE_URL}}" style="display: inline-block; padding: 14px 32px; background-color: #0f172a; color: #f8fafc; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 600; line-height: 1.5;">
+                      Complete Your Profile
+                    </a>
+                  </td>
+                </tr>
+              </table>
 
-      <div style="background: #ecfdf5; border-left: 4px solid #10b981; padding: 16px; margin: 24px 0; border-radius: 4px;">
-        <p style="margin: 0; font-size: 14px; color: #374151;">
-          <strong>What You'll Get Access To:</strong>
-        </p>
-        <ul style="margin: 12px 0 0 0; padding-left: 20px; font-size: 14px; color: #4b5563;">
-          <li>Professional stock research and analysis</li>
-          <li>Curated thematic investment research</li>
-          <li>Comprehensive risk assessment tools</li>
-          <li>Expert research reports from experienced analysts</li>
-        </ul>
-      </div>
+              <p style="margin: 32px 0 0; font-size: 14px; line-height: 1.6; color: #64748b;">
+                If the button doesn't work, copy and paste this link into your browser:
+              </p>
 
-      <p style="font-size: 14px; color: #4b5563;">
-        After completing your profile, an admin will review and approve your account for full access.
-      </p>
+              <p style="margin: 8px 0 0; font-size: 14px; line-height: 1.6; word-break: break-all;">
+                <a href="{{INVITE_URL}}" style="color: #3b82f6; text-decoration: none;">{{INVITE_URL}}</a>
+              </p>
 
-      <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 32px 0;">
+              <!-- Features Box -->
+              <table role="presentation" style="width: 100%; border-collapse: collapse; margin-top: 32px; background-color: #f8fafc; border-left: 4px solid #0f172a; border-radius: 4px;">
+                <tr>
+                  <td style="padding: 24px;">
+                    <p style="margin: 0 0 16px; font-size: 15px; font-weight: 600; color: #0f172a;">
+                      What You'll Get Access To:
+                    </p>
+                    <table role="presentation" style="width: 100%; border-collapse: collapse;">
+                      <tr>
+                        <td style="padding: 4px 0;">
+                          <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #475569;">• Professional stock research and analysis</p>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 4px 0;">
+                          <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #475569;">• Curated thematic investment research</p>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 4px 0;">
+                          <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #475569;">• Comprehensive risk assessment tools</p>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 4px 0;">
+                          <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #475569;">• Expert research reports from experienced analysts</p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
 
-      <p style="font-size: 12px; color: #9ca3af; margin: 0; text-align: center;">
-        This invitation was sent to <strong>{{USER_EMAIL}}</strong>.<br>
-        If you didn't request access to Honestly Compounding, you can safely ignore this email.
-      </p>
+              <p style="margin: 24px 0 0; font-size: 14px; line-height: 1.6; color: #64748b;">
+                After completing your profile, an admin will review and approve your account for full access.
+              </p>
+            </td>
+          </tr>
 
-      <p style="font-size: 12px; color: #9ca3af; margin-top: 16px; text-align: center;">
-        © {{CURRENT_YEAR}} Honestly Compounding. All rights reserved.
-      </p>
-    </div>
-  </body>
+          <!-- Footer -->
+          <tr>
+            <td style="padding: 32px 48px; background-color: #f8fafc; border-top: 1px solid #e5e7eb; border-radius: 0 0 8px 8px;">
+              <p style="margin: 0 0 8px; font-size: 13px; line-height: 1.5; color: #64748b; text-align: center;">
+                This invitation was sent to <strong>{{USER_EMAIL}}</strong>.
+              </p>
+
+              <p style="margin: 0; font-size: 13px; line-height: 1.5; color: #94a3b8; text-align: center;">
+                If you didn't request access to Honestly Compounding, you can safely ignore this email.
+              </p>
+
+              <p style="margin: 24px 0 0; font-size: 12px; line-height: 1.5; color: #94a3b8; text-align: center;">
+                &copy; {{CURRENT_YEAR}} Honestly Compounding. All rights reserved.
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
 </html>
