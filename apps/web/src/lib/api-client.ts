@@ -114,6 +114,37 @@ export interface BulkInviteUserResponse {
   };
 }
 
+// Waitlist types
+export interface WaitlistEntry {
+  id: string;
+  email: string;
+  status: 'pending' | 'invited';
+  created_at: string;
+}
+
+export interface WaitlistResponse {
+  data: WaitlistEntry[];
+  count: number;
+}
+
+export interface JoinWaitlistResponse {
+  message: string;
+  data: {
+    id: string;
+    email: string;
+    status: string;
+  };
+}
+
+export interface ApproveWaitlistResponse {
+  message: string;
+  user: {
+    id: string;
+    email: string;
+    role: string;
+  };
+}
+
 class ApiClient {
   private baseUrl: string;
 
@@ -234,6 +265,26 @@ class ApiClient {
   async deleteUser(userId: string): Promise<{ message: string }> {
     return this.request<{ message: string }>(`/api/users/${userId}`, {
       method: "DELETE",
+    });
+  }
+
+  // Waitlist endpoints
+  async joinWaitlist(email: string): Promise<JoinWaitlistResponse> {
+    return this.request<JoinWaitlistResponse>("/api/waitlist/join", {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    });
+  }
+
+  async getWaitlist(status?: 'pending' | 'invited'): Promise<WaitlistResponse> {
+    const queryParams = status ? `?status=${status}` : '';
+    return this.request<WaitlistResponse>(`/api/waitlist${queryParams}`);
+  }
+
+  async approveWaitlist(id: string, email: string): Promise<ApproveWaitlistResponse> {
+    return this.request<ApproveWaitlistResponse>("/api/waitlist/approve", {
+      method: "POST",
+      body: JSON.stringify({ id, email }),
     });
   }
 }

@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { useUsers, useInviteUser, useInviteUsersBulk, useUpdateUserRole, useUpdateUserAccess, useDeleteUser } from '@/hooks/use-users-api';
+import { useWaitlist, useApproveWaitlist } from '@/hooks/use-waitlist-api';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Table,
   TableBody,
@@ -55,11 +57,13 @@ import type { UserRole } from '@/types/roles';
 
 export default function Users() {
   const { data: usersData, isLoading } = useUsers();
+  const { data: waitlistData, isLoading: isLoadingWaitlist } = useWaitlist('pending');
   const inviteUserMutation = useInviteUser();
   const inviteUsersBulkMutation = useInviteUsersBulk();
   const updateUserRoleMutation = useUpdateUserRole();
   const updateUserAccessMutation = useUpdateUserAccess();
   const deleteUserMutation = useDeleteUser();
+  const approveWaitlistMutation = useApproveWaitlist();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isBulkDialogOpen, setIsBulkDialogOpen] = useState(false);
@@ -72,6 +76,7 @@ export default function Users() {
   const itemsPerPage = 10;
 
   const users = usersData?.users || [];
+  const waitlistEntries = waitlistData?.data || [];
 
   // Pagination logic
   const totalPages = Math.ceil(users.length / itemsPerPage);
@@ -84,6 +89,7 @@ export default function Users() {
   const approvedUsers = users.filter((u) => u.accessApproved).length;
   const verifiedEmails = users.filter((u) => u.emailVerified).length;
   const pendingApproval = users.filter((u) => !u.accessApproved).length;
+  const pendingWaitlist = waitlistEntries.length;
 
   const handleInviteUser = async () => {
     if (contactMethod === 'email' && !newUserEmail) {
@@ -142,6 +148,10 @@ export default function Users() {
 
   const handleDeleteUser = async (userId: string) => {
     await deleteUserMutation.mutateAsync(userId);
+  };
+
+  const handleApproveWaitlist = async (id: string, email: string) => {
+    await approveWaitlistMutation.mutateAsync({ id, email });
   };
 
   if (isLoading) {
@@ -338,12 +348,19 @@ export default function Users() {
         </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>User List</CardTitle>
-          <CardDescription>Manage user accounts, roles, and access approvals</CardDescription>
-        </CardHeader>
-        <CardContent>
+      <Tabs defaultValue="users" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="users">Users ({totalUsers})</TabsTrigger>
+          <TabsTrigger value="waitlist">Waitlist ({pendingWaitlist})</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="users">
+          <Card>
+            <CardHeader>
+              <CardTitle>User List</CardTitle>
+              <CardDescription>Manage user accounts, roles, and access approvals</CardDescription>
+            </CardHeader>
+            <CardContent>
           {users.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               No users found. Create your first user to get started.
@@ -496,6 +513,66 @@ export default function Users() {
           )}
         </CardContent>
       </Card>
+        </TabsContent>
+
+        <TabsContent value="waitlist">
+          <Card>
+            <CardHeader>
+              <CardTitle>Waitlist</CardTitle>
+              <CardDescription>Manage waitlist requests and approve new subscribers</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {isLoadingWaitlist ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                  <p className="text-muted-foreground">Loading waitlist...</p>
+                </div>
+              ) : waitlistEntries.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  No pending waitlist requests.
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Requested</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {waitlistEntries.map((entry) => (
+                      <TableRow key={entry.id}>
+                        <TableCell>
+                          <div className="font-medium">{entry.email}</div>
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {new Date(entry.created_at).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="text-yellow-600">
+                            Pending
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            size="sm"
+                            onClick={() => handleApproveWaitlist(entry.id, entry.email)}
+                            disabled={approveWaitlistMutation.isPending}
+                          >
+                            {approveWaitlistMutation.isPending ? 'Approving...' : 'Approve & Invite'}
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

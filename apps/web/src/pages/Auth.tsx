@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { useAuth } from '@/contexts/AuthContext';
+import { useJoinWaitlist } from '@/hooks/use-waitlist-api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,9 +10,11 @@ import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const Auth = () => {
-  const { user, signIn, signUp } = useAuth();
+  const { user, signIn } = useAuth();
   const navigate = useNavigate();
+  const joinWaitlistMutation = useJoinWaitlist();
   const [loading, setLoading] = useState(false);
+  const [waitlistEmail, setWaitlistEmail] = useState('');
 
   // Redirect if already logged in
   if (user) {
@@ -38,20 +41,16 @@ const Auth = () => {
     }
   };
 
-  const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleJoinWaitlist = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setLoading(true);
 
-    try {
-      const formData = new FormData(e.currentTarget);
-      const email = formData.get('email') as string;
-      const password = formData.get('password') as string;
-      const fullName = formData.get('fullName') as string;
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get('email') as string;
 
-      await signUp(email, password, fullName);
-    } finally {
-      setLoading(false);
-    }
+    await joinWaitlistMutation.mutateAsync(email);
+
+    // Reset form on success
+    setWaitlistEmail('');
   };
 
   return (
@@ -84,7 +83,7 @@ const Auth = () => {
           <Tabs defaultValue="signin" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="signin">Sign In</TabsTrigger>
-              <TabsTrigger value="signup">Sign Up</TabsTrigger>
+              <TabsTrigger value="signup">Join Waitlist</TabsTrigger>
             </TabsList>
             
             <TabsContent value="signin">
@@ -116,43 +115,24 @@ const Auth = () => {
             </TabsContent>
             
             <TabsContent value="signup">
-              <form onSubmit={handleSignUp} className="space-y-4">
+              <form onSubmit={handleJoinWaitlist} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="signup-name">Full Name</Label>
+                  <Label htmlFor="waitlist-email">Email Address</Label>
                   <Input
-                    id="signup-name"
-                    name="fullName"
-                    type="text"
-                    placeholder="Enter your full name"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-email">Email</Label>
-                  <Input
-                    id="signup-email"
+                    id="waitlist-email"
                     name="email"
                     type="email"
                     placeholder="Enter your email"
+                    value={waitlistEmail}
+                    onChange={(e) => setWaitlistEmail(e.target.value)}
                     required
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-password">Password</Label>
-                  <Input
-                    id="signup-password"
-                    name="password"
-                    type="password"
-                    placeholder="Create a password"
-                    required
-                    minLength={6}
-                  />
-                </div>
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? 'Creating account...' : 'Create Account'}
+                <Button type="submit" className="w-full" disabled={joinWaitlistMutation.isPending}>
+                  {joinWaitlistMutation.isPending ? 'Joining...' : 'Join Waitlist'}
                 </Button>
                 <p className="text-xs text-muted-foreground text-center">
-                  You'll receive an email to verify your account
+                  This is an invite-only platform. Join the waitlist and we'll send you an invitation once approved.
                 </p>
               </form>
             </TabsContent>
