@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -54,8 +55,25 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md">
+    <>
+      <Helmet>
+        <title>Sign In - Honestly Compounding</title>
+        <meta name="description" content="Sign in to access professional stock research, thematic analysis, and risk assessment tools. Create an account to get started with Honestly Compounding." />
+        <meta name="robots" content="noindex, nofollow" />
+
+        {/* Open Graph */}
+        <meta property="og:title" content="Sign In - Honestly Compounding" />
+        <meta property="og:description" content="Access professional stock research and analysis platform" />
+        <meta property="og:type" content="website" />
+
+        {/* Twitter Card */}
+        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:title" content="Sign In - Honestly Compounding" />
+        <meta name="twitter:description" content="Access professional stock research and analysis platform" />
+      </Helmet>
+
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <img src="/Logo.png" alt="Honestly Compounding" className="h-16 mx-auto mb-4" />
           <CardDescription>
@@ -142,6 +160,7 @@ const Auth = () => {
         </CardContent>
       </Card>
     </div>
+    </>
   );
 };
 
