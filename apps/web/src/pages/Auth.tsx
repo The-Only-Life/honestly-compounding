@@ -8,6 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
+import { toast } from 'sonner';
 
 const Auth = () => {
   const { user, signIn } = useAuth();
@@ -15,6 +17,7 @@ const Auth = () => {
   const joinWaitlistMutation = useJoinWaitlist();
   const [loading, setLoading] = useState(false);
   const [waitlistEmail, setWaitlistEmail] = useState('');
+  const { executeRecaptcha } = useGoogleReCaptcha();
 
   // Redirect if already logged in
   if (user) {
@@ -26,11 +29,20 @@ const Auth = () => {
     setLoading(true);
 
     try {
+      // Execute reCAPTCHA v3
+      if (!executeRecaptcha) {
+        toast.error('reCAPTCHA not loaded. Please refresh the page.');
+        setLoading(false);
+        return;
+      }
+
+      const captchaToken = await executeRecaptcha('login');
+
       const formData = new FormData(e.currentTarget);
       const email = formData.get('email') as string;
       const password = formData.get('password') as string;
 
-      await signIn(email, password);
+      await signIn(email, password, captchaToken);
       // Navigation will happen automatically due to user state change
       navigate('/dashboard', { replace: true });
     } catch (error) {
@@ -44,13 +56,25 @@ const Auth = () => {
   const handleJoinWaitlist = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const formData = new FormData(e.currentTarget);
-    const email = formData.get('email') as string;
+    try {
+      // Execute reCAPTCHA v3
+      if (!executeRecaptcha) {
+        toast.error('reCAPTCHA not loaded. Please refresh the page.');
+        return;
+      }
 
-    await joinWaitlistMutation.mutateAsync(email);
+      const captchaToken = await executeRecaptcha('join_waitlist');
 
-    // Reset form on success
-    setWaitlistEmail('');
+      const formData = new FormData(e.currentTarget);
+      const email = formData.get('email') as string;
+
+      await joinWaitlistMutation.mutateAsync({ email, captchaToken });
+
+      // Reset form on success
+      setWaitlistEmail('');
+    } catch (error) {
+      console.error('Join waitlist failed:', error);
+    }
   };
 
   return (

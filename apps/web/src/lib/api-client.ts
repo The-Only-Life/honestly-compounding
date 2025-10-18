@@ -10,6 +10,7 @@ export interface ApiError {
 export interface LoginRequest {
   email: string;
   password: string;
+  captchaToken?: string;
 }
 
 export interface AuthUser {
@@ -269,10 +270,10 @@ class ApiClient {
   }
 
   // Waitlist endpoints
-  async joinWaitlist(email: string): Promise<JoinWaitlistResponse> {
+  async joinWaitlist(email: string, captchaToken?: string): Promise<JoinWaitlistResponse> {
     return this.request<JoinWaitlistResponse>("/api/waitlist/join", {
       method: "POST",
-      body: JSON.stringify({ email }),
+      body: JSON.stringify({ email, captchaToken }),
     });
   }
 
