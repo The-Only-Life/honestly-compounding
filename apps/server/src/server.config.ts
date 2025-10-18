@@ -9,6 +9,7 @@ type TConfig = {
   FRONTEND_URL: string;
   SERVICE_ROLE_KEY: string;
   COOKIE_SECRET: string;
+  RESEND_API_KEY?: string;
   IS_PRODUCTION: boolean;
 };
 
@@ -20,6 +21,7 @@ const cfg: Record<string, Omit<TConfig, "PROTOCOL">> = {
     SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY!,
     COOKIE_SECRET:
       process.env.COOKIE_SECRET || "dev-secret-change-in-production",
+    RESEND_API_KEY: process.env.RESEND_API_KEY,
     IS_PRODUCTION: false,
   },
   [Environment.PRODUCTION]: {
@@ -27,6 +29,7 @@ const cfg: Record<string, Omit<TConfig, "PROTOCOL">> = {
     FRONTEND_URL: process.env.FRONTEND_URL!,
     SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY!,
     COOKIE_SECRET: process.env.COOKIE_SECRET!,
+    RESEND_API_KEY: process.env.RESEND_API_KEY,
     IS_PRODUCTION: true,
   },
 };

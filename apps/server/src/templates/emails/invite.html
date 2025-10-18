@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Honestly Compounding</title>
+  </head>
+  <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9fafb;">
+    <div style="background: linear-gradient(to right, #4F46E5, #7C3AED); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+      <h1 style="color: white; margin: 0; font-size: 28px;">Welcome to Honestly Compounding</h1>
+    </div>
+
+    <div style="background: #ffffff; padding: 40px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
+      <h2 style="color: #1f2937; margin-top: 0;">You've Been Invited!</h2>
+
+      <p style="font-size: 16px; color: #4b5563;">
+        You've been invited to join <strong>Honestly Compounding</strong>, a professional stock research and analysis platform designed for institutional investors and financial analysts.
+      </p>
+
+      <p style="font-size: 16px; color: #4b5563;">
+        Click the button below to accept your invitation and complete your profile:
+      </p>
+
+      <div style="text-align: center; margin: 32px 0;">
+        <a href="{{INVITE_URL}}"
+           style="background: #4F46E5; color: white; padding: 14px 32px; text-decoration: none; border-radius: 6px; font-weight: 600; display: inline-block; font-size: 16px;">
+          Accept Invitation
+        </a>
+      </div>
+
+      <p style="font-size: 14px; color: #6b7280;">
+        If the button doesn't work, copy and paste this link into your browser:
+      </p>
+      <p style="font-size: 14px; color: #4F46E5; word-break: break-all;">
+        {{INVITE_URL}}
+      </p>
+
+      <div style="background: #f3f4f6; border-left: 4px solid #4F46E5; padding: 16px; margin: 24px 0; border-radius: 4px;">
+        <p style="margin: 0; font-size: 14px; color: #374151;">
+          <strong>What's Next?</strong><br>
+          After accepting your invitation, you'll be able to:
+        </p>
+        <ul style="margin: 12px 0 0 0; padding-left: 20px; font-size: 14px; color: #4b5563;">
+          <li>Access comprehensive stock analysis and research reports</li>
+          <li>Explore curated investment themes</li>
+          <li>Utilize risk assessment tools</li>
+        </ul>
+      </div>
+
+      <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 32px 0;">
+
+      <p style="font-size: 12px; color: #9ca3af; margin: 0; text-align: center;">
+        This invitation was sent to <strong>{{USER_EMAIL}}</strong>.<br>
+        If you didn't expect this invitation, you can safely ignore this email.
+      </p>
+
+      <p style="font-size: 12px; color: #9ca3af; margin-top: 16px; text-align: center;">
+        © {{CURRENT_YEAR}} Honestly Compounding. All rights reserved.
+      </p>
+    </div>
+  </body>
+</html>

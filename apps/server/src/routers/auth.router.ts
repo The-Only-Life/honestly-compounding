@@ -8,6 +8,7 @@ import {
 import type { FastifyCustomOptions } from "../types";
 import type { Static } from "@fastify/type-provider-typebox";
 import Config from "../server.config";
+import { sendInviteEmail } from "../utils/email";
 
 const COOKIE_OPTIONS = {
   httpOnly: true,
@@ -352,17 +353,31 @@ export default async function authRouter(
 
         // Send invite based on contact method
         if (email) {
-          const { error: inviteError } = await supabase.auth.admin.inviteUserByEmail(
-            email,
-            {
-              redirectTo: `${Config.FRONTEND_URL}/complete-profile`,
-            }
-          );
+          // Generate invite token
+          const { data: inviteData, error: inviteTokenError } =
+            await supabase.auth.admin.generateLink({
+              type: "invite",
+              email,
+            });
 
-          if (inviteError) {
-            console.error("Failed to send email invite:", inviteError);
+          if (inviteTokenError || !inviteData) {
+            console.error("Failed to generate invite token:", inviteTokenError);
             return res.status(500).send({
-              error: "User created but failed to send email invite: " + inviteError.message,
+              error: "User created but failed to generate invite token",
+            });
+          }
+
+          // Send invite email via Resend
+          const inviteUrl = `${Config.FRONTEND_URL}/auth/confirm?token_hash=${inviteData.properties.hashed_token}&type=invite&next=/complete-profile`;
+          const emailResult = await sendInviteEmail({
+            to: email,
+            inviteUrl,
+          });
+
+          if (!emailResult.success) {
+            console.error("Failed to send email invite:", emailResult.error);
+            return res.status(500).send({
+              error: `User created but failed to send email invite: ${emailResult.error}`,
             });
           }
         }
@@ -473,15 +488,32 @@ export default async function authRouter(
 
             // Send invite based on contact method
             if (email) {
-              const { error: inviteError } = await supabase.auth.admin.inviteUserByEmail(
-                email,
-                {
-                  redirectTo: `${Config.FRONTEND_URL}/complete-profile`,
-                }
-              );
+              // Generate invite token
+              const { data: inviteData, error: inviteTokenError } =
+                await supabase.auth.admin.generateLink({
+                  type: "invite",
+                  email,
+                });
 
-              if (inviteError) {
-                console.error("Failed to send email invite:", inviteError);
+              if (inviteTokenError || !inviteData) {
+                console.error("Failed to generate invite token:", inviteTokenError);
+                results.failed.push({
+                  email,
+                  phone,
+                  error: "Failed to generate invite token",
+                });
+                continue;
+              }
+
+              // Send invite email via Resend
+              const inviteUrl = `${Config.FRONTEND_URL}/auth/confirm?token_hash=${inviteData.properties.hashed_token}&type=invite&next=/complete-profile`;
+              const emailResult = await sendInviteEmail({
+                to: email,
+                inviteUrl,
+              });
+
+              if (!emailResult.success) {
+                console.error("Failed to send email invite:", emailResult.error);
                 results.failed.push({
                   email,
                   phone,

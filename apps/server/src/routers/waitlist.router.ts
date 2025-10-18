@@ -7,6 +7,7 @@ import {
 import type { FastifyCustomOptions } from "../types";
 import type { Static } from "@fastify/type-provider-typebox";
 import Config from "../server.config";
+import { sendWaitlistApprovalEmail } from "../utils/email";
 
 export default async function waitlistRouter(
   server: FastifyInstance,
@@ -234,19 +235,33 @@ export default async function waitlistRouter(
           });
         }
 
-        // Send invite email
-        const { error: inviteError } =
-          await supabase.auth.admin.inviteUserByEmail(email, {
-            redirectTo: `${Config.FRONTEND_URL}/complete-profile`,
+        // Generate invite token for the URL
+        const { data: inviteData, error: inviteTokenError} =
+          await supabase.auth.admin.generateLink({
+            type: "invite",
+            email,
           });
 
-        if (inviteError) {
-          console.error("Failed to send email invite:", inviteError);
-          // Don't rollback here, just notify
+        if (inviteTokenError || !inviteData) {
+          console.error("Failed to generate invite token:", inviteTokenError);
+          await supabase.auth.admin.deleteUser(authData.user.id);
           return res.status(500).send({
-            error:
-              "User created but failed to send email invite: " +
-              inviteError.message,
+            error: "Failed to generate invite token",
+          });
+        }
+
+        // Send invite email via Resend
+        const inviteUrl = `${Config.FRONTEND_URL}/auth/confirm?token_hash=${inviteData.properties.hashed_token}&type=invite&next=/complete-profile`;
+        const emailResult = await sendWaitlistApprovalEmail({
+          to: email,
+          inviteUrl,
+        });
+
+        if (!emailResult.success) {
+          console.error("Failed to send email invite:", emailResult.error);
+          // Don't rollback here, just notify - user is already created
+          return res.status(500).send({
+            error: `User created but failed to send email invite: ${emailResult.error}`,
           });
         }
 
