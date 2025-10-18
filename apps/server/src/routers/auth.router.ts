@@ -55,7 +55,7 @@ export default async function authRouter(
       // Set HTTPOnly cookies
       res.setCookie("sb-access-token", data.session.access_token, {
         ...COOKIE_OPTIONS,
-        maxAge: 3600, // 1 hour
+        maxAge: 604800, // 7 days
       });
 
       res.setCookie("sb-refresh-token", data.session.refresh_token, {
@@ -116,12 +116,12 @@ export default async function authRouter(
       // Update cookies with new tokens
       res.setCookie("sb-access-token", data.session.access_token, {
         ...COOKIE_OPTIONS,
-        maxAge: 3600,
+        maxAge: 604800, // 7 days
       });
 
       res.setCookie("sb-refresh-token", data.session.refresh_token, {
         ...COOKIE_OPTIONS,
-        maxAge: 604800,
+        maxAge: 604800, // 7 days
       });
 
       // Fetch user metadata from user_metadata table
@@ -627,12 +627,12 @@ export default async function authRouter(
         // Set HTTPOnly cookies for the new session
         res.setCookie("sb-access-token", sessionData.session.access_token, {
           ...COOKIE_OPTIONS,
-          maxAge: 3600,
+          maxAge: 604800, // 7 days
         });
 
         res.setCookie("sb-refresh-token", sessionData.session.refresh_token, {
           ...COOKIE_OPTIONS,
-          maxAge: 604800,
+          maxAge: 604800, // 7 days
         });
 
         // Fetch user metadata from user_metadata table
