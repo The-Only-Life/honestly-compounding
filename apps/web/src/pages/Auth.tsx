@@ -65,10 +65,8 @@ const Auth = () => {
 
       const captchaToken = await executeRecaptcha('join_waitlist');
 
-      const formData = new FormData(e.currentTarget);
-      const email = formData.get('email') as string;
-
-      await joinWaitlistMutation.mutateAsync({ email, captchaToken });
+      // Use the state value instead of FormData since this is a controlled input
+      await joinWaitlistMutation.mutateAsync({ email: waitlistEmail, captchaToken });
 
       // Reset form on success
       setWaitlistEmail('');
