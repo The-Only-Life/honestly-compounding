@@ -64,7 +64,7 @@ export function AppSidebar() {
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel className="text-sidebar-primary font-semibold">
-            Stock Research Platform
+            Honestly Compounding
           </SidebarGroupLabel>
 
           <SidebarGroupContent>

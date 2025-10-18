@@ -1,8 +1,8 @@
-# Welcome to your Lovable project
+# Honestly Compounding
 
 ## Project info
 
-**URL**: https://lovable.dev/projects/9c7ae47e-45a0-4b3f-8da2-9e06e0b2277f
+Professional stock research and analysis platform
 
 ## How can I edit this code?
 

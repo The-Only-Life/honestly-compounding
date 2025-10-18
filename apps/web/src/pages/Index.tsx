@@ -12,7 +12,7 @@ const Index = () => {
       {/* Header */}
       <header className="border-b">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Stock Research Platform</h1>
+          <h1 className="text-2xl font-bold">Honestly Compounding</h1>
           <div className="space-x-4">
             {user ? (
               <Link to="/dashboard">
