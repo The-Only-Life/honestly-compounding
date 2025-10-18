@@ -29,6 +29,11 @@ const Auth = () => {
     setLoading(true);
 
     try {
+      // Extract form data BEFORE async operations (e.currentTarget becomes null after await)
+      const formData = new FormData(e.currentTarget);
+      const email = formData.get('email') as string;
+      const password = formData.get('password') as string;
+
       // Execute reCAPTCHA v3
       if (!executeRecaptcha) {
         toast.error('reCAPTCHA not loaded. Please refresh the page.');
@@ -37,10 +42,6 @@ const Auth = () => {
       }
 
       const captchaToken = await executeRecaptcha('login');
-
-      const formData = new FormData(e.currentTarget);
-      const email = formData.get('email') as string;
-      const password = formData.get('password') as string;
 
       await signIn(email, password, captchaToken);
       // Navigation will happen automatically due to user state change
