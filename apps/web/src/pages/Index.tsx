@@ -12,7 +12,7 @@ const Index = () => {
       {/* Header */}
       <header className="border-b">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Honestly Compounding</h1>
+          <img src="/Logo.png" alt="Honestly Compounding" className="h-12" />
           <div className="space-x-4">
             {user ? (
               <Link to="/dashboard">
@@ -29,9 +29,10 @@ const Index = () => {
 
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-16 text-center">
+        <img src="/Logo.png" alt="Honestly Compounding" className="h-20 mx-auto mb-8" />
         <h2 className="text-5xl font-bold mb-6">Professional Stock Research</h2>
         <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-          Access comprehensive stock analysis, thematic research, and risk assessment tools 
+          Access comprehensive stock analysis, thematic research, and risk assessment tools
           designed for institutional investors and analysts.
         </p>
         {!user && (

@@ -63,9 +63,13 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="text-sidebar-primary font-semibold">
-            Honestly Compounding
-          </SidebarGroupLabel>
+          <div className="px-3 py-4">
+            {isCollapsed ? (
+              <img src="/android-chrome-512x512.png" alt="HC" className="h-8 w-8 mx-auto" />
+            ) : (
+              <img src="/Logo.png" alt="Honestly Compounding" className="h-10 w-auto" />
+            )}
+          </div>
 
           <SidebarGroupContent>
             <SidebarMenu>

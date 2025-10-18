@@ -19,6 +19,10 @@ export interface AuthUser {
   accessApproved?: boolean;
   emailVerified: boolean;
   createdAt: string;
+  user_metadata?: {
+    full_name?: string;
+    [key: string]: any;
+  };
 }
 
 export interface LoginResponse {
