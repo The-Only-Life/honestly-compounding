@@ -24,6 +24,19 @@ RUN cd libs/db && bun run generate
 
 # Build the web application
 WORKDIR /app/apps/web
+
+# Accept build arguments for environment variables
+ARG VITE_RECAPTCHA_SITE_KEY
+ARG VITE_PUBLIC_POSTHOG_KEY
+ARG VITE_PUBLIC_POSTHOG_HOST
+ARG VITE_API_URL
+
+# Set them as environment variables for the build
+ENV VITE_RECAPTCHA_SITE_KEY=$VITE_RECAPTCHA_SITE_KEY
+ENV VITE_PUBLIC_POSTHOG_KEY=$VITE_PUBLIC_POSTHOG_KEY
+ENV VITE_PUBLIC_POSTHOG_HOST=$VITE_PUBLIC_POSTHOG_HOST
+ENV VITE_API_URL=$VITE_API_URL
+
 RUN bun run build
 
 WORKDIR /app
