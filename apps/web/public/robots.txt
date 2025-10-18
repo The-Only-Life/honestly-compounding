@@ -31,4 +31,4 @@ User-agent: Bytespider
 Allow: /
 
 # Sitemap
-Sitemap: https://www.honestlycompounding.com/sitemap.xml
+Sitemap: https://www.honestlycompunding.com/sitemap.xml

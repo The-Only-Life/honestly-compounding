@@ -42,7 +42,7 @@ export const AccessDenied: React.FC<AccessDeniedProps> = ({ message }) => {
           <Button
             variant="outline"
             className="w-full"
-            onClick={() => window.location.href = 'mailto:support@honestlycompounding.com?subject=Access Request'}
+            onClick={() => window.location.href = 'mailto:jayaramnitk@gmail.com?subject=Access Request'}
           >
             <Mail className="mr-2 h-4 w-4" />
             Request Access

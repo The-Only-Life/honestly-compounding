@@ -25,7 +25,7 @@ export const AwaitingApproval: React.FC = () => {
           <Button
             variant="outline"
             className="w-full"
-            onClick={() => window.location.href = 'mailto:support@honestlycompounding.com?subject=Access Approval Status'}
+            onClick={() => window.location.href = 'mailto:jayaramnitk@gmail.com?subject=Access Approval Status'}
           >
             <Mail className="mr-2 h-4 w-4" />
             Contact Support
