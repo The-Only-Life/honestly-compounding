@@ -8,6 +8,24 @@ import { toast } from '@/hooks/use-toast';
 import { AppConfig } from '@/config';
 import { Eye, EyeOff } from 'lucide-react';
 
+// Helper function to decode JWT
+const decodeJWT = (token: string) => {
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    return JSON.parse(jsonPayload);
+  } catch (error) {
+    console.error('Failed to decode JWT:', error);
+    return null;
+  }
+};
+
 const CompleteProfile = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -16,8 +34,10 @@ const CompleteProfile = () => {
   const [tokenValid, setTokenValid] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [userEmail, setUserEmail] = useState('');
+  const [userPhone, setUserPhone] = useState('');
 
-  // Verify token exists in URL
+  // Verify token exists in URL and extract user data
   useEffect(() => {
     const verifyToken = () => {
       try {
@@ -34,6 +54,15 @@ const CompleteProfile = () => {
           });
           setTimeout(() => navigate('/auth'), 2000);
           return;
+        }
+
+        // Decode JWT to get user information
+        const payload = decodeJWT(accessToken);
+        if (payload) {
+          console.log('Decoded token:', payload);
+          // Extract email and phone from the JWT payload
+          setUserEmail(payload.email || '');
+          setUserPhone(payload.phone || '');
         }
 
         // Token is valid (JWT from Supabase)
@@ -160,6 +189,7 @@ const CompleteProfile = () => {
                 name="email"
                 type="email"
                 placeholder="Enter your email"
+                defaultValue={userEmail}
                 required
               />
             </div>
@@ -170,6 +200,7 @@ const CompleteProfile = () => {
                 name="phone"
                 type="tel"
                 placeholder="Enter your phone number"
+                defaultValue={userPhone}
               />
             </div>
             <div className="space-y-2">

@@ -43,7 +43,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { UserIcon, Plus, Mail, Phone, Shield, CheckCircle, XCircle, Users as UsersIcon, Trash2 } from 'lucide-react';
+import { UserIcon, Plus, Mail, Phone, Shield, CheckCircle, XCircle, Users as UsersIcon, Trash2, Send } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import {
   Pagination,
@@ -152,6 +152,18 @@ export default function Users() {
 
   const handleApproveWaitlist = async (id: string, email: string) => {
     await approveWaitlistMutation.mutateAsync({ id, email });
+  };
+
+  const handleResendInvite = async (email?: string, phone?: string, role?: string | null) => {
+    if (!email && !phone) {
+      return;
+    }
+
+    await inviteUserMutation.mutateAsync({
+      email,
+      phone,
+      role: (role as UserRole) || 'subscriber',
+    });
   };
 
   if (isLoading) {
@@ -445,35 +457,49 @@ export default function Users() {
                           : 'Never'}
                       </TableCell>
                       <TableCell className="text-right">
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
+                        <div className="flex items-center justify-end gap-2">
+                          {!user.emailVerified && (
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="text-destructive hover:text-destructive"
-                              disabled={deleteUserMutation.isPending}
+                              className="text-primary hover:text-primary"
+                              onClick={() => handleResendInvite(user.email, user.phone, user.role)}
+                              disabled={inviteUserMutation.isPending}
+                              title="Resend invitation email"
                             >
-                              <Trash2 className="h-4 w-4" />
+                              <Send className="h-4 w-4" />
                             </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Delete User</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Are you sure you want to delete {user.email || user.phone}? This action cannot be undone and will permanently remove the user and all their data.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => handleDeleteUser(user.id)}
-                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          )}
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-destructive hover:text-destructive"
+                                disabled={deleteUserMutation.isPending}
                               >
-                                Delete
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete User</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Are you sure you want to delete {user.email || user.phone}? This action cannot be undone and will permanently remove the user and all their data.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleDeleteUser(user.id)}
+                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                >
+                                  Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
