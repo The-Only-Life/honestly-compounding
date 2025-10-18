@@ -20,6 +20,7 @@ import Account from "./pages/Account";
 import NotFound from "./pages/NotFound";
 import { PostHogProvider } from "posthog-js/react";
 import type { ConfigDefaults } from "posthog-js";
+import { GoogleReCaptchaProvider } from "react-google-recaptcha-v3";
 
 const queryClient = new QueryClient();
 
@@ -30,17 +31,25 @@ const postHogOptions = {
 
 const App = () => (
   <HelmetProvider>
-    <PostHogProvider
-      apiKey={import.meta.env.VITE_PUBLIC_POSTHOG_KEY}
-      options={postHogOptions}
+    <GoogleReCaptchaProvider
+      reCaptchaKey={import.meta.env.VITE_RECAPTCHA_SITE_KEY || ""}
+      scriptProps={{
+        async: true,
+        defer: true,
+        appendTo: "head",
+      }}
     >
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <Routes>
+      <PostHogProvider
+        apiKey={import.meta.env.VITE_PUBLIC_POSTHOG_KEY}
+        options={postHogOptions}
+      >
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
+                <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/complete-profile" element={<CompleteProfile />} />
@@ -121,6 +130,7 @@ const App = () => (
       </AuthProvider>
     </QueryClientProvider>
   </PostHogProvider>
+  </GoogleReCaptchaProvider>
   </HelmetProvider>
 );
 
