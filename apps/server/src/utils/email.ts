@@ -18,15 +18,21 @@ function loadTemplate(templateName: string): string {
   return readFileSync(templatePath, "utf-8");
 }
 
-function renderTemplate(template: string, variables: Record<string, string>): string {
+function renderTemplate(
+  template: string,
+  variables: Record<string, string>
+): string {
   let rendered = template;
   for (const [key, value] of Object.entries(variables)) {
-    rendered = rendered.replace(new RegExp(`{{${key}}}`, 'g'), value);
+    rendered = rendered.replace(new RegExp(`{{${key}}}`, "g"), value);
   }
   return rendered;
 }
 
-export async function sendInviteEmail({ to, inviteUrl }: SendInviteEmailParams) {
+export async function sendInviteEmail({
+  to,
+  inviteUrl,
+}: SendInviteEmailParams) {
   if (!resend) {
     console.warn("Resend API key not configured. Skipping email send.");
     return { success: false, error: "Resend not configured" };
@@ -41,7 +47,7 @@ export async function sendInviteEmail({ to, inviteUrl }: SendInviteEmailParams) 
     });
 
     const { data, error } = await resend.emails.send({
-      from: "Honestly Compounding <noreply@honestlycompounding.com>", // Update with your verified domain
+      from: Config.EMAIL_FROM,
       to: [to],
       subject: "You've been invited to Honestly Compounding",
       html,
@@ -60,7 +66,10 @@ export async function sendInviteEmail({ to, inviteUrl }: SendInviteEmailParams) 
   }
 }
 
-export async function sendWaitlistApprovalEmail({ to, inviteUrl }: SendInviteEmailParams) {
+export async function sendWaitlistApprovalEmail({
+  to,
+  inviteUrl,
+}: SendInviteEmailParams) {
   if (!resend) {
     console.warn("Resend API key not configured. Skipping email send.");
     return { success: false, error: "Resend not configured" };
@@ -75,14 +84,17 @@ export async function sendWaitlistApprovalEmail({ to, inviteUrl }: SendInviteEma
     });
 
     const { data, error } = await resend.emails.send({
-      from: "Honestly Compounding <noreply@honestlycompounding.com>", // Update with your verified domain
+      from: Config.EMAIL_FROM,
       to: [to],
       subject: "🎉 Waitlist Approved - Welcome to Honestly Compounding",
       html,
     });
 
     if (error) {
-      console.error("Failed to send waitlist approval email via Resend:", error);
+      console.error(
+        "Failed to send waitlist approval email via Resend:",
+        error
+      );
       return { success: false, error: error.message };
     }
 
