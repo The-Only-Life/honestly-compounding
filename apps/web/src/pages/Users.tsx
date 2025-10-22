@@ -383,6 +383,7 @@ export default function Users() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>User</TableHead>
+                    <TableHead>Contact Method</TableHead>
                     <TableHead>Role</TableHead>
                     <TableHead>Access Approved</TableHead>
                     <TableHead>Email Verified</TableHead>
@@ -402,6 +403,23 @@ export default function Users() {
                             ID: {user.id.slice(0, 8)}...
                           </div>
                         </div>
+                      </TableCell>
+                      <TableCell>
+                        {(user as any).contactMethod === 'phone' ? (
+                          <Badge variant="outline" className="text-blue-600">
+                            <Phone className="w-3 h-3 mr-1" />
+                            Phone
+                          </Badge>
+                        ) : (user as any).contactMethod === 'email' ? (
+                          <Badge variant="outline" className="text-purple-600">
+                            <Mail className="w-3 h-3 mr-1" />
+                            Email
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-muted-foreground">
+                            -
+                          </Badge>
+                        )}
                       </TableCell>
                       <TableCell>
                         <Select

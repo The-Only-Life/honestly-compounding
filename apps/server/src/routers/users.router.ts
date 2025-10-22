@@ -51,10 +51,10 @@ export default async function usersRouter(
         return res.status(500).send({ error: error.message });
       }
 
-      // Fetch all user metadata with invited_by information
+      // Fetch all user metadata with invited_by and contact_method information
       const { data: metadataList, error: metadataError } = await supabase
         .from("user_metadata")
-        .select("user_id, role, access_approved, invited_by");
+        .select("user_id, role, access_approved, invited_by, contact_method");
 
       if (metadataError) {
         console.error("Error fetching user metadata:", metadataError);
@@ -98,6 +98,7 @@ export default async function usersRouter(
           createdAt: user.created_at,
           lastSignInAt: user.last_sign_in_at,
           invitedBy: inviterEmail,
+          contactMethod: metadata?.contact_method || null,
         };
       });
 

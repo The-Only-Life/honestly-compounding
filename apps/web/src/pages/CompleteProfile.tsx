@@ -36,6 +36,7 @@ const CompleteProfile = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [userEmail, setUserEmail] = useState('');
   const [userPhone, setUserPhone] = useState('');
+  const [authType, setAuthType] = useState<'invite' | 'phone'>('invite');
 
   // Verify token exists in URL and extract user data
   useEffect(() => {
@@ -46,15 +47,19 @@ const CompleteProfile = () => {
         const accessToken = hashParams.get('access_token') || searchParams.get('access_token');
         const type = hashParams.get('type') || searchParams.get('type');
 
-        if (!accessToken || type !== 'invite') {
+        // Accept both 'invite' and 'phone' types
+        if (!accessToken || (type !== 'invite' && type !== 'phone')) {
           toast({
-            title: "Invalid invitation link",
-            description: "This invitation link is invalid or has expired.",
+            title: "Invalid link",
+            description: "This link is invalid or has expired.",
             variant: "destructive",
           });
           setTimeout(() => navigate('/auth'), 2000);
           return;
         }
+
+        // Store auth type
+        setAuthType(type as 'invite' | 'phone');
 
         // Decode JWT to get user information
         const payload = decodeJWT(accessToken);
@@ -71,7 +76,7 @@ const CompleteProfile = () => {
         console.error('Token verification failed:', error);
         toast({
           title: "Verification failed",
-          description: "Could not verify your invitation. Please try again.",
+          description: "Could not verify your session. Please try again.",
           variant: "destructive",
         });
         setTimeout(() => navigate('/auth'), 2000);
@@ -182,27 +187,63 @@ const CompleteProfile = () => {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleCompleteProfile} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="Enter your email"
-                defaultValue={userEmail}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="phone">Phone Number (Optional)</Label>
-              <Input
-                id="phone"
-                name="phone"
-                type="tel"
-                placeholder="Enter your phone number"
-                defaultValue={userPhone}
-              />
-            </div>
+            {authType === 'phone' ? (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Phone Number</Label>
+                  <Input
+                    id="phone"
+                    name="phone"
+                    type="tel"
+                    placeholder="Enter your phone number"
+                    defaultValue={userPhone}
+                    required
+                    readOnly
+                    className="bg-muted"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Phone number verified via OTP
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email (Optional)</Label>
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    placeholder="Enter your email"
+                    defaultValue={userEmail}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Add email for account recovery and notifications
+                  </p>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    placeholder="Enter your email"
+                    defaultValue={userEmail}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Phone Number (Optional)</Label>
+                  <Input
+                    id="phone"
+                    name="phone"
+                    type="tel"
+                    placeholder="Enter your phone number"
+                    defaultValue={userPhone}
+                  />
+                </div>
+              </>
+            )}
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <div className="relative">

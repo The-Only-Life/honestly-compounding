@@ -6,11 +6,12 @@ import { useJoinWaitlist } from '@/hooks/use-waitlist-api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 import { toast } from 'sonner';
 import { Eye, EyeOff } from 'lucide-react';
+import { PhoneLoginForm } from '@/components/auth/PhoneLoginForm';
 
 const Auth = () => {
   const { user, signIn } = useAuth();
@@ -106,11 +107,12 @@ const Auth = () => {
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="signin" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="signin">Sign In</TabsTrigger>
-              <TabsTrigger value="signup">Join Waitlist</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="signin">Email</TabsTrigger>
+              <TabsTrigger value="phone">Phone</TabsTrigger>
+              <TabsTrigger value="signup">Waitlist</TabsTrigger>
             </TabsList>
-            
+
             <TabsContent value="signin">
               <form onSubmit={handleSignIn} className="space-y-4">
                 <div className="space-y-2">
@@ -157,7 +159,21 @@ const Auth = () => {
                 </Button>
               </form>
             </TabsContent>
-            
+
+            <TabsContent value="phone">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Sign in with Phone</CardTitle>
+                  <CardDescription>
+                    We'll send a verification code to your phone via SMS
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <PhoneLoginForm />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
             <TabsContent value="signup">
               <form onSubmit={handleJoinWaitlist} className="space-y-4">
                 <div className="space-y-2">

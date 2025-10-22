@@ -342,7 +342,10 @@ export default async function authRouter(
         // Determine access_approved based on role
         const accessApproved = role === 'subscriber' ? false : true;
 
-        // Insert into user_metadata table with invited_by
+        // Determine contact method
+        const contactMethod = email ? 'email' : 'phone';
+
+        // Insert into user_metadata table with invited_by and contact_method
         const { error: metadataError } = await supabase
           .from("user_metadata")
           .insert({
@@ -350,6 +353,7 @@ export default async function authRouter(
             role,
             access_approved: accessApproved,
             invited_by: invitedBy,
+            contact_method: contactMethod,
           });
 
         if (metadataError) {
@@ -475,7 +479,10 @@ export default async function authRouter(
             // Determine access_approved based on role
             const accessApproved = role === 'subscriber' ? false : true;
 
-            // Insert into user_metadata table with invited_by
+            // Determine contact method
+            const contactMethod = email ? 'email' : 'phone';
+
+            // Insert into user_metadata table with invited_by and contact_method
             const { error: metadataError } = await supabase
               .from("user_metadata")
               .insert({
@@ -483,6 +490,7 @@ export default async function authRouter(
                 role,
                 access_approved: accessApproved,
                 invited_by: invitedBy,
+                contact_method: contactMethod,
               });
 
             if (metadataError) {
