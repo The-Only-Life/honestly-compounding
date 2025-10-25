@@ -81,3 +81,13 @@ export const LoginResponseSchema = Type.Object({
 export const LogoutResponseSchema = Type.Object({
     message: Type.String()
 })
+
+// Phone OTP schemas
+export const SendOTPSchema = Type.Object({
+    phone: Type.String({ pattern: '^\\+91[6-9]\\d{9}$' })
+})
+
+export const VerifyOTPSchema = Type.Object({
+    phone: Type.String({ pattern: '^\\+91[6-9]\\d{9}$' }),
+    otp: Type.String({ minLength: 6, maxLength: 6 })
+})

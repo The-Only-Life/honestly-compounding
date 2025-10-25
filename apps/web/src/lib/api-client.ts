@@ -39,6 +39,28 @@ export interface CurrentUserResponse {
   user: AuthUser;
 }
 
+export interface SendOTPRequest {
+  phone: string;
+}
+
+export interface SendOTPResponse {
+  message: string;
+}
+
+export interface VerifyOTPRequest {
+  phone: string;
+  otp: string;
+}
+
+export interface VerifyOTPResponse {
+  message: string;
+  user: AuthUser & {
+    phone?: string;
+  };
+  needsProfileCompletion: boolean;
+  accessToken?: string;
+}
+
 // User Management types
 export interface User {
   id: string;
@@ -213,6 +235,20 @@ class ApiClient {
   async refreshToken(): Promise<LoginResponse> {
     return this.request<LoginResponse>("/api/auth/refresh", {
       method: "POST",
+    });
+  }
+
+  async sendOTP(data: SendOTPRequest): Promise<SendOTPResponse> {
+    return this.request<SendOTPResponse>("/api/auth/phone/send-otp", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async verifyOTP(data: VerifyOTPRequest): Promise<VerifyOTPResponse> {
+    return this.request<VerifyOTPResponse>("/api/auth/phone/verify-otp", {
+      method: "POST",
+      body: JSON.stringify(data),
     });
   }
 

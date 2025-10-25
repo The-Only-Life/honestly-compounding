@@ -5,6 +5,8 @@ import {
   LoginSchema,
   VerifyInviteSchema,
   CompleteProfileSchema,
+  SendOTPSchema,
+  VerifyOTPSchema,
 } from "../schemas/auth.schema";
 import type { FastifyCustomOptions } from "../types";
 import type { Static } from "@fastify/type-provider-typebox";
@@ -715,6 +717,121 @@ export default async function authRouter(
         return res
           .status(500)
           .send({ error: "Internal server error: " + error.message });
+      }
+    }
+  );
+
+  // Send OTP to phone number
+  server.post(
+    "/phone/send-otp",
+    {
+      schema: {
+        body: SendOTPSchema,
+      },
+    },
+    async (req, res) => {
+      try {
+        const { phone } = req.body as Static<typeof SendOTPSchema>;
+
+        // Send OTP via Supabase (SMS channel)
+        const { error } = await supabase.auth.signInWithOtp({
+          phone,
+          options: {
+            channel: 'sms',
+          },
+        });
+
+        if (error) {
+          return res.status(400).send({
+            error: "Failed to send OTP: " + error.message,
+          });
+        }
+
+        return res.send({
+          message: "OTP sent successfully",
+        });
+      } catch (error: any) {
+        return res.status(500).send({
+          error: "Internal server error: " + error.message,
+        });
+      }
+    }
+  );
+
+  // Verify OTP and create session
+  server.post(
+    "/phone/verify-otp",
+    {
+      schema: {
+        body: VerifyOTPSchema,
+      },
+    },
+    async (req, res) => {
+      try {
+        const { phone, otp } = req.body as Static<typeof VerifyOTPSchema>;
+
+        // Verify OTP with Supabase
+        const { data, error } = await supabase.auth.verifyOtp({
+          phone,
+          token: otp,
+          type: 'sms',
+        });
+
+        if (error) {
+          return res.status(401).send({
+            error: "Invalid OTP: " + error.message,
+          });
+        }
+
+        if (!data.session) {
+          return res.status(401).send({
+            error: "Failed to create session",
+          });
+        }
+
+        // Set HTTPOnly cookies
+        res.setCookie("sb-access-token", data.session.access_token, {
+          ...COOKIE_OPTIONS,
+          maxAge: 604800, // 7 days
+        });
+
+        res.setCookie("sb-refresh-token", data.session.refresh_token, {
+          ...COOKIE_OPTIONS,
+          maxAge: 604800, // 7 days
+        });
+
+        // Fetch user metadata from user_metadata table
+        const { data: metadata, error: metadataError } = await supabase
+          .from("user_metadata")
+          .select("role, access_approved")
+          .eq("user_id", data.user.id)
+          .single();
+
+        if (metadataError && metadataError.code !== "PGRST116") {
+          console.error("Error fetching user metadata:", metadataError);
+        }
+
+        // Check if user needs to complete profile
+        const needsProfileCompletion = !data.user.email || !data.user.user_metadata?.email;
+
+        return res.send({
+          message: "OTP verified successfully",
+          user: {
+            id: data.user.id,
+            email: data.user.email,
+            phone: data.user.phone,
+            role: metadata?.role || null,
+            accessApproved: metadata?.access_approved || false,
+            emailVerified: !!data.user.email_confirmed_at,
+            createdAt: data.user.created_at,
+          },
+          needsProfileCompletion,
+          accessToken: needsProfileCompletion ? data.session.access_token : undefined,
+        });
+      } catch (error: any) {
+        return res.status(500).send({
+          error: "Internal server error: " + error.message,
+        });
       }
     }
   );

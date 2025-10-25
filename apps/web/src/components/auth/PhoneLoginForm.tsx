@@ -8,7 +8,7 @@ import {
   InputOTPSlot,
 } from '@/components/ui/input-otp';
 import { toast } from 'sonner';
-import { supabase } from '@/lib/supabase';
+import { apiClient } from '@/lib/api-client';
 import { useNavigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 
@@ -26,7 +26,7 @@ export const PhoneLoginForm = () => {
 
     try {
       // Format phone number
-      const formattedPhone = phone.startsWith('+91') ? phone : `+91${phone.replace(/[^0-9]/g, '')}`;
+      const formattedPhone = phone.startsWith('+91') ? phone : `+91${phone.replaceAll(/\D/g, '')}`;
 
       // Validate phone format
       const phoneRegex = /^\+91[6-9]\d{9}$/;
@@ -38,15 +38,8 @@ export const PhoneLoginForm = () => {
         return;
       }
 
-      // Send OTP via Supabase (SMS channel)
-      const { error } = await supabase.auth.signInWithOtp({
-        phone: formattedPhone,
-        options: {
-          channel: 'sms',
-        },
-      });
-
-      if (error) throw error;
+      // Send OTP via backend API
+      await apiClient.sendOTP({ phone: formattedPhone });
 
       toast.success('OTP sent!', {
         description: 'Check your phone for the verification code',
@@ -69,32 +62,20 @@ export const PhoneLoginForm = () => {
     setLoading(true);
 
     try {
-      // Verify OTP with Supabase
-      const { data, error } = await supabase.auth.verifyOtp({
+      // Verify OTP via backend API
+      const response = await apiClient.verifyOTP({
         phone,
-        token: otp,
-        type: 'sms',
+        otp,
       });
-
-      if (error) throw error;
-
-      if (!data.session) {
-        throw new Error('No session created');
-      }
 
       toast.success('Success!', {
         description: 'You are now logged in',
       });
 
       // Check if user needs to complete profile
-      const user = data.user;
-
-      // For phone-only users, we need to check if they have completed their profile
-      // If user doesn't have email or user_metadata, redirect to complete profile
-      if (!user.email || !user.user_metadata?.email) {
+      if (response.needsProfileCompletion) {
         // Redirect with access token in hash for CompleteProfile to use
-        const accessToken = data.session.access_token;
-        navigate(`/complete-profile#access_token=${accessToken}&type=phone`);
+        navigate(`/complete-profile#access_token=${response.accessToken}&type=phone`);
       } else {
         navigate('/dashboard');
       }
