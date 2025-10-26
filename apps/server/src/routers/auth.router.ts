@@ -69,7 +69,7 @@ export default async function authRouter(
       // Fetch user metadata from user_metadata table
       const { data: metadata, error: metadataError } = await supabase
         .from("user_metadata")
-        .select("role, access_approved")
+        .select("role, access_approved, profile_completed")
         .eq("user_id", data.user.id)
         .single();
 
@@ -84,6 +84,7 @@ export default async function authRouter(
           email: data.user.email!,
           role: metadata?.role || null,
           accessApproved: metadata?.access_approved || false,
+          profileCompleted: metadata?.profile_completed || false,
           emailVerified: !!data.user.email_confirmed_at,
           createdAt: data.user.created_at,
         },
@@ -130,7 +131,7 @@ export default async function authRouter(
       // Fetch user metadata from user_metadata table
       const { data: metadata, error: metadataError } = await supabase
         .from("user_metadata")
-        .select("role, access_approved")
+        .select("role, access_approved, profile_completed")
         .eq("user_id", data.user.id)
         .single();
 
@@ -145,6 +146,7 @@ export default async function authRouter(
           email: data.user.email!,
           role: metadata?.role || null,
           accessApproved: metadata?.access_approved || false,
+          profileCompleted: metadata?.profile_completed || false,
           emailVerified: !!data.user.email_confirmed_at,
           createdAt: data.user.created_at,
         },
@@ -244,7 +246,7 @@ export default async function authRouter(
       // Fetch user metadata from user_metadata table
       const { data: metadata, error: metadataError } = await supabase
         .from("user_metadata")
-        .select("role, access_approved")
+        .select("role, access_approved, profile_completed")
         .eq("user_id", user.id)
         .single();
 
@@ -259,6 +261,7 @@ export default async function authRouter(
           email: user.email!,
           role: metadata?.role || null,
           accessApproved: metadata?.access_approved || false,
+          profileCompleted: metadata?.profile_completed || false,
           emailVerified: !!user.email_confirmed_at,
           createdAt: user.created_at,
         },
@@ -356,6 +359,7 @@ export default async function authRouter(
             access_approved: accessApproved,
             invited_by: invitedBy,
             contact_method: contactMethod,
+            profile_completed: false,
           });
 
         if (metadataError) {
@@ -493,6 +497,7 @@ export default async function authRouter(
                 access_approved: accessApproved,
                 invited_by: invitedBy,
                 contact_method: contactMethod,
+                profile_completed: false,
               });
 
             if (metadataError) {
@@ -689,10 +694,20 @@ export default async function authRouter(
           maxAge: 604800, // 7 days
         });
 
+        // Update user_metadata to mark profile as completed
+        const { error: updateMetadataError } = await supabase
+          .from("user_metadata")
+          .update({ profile_completed: true })
+          .eq("user_id", sessionData.user.id);
+
+        if (updateMetadataError) {
+          console.error("Failed to update profile_completed flag:", updateMetadataError);
+        }
+
         // Fetch user metadata from user_metadata table
         const { data: metadata, error: metadataError } = await supabase
           .from("user_metadata")
-          .select("role, access_approved")
+          .select("role, access_approved, profile_completed")
           .eq("user_id", sessionData.user.id)
           .single();
 
@@ -709,6 +724,7 @@ export default async function authRouter(
             phone: sessionData.user.phone,
             role: metadata?.role || null,
             accessApproved: metadata?.access_approved || false,
+            profileCompleted: metadata?.profile_completed || false,
             emailVerified: !!sessionData.user.email_confirmed_at,
             createdAt: sessionData.user.created_at,
           },
@@ -803,7 +819,7 @@ export default async function authRouter(
         // Fetch user metadata from user_metadata table
         const { data: metadata, error: metadataError } = await supabase
           .from("user_metadata")
-          .select("role, access_approved")
+          .select("role, access_approved, profile_completed")
           .eq("user_id", data.user.id)
           .single();
 
@@ -811,8 +827,8 @@ export default async function authRouter(
           console.error("Error fetching user metadata:", metadataError);
         }
 
-        // Check if user needs to complete profile
-        const needsProfileCompletion = !data.user.email || !data.user.user_metadata?.email;
+        // Check if user needs to complete profile based on profile_completed flag
+        const needsProfileCompletion = !metadata?.profile_completed;
 
         return res.send({
           message: "OTP verified successfully",
@@ -822,6 +838,7 @@ export default async function authRouter(
             phone: data.user.phone,
             role: metadata?.role || null,
             accessApproved: metadata?.access_approved || false,
+            profileCompleted: metadata?.profile_completed || false,
             emailVerified: !!data.user.email_confirmed_at,
             createdAt: data.user.created_at,
           },

@@ -18,6 +18,7 @@ export interface AuthUser {
   email: string;
   role?: string | null;
   accessApproved?: boolean;
+  profileCompleted?: boolean;
   emailVerified: boolean;
   createdAt: string;
   user_metadata?: {

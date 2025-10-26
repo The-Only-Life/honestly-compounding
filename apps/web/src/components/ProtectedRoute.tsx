@@ -1,5 +1,5 @@
 import { useAuth } from '@/contexts/AuthContext';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { AwaitingApproval } from '@/components/AwaitingApproval';
 import { AccessDenied } from '@/components/AccessDenied';
 
@@ -15,9 +15,15 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   redirectTo = '/auth'
 }) => {
   const { user, userRole } = useAuth();
+  const location = useLocation();
 
   if (!user) {
     return <Navigate to={redirectTo} replace />;
+  }
+
+  // Check if user hasn't completed their profile setup (except when already on complete-profile page)
+  if (!user.profileCompleted && location.pathname !== '/complete-profile') {
+    return <Navigate to="/complete-profile" replace />;
   }
 
   // Check if user has no role OR user doesn't have access approval
