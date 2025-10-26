@@ -4,8 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "workspaces": [
-    "apps/*",
-    "libs/*"
+    "apps/*"
   ],
   "scripts": {
     "dev:web": "bun --cwd apps/web run dev",
@@ -13,13 +12,9 @@
     "dev": "concurrently \"bun run dev:web\" \"bun run dev:server\"",
     "build:web": "bun --cwd apps/web run build",
     "build:server": "bun --cwd apps/server run build",
-    "build": "bun run db:generate && bun run build:web && bun run build:server",
+    "build": "bun run build:web && bun run build:server",
     "start": "concurrently \"bun --cwd apps/web run preview\" \"bun --cwd apps/server run start\"",
-    "lint": "bun --cwd apps/web run lint",
-    "db:generate": "bun --cwd libs/db run generate",
-    "db:push": "bun --cwd libs/db run push",
-    "db:migrate": "bun --cwd libs/db run migrate",
-    "db:seed": "bun --cwd libs/db run seed"
+    "lint": "bun --cwd apps/web run lint"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
