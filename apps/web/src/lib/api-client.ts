@@ -217,6 +217,53 @@ export interface CreateThemeRequest {
   description: string;
 }
 
+// Stock types
+export interface Stock {
+  id: string;
+  symbol: string;
+  companyName: string;
+  themeId: string;
+  bucketId: string;
+  pdfUrl?: string | null;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  creator?: {
+    fullName: string;
+  };
+  theme?: {
+    id: string;
+    name: string;
+    description?: string;
+  };
+  bucket?: {
+    id: string;
+    name: string;
+    description?: string;
+  };
+}
+
+export interface StocksResponse {
+  stocks: Stock[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export interface CreateStockRequest {
+  symbol: string;
+  companyName: string;
+  themeId: string;
+  bucketId: string;
+  pdfUrl?: string;
+}
+
+export interface UploadPDFResponse {
+  fileName: string;
+  url: string;
+}
+
 class ApiClient {
   private baseUrl: string;
 
@@ -404,6 +451,43 @@ class ApiClient {
       method: "POST",
       body: JSON.stringify(data),
     });
+  }
+
+  // Stock endpoints
+  async getStocks(page: number = 1, limit: number = 10): Promise<StocksResponse> {
+    return this.request<StocksResponse>(`/api/stocks?page=${page}&limit=${limit}`);
+  }
+
+  async getStock(id: string): Promise<Stock> {
+    return this.request<Stock>(`/api/stocks/${id}`);
+  }
+
+  async createStock(data: CreateStockRequest): Promise<Stock> {
+    return this.request<Stock>("/api/stocks", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async uploadStockPDF(file: File): Promise<UploadPDFResponse> {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const url = `${this.baseUrl}/api/stocks/upload-pdf`;
+    const response = await fetch(url, {
+      method: "POST",
+      body: formData,
+      credentials: "include",
+    });
+
+    if (!response.ok) {
+      const error: ApiError = await response.json().catch(() => ({
+        error: `HTTP error ${response.status}`,
+      }));
+      throw new Error(error.error);
+    }
+
+    return response.json();
   }
 }
 

@@ -4,6 +4,7 @@ import usersRouter from "./routers/users.router";
 import waitlistRouter from "./routers/waitlist.router";
 import bucketsRouter from "./routers/buckets.router";
 import themesRouter from "./routers/themes.router";
+import stocksRouter from "./routers/stocks.router";
 import type { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
 import { createClient } from "@supabase/supabase-js";
 import Config from "./server.config";
@@ -20,6 +21,13 @@ await server.register(import("@fastify/cookie"), {
     secure: Config.IS_PRODUCTION,
     sameSite: "lax",
     path: "/",
+  },
+});
+
+// Register multipart plugin for file uploads
+await server.register(import("@fastify/multipart"), {
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit
   },
 });
 
@@ -71,6 +79,7 @@ await server.register(usersRouter, { prefix: "/api/users", supabase });
 await server.register(waitlistRouter, { prefix: "/api/waitlist", supabase });
 await server.register(bucketsRouter, { prefix: "/api/buckets", supabase });
 await server.register(themesRouter, { prefix: "/api/themes", supabase });
+await server.register(stocksRouter, { prefix: "/api/stocks", supabase });
 
 // Health check endpoint
 server.get("/health", async (_req, reply) => {
