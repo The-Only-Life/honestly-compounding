@@ -35,7 +35,7 @@ const menuItems: MenuItem[] = [
   { title: "Dashboard", url: "/dashboard", icon: PieChart, allowedRoles: ['admin', 'sponsor', 'subscriber'] },
   { title: "User Management", url: "/dashboard/users", icon: Users, allowedRoles: ['admin'] },
   { title: "Themes", url: "/dashboard/themes", icon: Briefcase, allowedRoles: ['admin', 'sponsor', 'subscriber'] },
-  { title: "Risk Buckets", url: "/dashboard/risk-buckets", icon: Shield, allowedRoles: ['admin', 'sponsor', 'subscriber'] },
+  { title: "Buckets", url: "/dashboard/buckets", icon: Shield, allowedRoles: ['admin', 'sponsor', 'subscriber'] },
   { title: "Stocks", url: "/dashboard/stocks", icon: Building, allowedRoles: ['admin', 'sponsor', 'subscriber'] },
   { title: "Content Management", url: "/dashboard/content-management", icon: FolderOpen, allowedRoles: ['admin', 'sponsor', 'subscriber'] },
   { title: "Account", url: "/dashboard/account", icon: User, allowedRoles: ['admin', 'sponsor', 'subscriber'] },

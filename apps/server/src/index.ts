@@ -2,6 +2,8 @@ import Fastify from "fastify";
 import authRouter from "./routers/auth.router";
 import usersRouter from "./routers/users.router";
 import waitlistRouter from "./routers/waitlist.router";
+import bucketsRouter from "./routers/buckets.router";
+import themesRouter from "./routers/themes.router";
 import type { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
 import { createClient } from "@supabase/supabase-js";
 import Config from "./server.config";
@@ -67,6 +69,8 @@ const supabase = createClient(Config.AUTH_HOST, Config.SERVICE_ROLE_KEY, {
 await server.register(authRouter, { prefix: "/api/auth", supabase });
 await server.register(usersRouter, { prefix: "/api/users", supabase });
 await server.register(waitlistRouter, { prefix: "/api/waitlist", supabase });
+await server.register(bucketsRouter, { prefix: "/api/buckets", supabase });
+await server.register(themesRouter, { prefix: "/api/themes", supabase });
 
 // Health check endpoint
 server.get("/health", async (_req, reply) => {

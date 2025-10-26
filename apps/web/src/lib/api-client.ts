@@ -168,6 +168,54 @@ export interface ApproveWaitlistResponse {
   };
 }
 
+// Bucket types
+export interface Bucket {
+  id: string;
+  name: string;
+  description: string;
+  riskMeasure: string;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  creator?: {
+    fullName: string;
+  };
+}
+
+export interface BucketsResponse {
+  buckets: Bucket[];
+  total: number;
+}
+
+export interface CreateBucketRequest {
+  name: string;
+  description: string;
+  riskMeasure: string;
+}
+
+// Theme types
+export interface Theme {
+  id: string;
+  name: string;
+  description: string;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  creator?: {
+    fullName: string;
+  };
+}
+
+export interface ThemesResponse {
+  themes: Theme[];
+  total: number;
+}
+
+export interface CreateThemeRequest {
+  name: string;
+  description: string;
+}
+
 class ApiClient {
   private baseUrl: string;
 
@@ -322,6 +370,38 @@ class ApiClient {
     return this.request<ApproveWaitlistResponse>("/api/waitlist/approve", {
       method: "POST",
       body: JSON.stringify({ id, email }),
+    });
+  }
+
+  // Bucket endpoints
+  async getBuckets(): Promise<BucketsResponse> {
+    return this.request<BucketsResponse>("/api/buckets");
+  }
+
+  async getBucket(id: string): Promise<Bucket> {
+    return this.request<Bucket>(`/api/buckets/${id}`);
+  }
+
+  async createBucket(data: CreateBucketRequest): Promise<Bucket> {
+    return this.request<Bucket>("/api/buckets", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
+
+  // Theme endpoints
+  async getThemes(): Promise<ThemesResponse> {
+    return this.request<ThemesResponse>("/api/themes");
+  }
+
+  async getTheme(id: string): Promise<Theme> {
+    return this.request<Theme>(`/api/themes/${id}`);
+  }
+
+  async createTheme(data: CreateThemeRequest): Promise<Theme> {
+    return this.request<Theme>("/api/themes", {
+      method: "POST",
+      body: JSON.stringify(data),
     });
   }
 }

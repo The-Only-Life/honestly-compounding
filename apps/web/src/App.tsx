@@ -13,8 +13,10 @@ import AuthConfirm from "./pages/AuthConfirm";
 import CompleteProfile from "./pages/CompleteProfile";
 import Dashboard from "./pages/Dashboard";
 import Users from "./pages/Users";
-import Themes from "./pages/Themes";
-import RiskBuckets from "./pages/RiskBuckets";
+import ThemesNew from "./pages/ThemesNew";
+import ThemeDetail from "./pages/ThemeDetail";
+import Buckets from "./pages/Buckets";
+import BucketDetail from "./pages/BucketDetail";
 import Stocks from "./pages/Stocks";
 import ContentManagement from "./pages/ContentManagement";
 import Account from "./pages/Account";
@@ -80,17 +82,37 @@ const App = () => (
                 element={
                   <ProtectedRoute requiredRoles={["admin", "sponsor", "subscriber"]}>
                     <DashboardLayout>
-                      <Themes />
+                      <ThemesNew />
                     </DashboardLayout>
                   </ProtectedRoute>
                 }
               />
               <Route
-                path="/dashboard/risk-buckets"
+                path="/dashboard/themes/:id"
                 element={
                   <ProtectedRoute requiredRoles={["admin", "sponsor", "subscriber"]}>
                     <DashboardLayout>
-                      <RiskBuckets />
+                      <ThemeDetail />
+                    </DashboardLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/dashboard/buckets"
+                element={
+                  <ProtectedRoute requiredRoles={["admin", "sponsor", "subscriber"]}>
+                    <DashboardLayout>
+                      <Buckets />
+                    </DashboardLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/dashboard/buckets/:id"
+                element={
+                  <ProtectedRoute requiredRoles={["admin", "sponsor", "subscriber"]}>
+                    <DashboardLayout>
+                      <BucketDetail />
                     </DashboardLayout>
                   </ProtectedRoute>
                 }

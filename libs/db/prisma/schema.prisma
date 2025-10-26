@@ -15,167 +15,191 @@ datasource db {
 // Enums
 enum AppRole {
   admin
-  analyst
   sponsor
   subscriber
 }
 
-// Users table (replacing auth.users from Supabase)
-model User {
-  id             String   @id @default(cuid())
-  email          String   @unique
-  passwordHash   String
-  emailVerified  Boolean  @default(false)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-
-  // Relations
-  profile      Profile?
-  userRoles    UserRole[]
-  userSessions UserSession[]
-
-  @@map("users")
+enum ContactMethod {
+  email
+  phone
 }
 
-// User profiles table (extends users)
+enum WaitlistStatus {
+  pending
+  invited
+}
+
+// User profiles table (maps to Supabase auth.users)
 model Profile {
-  id            String   @id @default(cuid())
-  userId        String   @unique
-  fullName      String
-  mobileNumber  String
-  emailVerified Boolean? @default(false)
-  isEnabled     Boolean? @default(false)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id            String   @id @default(uuid()) @db.Uuid
+  userId        String   @unique @map("user_id") @db.Uuid
+  fullName      String   @map("full_name")
+  mobileNumber  String   @map("mobile_number")
+  emailVerified Boolean? @default(false) @map("email_verified")
+  isEnabled     Boolean? @default(false) @map("is_enabled")
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   // Relations
-  user                User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userRoles           UserRole[]
-  themesCreated       Theme[]       @relation("ThemeCreator")
-  riskBucketsCreated  RiskBucket[]  @relation("RiskBucketCreator")
-  stocksCreated       Stock[]       @relation("StockCreator")
-  contentAccessGranted ContentAccess[] @relation("ContentAccessGrantor")
-  contentAccessReceived ContentAccess[] @relation("ContentAccessReceiver")
-  auditLogs           AuditLog[]
+  userRoles             UserRole[]
+  themesCreated         Theme[]          @relation("ThemeCreator")
+  bucketsCreated        Bucket[]         @relation("BucketCreator")
+  stocksCreated         Stock[]          @relation("StockCreator")
+  contentAccessGranted  ContentAccess[]  @relation("ContentAccessGrantor")
+  contentAccessReceived ContentAccess[]  @relation("ContentAccessReceiver")
+  auditLogs             AuditLog[]
+  userSessions          UserSession[]
+  userMetadata          UserMetadata?
 
   @@map("profiles")
 }
 
-// User roles table
-model UserRole {
-  id        String    @id @default(cuid())
-  userId    String
-  role      AppRole
-  expiresAt DateTime?
-  createdAt DateTime  @default(now())
+// User metadata table
+model UserMetadata {
+  id             String         @id @default(uuid()) @db.Uuid
+  userId         String         @unique @map("user_id") @db.Uuid
+  role           AppRole?
+  accessApproved Boolean?       @default(false) @map("access_approved")
+  createdAt      DateTime?      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime?      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  invitedBy      String?        @map("invited_by") @db.Uuid
+  contactMethod  ContactMethod? @map("contact_method")
 
   // Relations
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade, map: "user_roles_user_fkey")
-  profile Profile @relation(fields: [userId], references: [userId], onDelete: Cascade, map: "user_roles_profile_fkey")
+  profile Profile @relation(fields: [userId], references: [userId], map: "user_metadata_user_id_fkey")
 
-  @@unique([userId, role])
+  @@map("user_metadata")
+}
+
+// User roles table
+model UserRole {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  role      AppRole
+  expiresAt DateTime? @map("expires_at") @db.Timestamptz(6)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // Relations
+  profile Profile @relation(fields: [userId], references: [userId], map: "user_roles_user_id_fkey")
+
   @@map("user_roles")
 }
 
 // Investment themes table
 model Theme {
-  id          String   @id @default(cuid())
+  id          String   @id
   name        String   @unique
-  description String?
-  pdfUrl      String?
-  createdBy   String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  description String   @db.Text
+  createdBy   String   @map("created_by") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp(3)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamp(3)
 
   // Relations
-  creator Profile @relation("ThemeCreator", fields: [createdBy], references: [userId])
+  creator Profile @relation("ThemeCreator", fields: [createdBy], references: [userId], onDelete: Restrict, map: "themes_creator_fkey")
   stocks  Stock[]
 
+  @@index([createdBy], name: "idx_themes_created_by")
+  @@index([createdAt], name: "idx_themes_created_at")
   @@map("themes")
 }
 
-// Risk buckets table
-model RiskBucket {
-  id          String   @id @default(cuid())
+// Buckets table (formerly risk buckets)
+model Bucket {
+  id          String   @id
   name        String   @unique
-  description String?
-  pdfUrl      String?
-  createdBy   String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  description String   @db.Text
+  riskMeasure String   @map("risk_measure")
+  createdBy   String   @map("created_by") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp(3)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamp(3)
 
   // Relations
-  creator Profile @relation("RiskBucketCreator", fields: [createdBy], references: [userId])
+  creator Profile @relation("BucketCreator", fields: [createdBy], references: [userId], onDelete: Restrict, map: "buckets_creator_fkey")
   stocks  Stock[]
 
-  @@map("risk_buckets")
+  @@index([createdBy], name: "idx_buckets_created_by")
+  @@index([createdAt], name: "idx_buckets_created_at")
+  @@map("buckets")
 }
 
 // Stocks table
 model Stock {
-  id           String   @id @default(cuid())
-  symbol       String   @unique
-  companyName  String
-  themeId      String
-  riskBucketId String
-  pdfUrl       String?
-  createdBy    String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id          String   @id
+  symbol      String   @unique
+  companyName String   @map("company_name")
+  themeId     String   @map("theme_id")
+  bucketId    String   @map("bucket_id")
+  pdfUrl      String?  @map("pdf_url")
+  createdBy   String   @map("created_by") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp(3)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamp(3)
 
   // Relations
-  theme       Theme      @relation(fields: [themeId], references: [id], onDelete: Restrict)
-  riskBucket  RiskBucket @relation(fields: [riskBucketId], references: [id], onDelete: Restrict)
-  creator     Profile    @relation("StockCreator", fields: [createdBy], references: [userId])
+  theme   Theme   @relation(fields: [themeId], references: [id], onDelete: Restrict, map: "stocks_theme_fkey")
+  bucket  Bucket  @relation(fields: [bucketId], references: [id], onDelete: Restrict, map: "stocks_bucket_fkey")
+  creator Profile @relation("StockCreator", fields: [createdBy], references: [userId], onDelete: Restrict, map: "stocks_creator_fkey")
 
+  @@index([themeId], name: "idx_stocks_theme_id")
+  @@index([bucketId], name: "idx_stocks_bucket_id")
+  @@index([createdBy], name: "idx_stocks_created_by")
   @@map("stocks")
 }
 
 // Content access table
 model ContentAccess {
-  id          String   @id @default(cuid())
-  userId      String
-  contentType String // 'stock', 'theme', 'bucket'
-  contentId   String
-  grantedBy   String
-  grantedAt   DateTime @default(now())
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  contentType String   @map("content_type") // 'stock', 'theme', 'bucket'
+  contentId   String   @map("content_id") @db.Uuid
+  grantedBy   String   @map("granted_by") @db.Uuid
+  grantedAt   DateTime @default(now()) @map("granted_at") @db.Timestamptz(6)
 
   // Relations
-  user      Profile @relation("ContentAccessReceiver", fields: [userId], references: [userId], onDelete: Cascade)
-  grantor   Profile @relation("ContentAccessGrantor", fields: [grantedBy], references: [userId])
+  user    Profile @relation("ContentAccessReceiver", fields: [userId], references: [userId], map: "content_access_user_id_fkey")
+  grantor Profile @relation("ContentAccessGrantor", fields: [grantedBy], references: [userId], map: "content_access_granted_by_fkey")
 
   @@map("content_access")
 }
 
 // Audit logs table
 model AuditLog {
-  id           String    @id @default(cuid())
-  userId       String?
+  id           String   @id @default(uuid()) @db.Uuid
+  userId       String?  @map("user_id") @db.Uuid
   action       String
-  resourceType String
-  resourceId   String?
-  ipAddress    String?
-  userAgent    String?
-  createdAt    DateTime  @default(now())
+  resourceType String   @map("resource_type")
+  resourceId   String?  @map("resource_id") @db.Uuid
+  ipAddress    String?  @map("ip_address") @db.Inet
+  userAgent    String?  @map("user_agent")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
   // Relations
-  user Profile? @relation(fields: [userId], references: [userId], onDelete: SetNull)
+  user Profile? @relation(fields: [userId], references: [userId], map: "audit_logs_user_id_fkey")
 
   @@map("audit_logs")
 }
 
 // User sessions table
 model UserSession {
-  id        String    @id @default(cuid())
-  userId    String
-  loginAt   DateTime  @default(now())
-  logoutAt  DateTime?
-  ipAddress String?
-  userAgent String?
-  createdAt DateTime  @default(now())
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  loginAt   DateTime  @default(now()) @map("login_at") @db.Timestamptz(6)
+  logoutAt  DateTime? @map("logout_at") @db.Timestamptz(6)
+  ipAddress String?   @map("ip_address") @db.Inet
+  userAgent String?   @map("user_agent")
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
 
   // Relations
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  profile Profile @relation(fields: [userId], references: [userId], map: "user_sessions_user_id_fkey")
 
   @@map("user_sessions")
+}
+
+// Waitlist table
+model Waitlist {
+  id        String          @id @default(uuid()) @db.Uuid
+  email     String          @unique
+  status    WaitlistStatus  @default(pending)
+  createdAt DateTime?       @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("waitlist")
 }
