@@ -74,7 +74,7 @@ export default async function themesRouter(
           created_by,
           created_at,
           updated_at,
-          creator:profiles!themes_created_by_fkey(full_name)
+          creator:profiles!themes_creator_fkey(full_name)
         `
         )
         .order("created_at", { ascending: false });
@@ -146,7 +146,7 @@ export default async function themesRouter(
           created_by,
           created_at,
           updated_at,
-          creator:profiles!themes_created_by_fkey(full_name)
+          creator:profiles!themes_creator_fkey(full_name)
         `
         )
         .single();
@@ -212,7 +212,7 @@ export default async function themesRouter(
           created_by,
           created_at,
           updated_at,
-          creator:profiles!themes_created_by_fkey(full_name)
+          creator:profiles!themes_creator_fkey(full_name)
         `
         )
         .eq("id", id)
