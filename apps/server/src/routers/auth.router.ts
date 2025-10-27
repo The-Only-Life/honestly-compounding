@@ -737,6 +737,94 @@ export default async function authRouter(
     }
   );
 
+  // Generate verification link for a user (admin only)
+  server.post(
+    "/generate-verification-link",
+    {
+      preHandler: async (req, res) => {
+        // Verify user is admin
+        const accessToken = req.cookies["sb-access-token"];
+        if (!accessToken) {
+          return res.status(401).send({ error: "Unauthorized" });
+        }
+
+        const { data: { user }, error } = await supabase.auth.getUser(accessToken);
+        if (error || !user) {
+          return res.status(401).send({ error: "Unauthorized" });
+        }
+
+        const { data: metadata } = await supabase
+          .from("user_metadata")
+          .select("role")
+          .eq("user_id", user.id)
+          .single();
+
+        if (metadata?.role !== "admin" && metadata?.role !== "sponsor") {
+          return res.status(403).send({ error: "Forbidden: Admin or Sponsor access required" });
+        }
+
+        (req as any).user = user;
+      },
+    },
+    async (req, res) => {
+      try {
+        const { userId } = req.body as { userId: string };
+
+        if (!userId) {
+          return res.status(400).send({ error: "User ID is required" });
+        }
+
+        // Get user details
+        const { data: userData, error: userError } = await supabase.auth.admin.getUserById(userId);
+
+        if (userError || !userData?.user) {
+          return res.status(404).send({ error: "User not found" });
+        }
+
+        const user = userData.user;
+
+        // Check if user has email
+        if (!user.email) {
+          return res.status(400).send({
+            error: "User does not have an email address. Verification links require email."
+          });
+        }
+
+        // Generate invite token (works even if email is already verified)
+        const { data: inviteData, error: inviteTokenError } =
+          await supabase.auth.admin.generateLink({
+            type: "invite",
+            email: user.email,
+          });
+
+        if (inviteTokenError || !inviteData) {
+          console.error("Failed to generate verification token:", inviteTokenError);
+          return res.status(500).send({
+            error: "Failed to generate verification link",
+          });
+        }
+
+        // Generate the verification URL
+        const verificationUrl = `${Config.FRONTEND_URL}/auth/confirm?token_hash=${inviteData.properties.hashed_token}&type=invite&next=/complete-profile`;
+
+        return res.send({
+          message: "Verification link generated successfully",
+          verificationUrl,
+          user: {
+            id: user.id,
+            email: user.email,
+            emailVerified: !!user.email_confirmed_at,
+          },
+        });
+      } catch (error: any) {
+        console.error("Generate verification link error:", error);
+        return res.status(500).send({
+          error: "Internal server error: " + error.message,
+        });
+      }
+    }
+  );
+
   // Send OTP to phone number
   server.post(
     "/phone/send-otp",

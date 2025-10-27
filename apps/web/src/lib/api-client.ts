@@ -395,6 +395,13 @@ class ApiClient {
     });
   }
 
+  async generateVerificationLink(userId: string): Promise<{ message: string; verificationUrl: string; user: { id: string; email: string; emailVerified: boolean } }> {
+    return this.request<{ message: string; verificationUrl: string; user: { id: string; email: string; emailVerified: boolean } }>("/api/auth/generate-verification-link", {
+      method: "POST",
+      body: JSON.stringify({ userId }),
+    });
+  }
+
   async deleteUser(userId: string): Promise<{ message: string }> {
     return this.request<{ message: string }>(`/api/users/${userId}`, {
       method: "DELETE",

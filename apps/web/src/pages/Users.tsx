@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useUsers, useInviteUser, useInviteUsersBulk, useUpdateUserRole, useUpdateUserAccess, useDeleteUser } from '@/hooks/use-users-api';
+import { useUsers, useInviteUser, useInviteUsersBulk, useUpdateUserRole, useUpdateUserAccess, useDeleteUser, useGenerateVerificationLink } from '@/hooks/use-users-api';
 import { useWaitlist, useApproveWaitlist } from '@/hooks/use-waitlist-api';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -43,7 +43,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { UserIcon, Plus, Mail, Phone, Shield, CheckCircle, XCircle, Users as UsersIcon, Trash2, Send } from 'lucide-react';
+import { UserIcon, Plus, Mail, Phone, Shield, CheckCircle, XCircle, Users as UsersIcon, Trash2, Send, Link2 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import {
   Pagination,
@@ -64,6 +64,7 @@ export default function Users() {
   const updateUserAccessMutation = useUpdateUserAccess();
   const deleteUserMutation = useDeleteUser();
   const approveWaitlistMutation = useApproveWaitlist();
+  const generateVerificationLinkMutation = useGenerateVerificationLink();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isBulkDialogOpen, setIsBulkDialogOpen] = useState(false);
@@ -486,6 +487,18 @@ export default function Users() {
                               title="Resend invitation email"
                             >
                               <Send className="h-4 w-4" />
+                            </Button>
+                          )}
+                          {user.email && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-blue-600 hover:text-blue-700"
+                              onClick={() => generateVerificationLinkMutation.mutate(user.id)}
+                              disabled={generateVerificationLinkMutation.isPending}
+                              title="Get verification link (copies to clipboard)"
+                            >
+                              <Link2 className="h-4 w-4" />
                             </Button>
                           )}
                           <AlertDialog>

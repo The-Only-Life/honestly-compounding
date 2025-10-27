@@ -233,6 +233,8 @@ export default async function waitlistRouter(
             role: "subscriber",
             access_approved: false, // Subscribers need approval after profile completion
             invited_by: invitedBy,
+            contact_method: "email",
+            profile_completed: false,
           });
 
         if (metadataError) {

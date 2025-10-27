@@ -146,6 +146,29 @@ export const useInviteUsersBulk = () => {
   });
 };
 
+// Hook to generate verification link for a user
+export const useGenerateVerificationLink = () => {
+  return useMutation({
+    mutationFn: (userId: string) => apiClient.generateVerificationLink(userId),
+    onSuccess: (response) => {
+      // Copy to clipboard
+      navigator.clipboard.writeText(response.verificationUrl);
+
+      toast({
+        title: 'Verification link generated',
+        description: 'Link copied to clipboard. Send it to the user.',
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Failed to generate verification link',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+};
+
 // Hook to delete a user
 export const useDeleteUser = () => {
   const queryClient = useQueryClient();
