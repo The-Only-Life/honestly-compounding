@@ -12,15 +12,30 @@ import { Badge } from "@/components/ui/badge";
 import { Shield, Plus, Eye } from "lucide-react";
 import { useBuckets } from "@/hooks/use-buckets-api";
 import { CreateBucketDialog } from "@/components/CreateBucketDialog";
-import { useNavigate } from "react-router-dom";
+import { SidePanel } from "@/components/SidePanel";
+import ReactMarkdown from "react-markdown";
 
 export default function Buckets() {
   const { userRole } = useAuth();
-  const navigate = useNavigate();
   const { data, isLoading } = useBuckets();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [selectedBucket, setSelectedBucket] = useState<{
+    id: string;
+    name: string;
+    description: string;
+    riskMeasure: string;
+  } | null>(null);
 
   const isAdmin = userRole === "admin";
+
+  const handleViewBucket = (bucket: any) => {
+    setSelectedBucket({
+      id: bucket.id,
+      name: bucket.name,
+      description: bucket.description || "No description available.",
+      riskMeasure: bucket.riskMeasure,
+    });
+  };
 
   if (isLoading) {
     return (
@@ -100,9 +115,7 @@ export default function Buckets() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() =>
-                          navigate(`/dashboard/buckets/${bucket.id}`)
-                        }
+                        onClick={() => handleViewBucket(bucket)}
                       >
                         <Eye className="mr-2 h-4 w-4" />
                         View
@@ -115,6 +128,22 @@ export default function Buckets() {
           )}
         </CardContent>
       </Card>
+
+      {/* Side Panel for Bucket Details */}
+      <SidePanel
+        open={!!selectedBucket}
+        onClose={() => setSelectedBucket(null)}
+        title={selectedBucket ? `Bucket: ${selectedBucket.name}` : ""}
+        description={
+          selectedBucket ? `Risk Measure: ${selectedBucket.riskMeasure}` : ""
+        }
+      >
+        {selectedBucket && (
+          <div className="prose dark:prose-invert max-w-none">
+            <ReactMarkdown>{selectedBucket.description}</ReactMarkdown>
+          </div>
+        )}
+      </SidePanel>
 
       {/* Create Dialog */}
       <CreateBucketDialog

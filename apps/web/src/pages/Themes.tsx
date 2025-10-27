@@ -6,6 +6,8 @@ import { Briefcase, Plus, Eye, Download, TrendingUp } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { PDFViewer } from '@/components/PDFViewer';
 import { SecurePDFViewer } from '@/components/SecurePDFViewer';
+import { SidePanel } from '@/components/SidePanel';
+import ReactMarkdown from 'react-markdown';
 
 export default function Themes() {
   const { userRole } = useAuth();
@@ -13,6 +15,7 @@ export default function Themes() {
   const [storagePDFs, setStoragePDFs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedPDF, setSelectedPDF] = useState<{ url: string; title: string; fileName?: string } | null>(null);
+  const [selectedTheme, setSelectedTheme] = useState<{ id: string; name: string; description: string } | null>(null);
   const [stats, setStats] = useState({
     totalThemes: 0,
     totalStocks: 0
@@ -30,6 +33,14 @@ export default function Themes() {
 
   const handleViewPDF = (fileName: string, title: string) => {
     setSelectedPDF({ url: '', title, fileName });
+  };
+
+  const handleViewTheme = (theme: any) => {
+    setSelectedTheme({
+      id: theme.id,
+      name: theme.name,
+      description: theme.description || "No description available.",
+    });
   };
 
   const fetchThemes = async () => {
@@ -159,13 +170,18 @@ export default function Themes() {
                       </div>
                       
                       <div className="flex gap-2 mt-4">
-                        <Button variant="outline" size="sm" className="flex-1">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1"
+                          onClick={() => handleViewTheme(theme)}
+                        >
                           <Eye className="w-4 h-4 mr-1" />
                           View
                         </Button>
                           {theme.pdf_url && (
-                            <Button 
-                              variant="outline" 
+                            <Button
+                              variant="outline"
                               size="sm"
                               onClick={() => handleViewPDF(theme.pdf_url.split('/').pop() || '', theme.name)}
                             >
@@ -193,7 +209,19 @@ export default function Themes() {
         </CardContent>
       </Card>
 
-      <SecurePDFViewer 
+      <SidePanel
+        open={!!selectedTheme}
+        onClose={() => setSelectedTheme(null)}
+        title={selectedTheme ? `Theme: ${selectedTheme.name}` : ''}
+      >
+        {selectedTheme && (
+          <div className="prose dark:prose-invert max-w-none">
+            <ReactMarkdown>{selectedTheme.description}</ReactMarkdown>
+          </div>
+        )}
+      </SidePanel>
+
+      <SecurePDFViewer
         isOpen={!!selectedPDF}
         onClose={() => setSelectedPDF(null)}
         fileName={selectedPDF?.fileName}

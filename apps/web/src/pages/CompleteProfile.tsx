@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { toast } from '@/hooks/use-toast';
 import { AppConfig } from '@/config';
 import { Eye, EyeOff } from 'lucide-react';
+import { authKeys } from '@/hooks/use-auth-api';
 
 // Helper function to decode JWT
 const decodeJWT = (token: string) => {
@@ -29,6 +31,7 @@ const decodeJWT = (token: string) => {
 const CompleteProfile = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
   const [verifying, setVerifying] = useState(true);
   const [tokenValid, setTokenValid] = useState(false);
@@ -132,14 +135,29 @@ const CompleteProfile = () => {
         throw new Error(error.error || 'Failed to complete profile');
       }
 
-      toast({
-        title: "Profile completed!",
-        description: "Your account is ready. Redirecting to dashboard...",
+      const data = await response.json();
+
+      // Update the auth cache with the new user data
+      queryClient.setQueryData(authKeys.currentUser, {
+        user: data.user,
       });
 
-      // User should now be logged in with the session cookies
-      // Redirect to dashboard
-      setTimeout(() => navigate('/dashboard'), 1500);
+      // Check if user's access is approved
+      if (data.user?.accessApproved) {
+        toast({
+          title: "Profile completed!",
+          description: "Your account is ready. Redirecting to dashboard...",
+        });
+        // User is approved, redirect to dashboard
+        setTimeout(() => navigate('/dashboard'), 1500);
+      } else {
+        toast({
+          title: "Profile completed!",
+          description: "Your profile is set up. Waiting for admin approval...",
+        });
+        // User is not approved yet, redirect to dashboard which will show awaiting approval
+        setTimeout(() => navigate('/dashboard'), 1500);
+      }
     } catch (error: any) {
       console.error('Profile completion failed:', error);
       toast({

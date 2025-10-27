@@ -43,26 +43,26 @@ export default function Stocks() {
   const { data, isLoading, error } = useStocks(currentPage, pageSize);
 
   const handleViewTheme = (stock: Stock) => {
-    if (stock.theme?.description) {
+    if (stock.theme) {
       setSidePanelView({
         type: "theme",
         theme: {
           id: stock.theme.id,
           name: stock.theme.name,
-          description: stock.theme.description,
+          description: stock.theme.description || "No description available.",
         },
       });
     }
   };
 
   const handleViewBucket = (stock: Stock) => {
-    if (stock.bucket?.description) {
+    if (stock.bucket) {
       setSidePanelView({
         type: "bucket",
         bucket: {
           id: stock.bucket.id,
           name: stock.bucket.name,
-          description: stock.bucket.description,
+          description: stock.bucket.description || "No description available.",
         },
       });
     }
