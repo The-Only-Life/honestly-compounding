@@ -4,13 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft } from "lucide-react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 
 export default function BucketDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { data: bucket, isLoading } = useBucket(id!);
+  const { data: bucket, isLoading } = useBucket(id);
 
   if (isLoading) {
     return (
@@ -53,9 +51,7 @@ export default function BucketDetail() {
               <div className="flex items-center gap-2 text-sm text-gray-500">
                 <span>Created by {bucket.creator?.fullName || "Unknown"}</span>
                 <span>•</span>
-                <span>
-                  {new Date(bucket.createdAt).toLocaleDateString()}
-                </span>
+                <span>{new Date(bucket.createdAt).toLocaleDateString()}</span>
               </div>
             </div>
             <Badge variant="outline" className="text-lg px-4 py-2">
@@ -64,11 +60,10 @@ export default function BucketDetail() {
           </div>
         </CardHeader>
         <CardContent>
-          <article className="prose prose-slate max-w-none">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-              {bucket.description}
-            </ReactMarkdown>
-          </article>
+          <article
+            className="prose prose-slate max-w-none"
+            dangerouslySetInnerHTML={{ __html: bucket.description }}
+          />
         </CardContent>
       </Card>
     </div>

@@ -3,8 +3,6 @@ import { useTheme } from "@/hooks/use-themes-api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 
 export default function ThemeDetail() {
   const { id } = useParams<{ id: string }>();
@@ -56,11 +54,10 @@ export default function ThemeDetail() {
           </div>
         </CardHeader>
         <CardContent>
-          <article className="prose prose-slate max-w-none">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-              {theme.description}
-            </ReactMarkdown>
-          </article>
+          <article
+            className="prose prose-slate max-w-none"
+            dangerouslySetInnerHTML={{ __html: theme.description }}
+          />
         </CardContent>
       </Card>
     </div>

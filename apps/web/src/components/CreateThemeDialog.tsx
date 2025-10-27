@@ -10,8 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useCreateTheme } from "@/hooks/use-themes-api";
-import SimpleMDE from "react-simplemde-editor";
-import "easymde/dist/easymde.min.css";
+import { RichTextEditor } from "@/components/RichTextEditor";
 
 interface CreateThemeDialogProps {
   open: boolean;
@@ -21,7 +20,7 @@ interface CreateThemeDialogProps {
 export function CreateThemeDialog({
   open,
   onOpenChange,
-}: CreateThemeDialogProps) {
+}: Readonly<CreateThemeDialogProps>) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const createTheme = useCreateTheme();
@@ -67,34 +66,12 @@ export function CreateThemeDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Description (Markdown)</Label>
-            <SimpleMDE
+            <Label htmlFor="description">Description</Label>
+            <RichTextEditor
               value={description}
               onChange={setDescription}
-              options={{
-                spellChecker: false,
-                placeholder: "Write your description in markdown...",
-                minHeight: "300px",
-                maxHeight: "400px",
-                toolbar: [
-                  "bold",
-                  "italic",
-                  "heading",
-                  "|",
-                  "quote",
-                  "unordered-list",
-                  "ordered-list",
-                  "|",
-                  "link",
-                  "image",
-                  "|",
-                  "preview",
-                  "side-by-side",
-                  "fullscreen",
-                  "|",
-                  "guide",
-                ],
-              }}
+              placeholder="Write your description..."
+              minHeight="300px"
             />
           </div>
 
