@@ -489,14 +489,14 @@ export default function Users() {
                               <Send className="h-4 w-4" />
                             </Button>
                           )}
-                          {user.email && (
+                          {user.email && !user.profileCompleted && (
                             <Button
                               variant="ghost"
                               size="sm"
                               className="text-blue-600 hover:text-blue-700"
                               onClick={() => generateVerificationLinkMutation.mutate(user.id)}
                               disabled={generateVerificationLinkMutation.isPending}
-                              title="Get verification link (copies to clipboard)"
+                              title="Get verification link (copies to clipboard) - Only for users who haven't completed profile"
                             >
                               <Link2 className="h-4 w-4" />
                             </Button>

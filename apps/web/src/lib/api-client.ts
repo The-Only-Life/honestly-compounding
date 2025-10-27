@@ -69,6 +69,7 @@ export interface User {
   phone?: string;
   role?: string | null;
   accessApproved?: boolean;
+  profileCompleted?: boolean;
   emailVerified: boolean;
   createdAt: string;
   lastSignInAt?: string;

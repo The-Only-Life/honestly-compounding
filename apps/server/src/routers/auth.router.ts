@@ -654,13 +654,14 @@ export default async function authRouter(
         >;
 
         // Update user with new information
+        // Note: We do NOT set email_confirm: true here. Email verification happens
+        // when they click the invite link. This allows admins to regenerate links.
         const { error: updateError } = await supabase.auth.admin.updateUserById(
           user.id,
           {
             email: email || user.email,
             phone: phone || user.phone,
             password: password,
-            email_confirm: true, // Auto-confirm email since they were invited
           }
         );
 
