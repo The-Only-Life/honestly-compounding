@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { X, Loader2, ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from 'lucide-react';
+import { Loader2, ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from 'lucide-react';
+import { AppConfig } from '@/config';
 
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
@@ -43,39 +44,41 @@ export function SecurePDFViewer({ isOpen, onClose, fileName, title }: SecurePDFV
       console.log('No fileName provided');
       return;
     }
-    
+
     console.log('Loading PDF:', fileName);
     setLoading(true);
     setError(null);
-    
-    try {
-      console.log('Downloading from Supabase...');
-      const { data, error: downloadError } = await supabase.storage
-        .from('research-pdfs')
-        .download(fileName);
 
-      if (downloadError) {
-        console.error('Download error:', downloadError);
-        throw downloadError;
+    try {
+      console.log('Downloading PDF from API...');
+      // Encode the fileName to handle special characters
+      const encodedFileName = encodeURIComponent(fileName);
+      const response = await fetch(`${AppConfig.API_BASE_URL}/api/stocks/download-pdf/${encodedFileName}`, {
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to download PDF: ${response.statusText}`);
       }
 
-      console.log('Downloaded data:', data);
-      console.log('Data size:', data?.size);
-      console.log('Data type:', data?.type);
+      const blob = await response.blob();
+      console.log('Downloaded blob:', blob);
+      console.log('Blob size:', blob.size);
+      console.log('Blob type:', blob.type);
 
-      if (!data) {
+      if (!blob || blob.size === 0) {
         throw new Error('No data received from download');
       }
 
-      const arrayBuffer = await data.arrayBuffer();
+      const arrayBuffer = await blob.arrayBuffer();
       console.log('ArrayBuffer size:', arrayBuffer.byteLength);
-      
-      // Try creating a Uint8Array instead of using ArrayBuffer directly
+
+      // Create a Uint8Array for react-pdf
       const uint8Array = new Uint8Array(arrayBuffer);
       console.log('Uint8Array created, length:', uint8Array.length);
-      
+
       setPdfData({ data: uint8Array });
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error loading PDF:', err);
       setError(`Failed to load PDF: ${err.message}`);
     } finally {
@@ -118,34 +121,27 @@ export function SecurePDFViewer({ isOpen, onClose, fileName, title }: SecurePDFV
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent side="right" className="w-full sm:w-[800px] sm:max-w-[90vw]">
         <SheetHeader className="pb-4">
-          <div className="flex items-center justify-between">
-            <SheetTitle>{title}</SheetTitle>
-            <div className="flex items-center gap-2">
-              {totalPages > 0 && (
-                <>
-                  <Button variant="outline" size="sm" onClick={zoomOut} disabled={scale <= 0.5}>
-                    <ZoomOut className="h-4 w-4" />
-                  </Button>
-                  <span className="text-sm px-2">{Math.round(scale * 100)}%</span>
-                  <Button variant="outline" size="sm" onClick={zoomIn} disabled={scale >= 3.0}>
-                    <ZoomIn className="h-4 w-4" />
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={goToPrevPage} disabled={pageNum <= 1}>
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  <span className="text-sm px-2">{pageNum} / {totalPages}</span>
-                  <Button variant="outline" size="sm" onClick={goToNextPage} disabled={pageNum >= totalPages}>
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </>
-              )}
-              <Button variant="ghost" size="sm" onClick={onClose}>
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-          <SheetDescription>
-            Secure PDF viewer - content cannot be downloaded
+          <SheetTitle>{title}</SheetTitle>
+          <SheetDescription className="flex items-center justify-between">
+            <span>Secure PDF viewer - content cannot be downloaded</span>
+            {totalPages > 0 && (
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" onClick={zoomOut} disabled={scale <= 0.5}>
+                  <ZoomOut className="h-4 w-4" />
+                </Button>
+                <span className="text-sm px-2">{Math.round(scale * 100)}%</span>
+                <Button variant="outline" size="sm" onClick={zoomIn} disabled={scale >= 3}>
+                  <ZoomIn className="h-4 w-4" />
+                </Button>
+                <Button variant="outline" size="sm" onClick={goToPrevPage} disabled={pageNum <= 1}>
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <span className="text-sm px-2">{pageNum} / {totalPages}</span>
+                <Button variant="outline" size="sm" onClick={goToNextPage} disabled={pageNum >= totalPages}>
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
           </SheetDescription>
         </SheetHeader>
         

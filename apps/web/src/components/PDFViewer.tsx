@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { X, Loader2, Download, ExternalLink } from 'lucide-react';
+import { Loader2, Download, ExternalLink } from 'lucide-react';
+import { AppConfig } from '@/config';
 
 
 interface PDFViewerProps {
@@ -38,35 +39,36 @@ export function PDFViewer({ isOpen, onClose, pdfUrl, title, fileName }: PDFViewe
       console.log('No fileName provided');
       return;
     }
-    
+
     console.log('Fetching PDF blob for:', fileName);
     setLoading(true);
     setError(null);
-    
-    try {
-      console.log('Downloading from Supabase storage...');
-      const { data, error: downloadError } = await supabase.storage
-        .from('research-pdfs')
-        .download(fileName);
 
-      if (downloadError) {
-        console.error('Download error:', downloadError);
-        throw downloadError;
+    try {
+      console.log('Downloading PDF from API...');
+      // Encode the fileName to handle special characters
+      const encodedFileName = encodeURIComponent(fileName);
+      const response = await fetch(`${AppConfig.API_BASE_URL}/api/stocks/download-pdf/${encodedFileName}`, {
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to download PDF: ${response.statusText}`);
       }
 
-      console.log('Downloaded data:', data);
-      console.log('Data size:', data?.size);
+      const blob = await response.blob();
+      console.log('Downloaded blob:', blob);
+      console.log('Blob size:', blob.size);
 
-      if (!data) {
+      if (!blob || blob.size === 0) {
         throw new Error('No data received');
       }
 
-      const blob = new Blob([data], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
       console.log('Created blob URL:', url);
       setBlobUrl(url);
       setLoading(false);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error loading PDF:', err);
       setError(`Failed to load PDF: ${err.message}`);
       setLoading(false);
@@ -94,28 +96,21 @@ export function PDFViewer({ isOpen, onClose, pdfUrl, title, fileName }: PDFViewe
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent side="right" className="w-full sm:w-[800px] sm:max-w-[90vw]">
         <SheetHeader className="pb-4">
-          <div className="flex items-center justify-between">
-            <SheetTitle>{title}</SheetTitle>
-            <div className="flex items-center gap-2">
-              {blobUrl && (
-                <>
-                  <Button variant="outline" size="sm" onClick={handleDownload}>
-                    <Download className="h-4 w-4 mr-1" />
-                    Download
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={handleOpenInNewTab}>
-                    <ExternalLink className="h-4 w-4 mr-1" />
-                    Open in Tab
-                  </Button>
-                </>
-              )}
-              <Button variant="ghost" size="sm" onClick={onClose}>
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-          <SheetDescription>
-            View research document in PDF format
+          <SheetTitle>{title}</SheetTitle>
+          <SheetDescription className="flex items-center justify-between">
+            <span>View research document in PDF format</span>
+            {blobUrl && (
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" onClick={handleDownload}>
+                  <Download className="h-4 w-4 mr-1" />
+                  Download
+                </Button>
+                <Button variant="outline" size="sm" onClick={handleOpenInNewTab}>
+                  <ExternalLink className="h-4 w-4 mr-1" />
+                  Open in Tab
+                </Button>
+              </div>
+            )}
           </SheetDescription>
         </SheetHeader>
         

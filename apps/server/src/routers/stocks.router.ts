@@ -382,4 +382,46 @@ export default async function stocksRouter(
       return res.status(500).send({ error: "Internal server error" });
     }
   });
+
+  // GET /api/stocks/download-pdf/:fileName - Download PDF from Supabase Storage
+  server.get("/download-pdf/:fileName", async (req, res) => {
+    try {
+      const { fileName } = req.params as { fileName: string };
+
+      if (!fileName) {
+        return res.status(400).send({ error: "No filename provided" });
+      }
+
+      // Decode the filename (it might be URL encoded)
+      const decodedFileName = decodeURIComponent(fileName);
+
+      // Download from Supabase Storage
+      const { data, error: downloadError } = await supabase.storage
+        .from("research-pdfs")
+        .download(decodedFileName);
+
+      if (downloadError) {
+        req.log.error(downloadError);
+        return res.status(404).send({ error: "PDF not found" });
+      }
+
+      if (!data) {
+        return res.status(404).send({ error: "No data received" });
+      }
+
+      // Convert blob to buffer
+      const arrayBuffer = await data.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+
+      // Set headers for PDF
+      res.header("Content-Type", "application/pdf");
+      res.header("Content-Disposition", `inline; filename="${decodedFileName.split('/').pop()}"`);
+      res.header("Content-Length", buffer.length.toString());
+
+      return res.send(buffer);
+    } catch (err) {
+      req.log.error(err);
+      return res.status(500).send({ error: "Internal server error" });
+    }
+  });
 }
