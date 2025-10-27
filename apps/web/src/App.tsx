@@ -13,7 +13,7 @@ import AuthConfirm from "./pages/AuthConfirm";
 import CompleteProfile from "./pages/CompleteProfile";
 import Dashboard from "./pages/Dashboard";
 import Users from "./pages/Users";
-import ThemesNew from "./pages/ThemesNew";
+import Themes from "./pages/Themes";
 import Buckets from "./pages/Buckets";
 import Stocks from "./pages/Stocks";
 import ContentManagement from "./pages/ContentManagement";
@@ -80,7 +80,7 @@ const App = () => (
                 element={
                   <ProtectedRoute requiredRoles={["admin", "sponsor", "subscriber"]}>
                     <DashboardLayout>
-                      <ThemesNew />
+                      <Themes />
                     </DashboardLayout>
                   </ProtectedRoute>
                 }
