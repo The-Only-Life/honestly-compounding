@@ -1,73 +1,64 @@
-# Welcome to your Lovable project
+# Honestly Compounding
 
-## Project info
+Welcome to the honestly-compounding repository! This is a monorepo containing both the web and server applications, managed with Bun.
 
-**URL**: https://lovable.dev/projects/9c7ae47e-45a0-4b3f-8da2-9e06e0b2277f
+## Prerequisites
 
-## How can I edit this code?
+- **Bun**: This project uses [Bun](https://bun.sh/) as the package manager and runtime. Make sure you have it installed.
 
-There are several ways of editing your application.
+## Getting Started
 
-**Use Lovable**
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/The-Only-Life/honestly-compounding.git
+    cd honestly-compounding
+    ```
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/9c7ae47e-45a0-4b3f-8da2-9e06e0b2277f) and start prompting.
+2.  **Install dependencies:**
+    ```bash
+    bun install
+    ```
 
-Changes made via Lovable will be committed automatically to this repo.
+3.  **Run the development environment:**
+    To start both the web and server applications simultaneously:
+    ```bash
+    bun run dev
+    ```
 
-**Use your preferred IDE**
+    **Individual commands:**
+    - Web app only: `bun run dev:web`
+    - Server only: `bun run dev:server`
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## Project Structure
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+- `apps/web`: The frontend web application.
+- `apps/server`: The backend server application.
 
-Follow these steps:
+## Deployment
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+Deployments are managed via [Railway](https://railway.app/) and are automatically triggered from the `development` branch.
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+- **Configuration**: governed by `railway.toml`.
+- **Builder**: We use a `Dockerfile` to build the image (based on `oven/bun`).
+- **Process**: The `start.sh` script handles the startup of both the web and server applications within the container.
 
-# Step 3: Install the necessary dependencies.
-npm i
+## Contribution Guidelines
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+We follow a strict development workflow to ensure code quality and stability.
 
-**Edit a file directly in GitHub**
+1.  **Branching Strategy:**
+    - **Primary Development Branch**: `development`.
+    - **Never commit directly to `main` or `development`.**
+    - Always create a new feature branch from `development`:
+      ```bash
+      git checkout -b feature/your-feature-name
+      ```
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+2.  **Pull Requests (PRs):**
+    - Once your work is ready, push your branch and open a Pull Request against `development`.
+    - Provide a clear description of your changes.
 
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/9c7ae47e-45a0-4b3f-8da2-9e06e0b2277f) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+3.  **Code Review & Merging:**
+    - All PRs need to be reviewed and approved by at least one other team member.
+    - **Get approval before merging.**
+    - Squash and merge is preferred to keep the history clean.
