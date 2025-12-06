@@ -61,4 +61,5 @@ We follow a strict development workflow to ensure code quality and stability.
 3.  **Code Review & Merging:**
     - All PRs need to be reviewed and approved by at least one other team member.
     - **Get approval before merging.**
-    - Squash and merge is preferred to keep the history clean.
+    - Rebase and merge is preferred to keep the history clean.
+
