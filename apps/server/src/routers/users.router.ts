@@ -2,6 +2,8 @@ import type { FastifyInstance } from "fastify";
 import { CreateUserSchema, UpdateUserRoleSchema } from "../schemas/users.schema";
 import type { FastifyCustomOptions } from "../types";
 import type { Static } from "@fastify/type-provider-typebox";
+import { sendAccessApprovalEmail } from "../utils/email";
+import Config from "../server.config";
 
 export default async function usersRouter(
   server: FastifyInstance,
@@ -264,6 +266,15 @@ export default async function usersRouter(
         const { id } = req.params as { id: string };
         const { accessApproved } = req.body as { accessApproved: boolean };
 
+        // Check if user exists and get email
+        const { data: userData, error: userError } = await supabase.auth.admin.getUserById(id);
+
+        if (userError || !userData.user) {
+          return res.status(404).send({
+            error: "User not found",
+          });
+        }
+
         // Update access_approved in user_metadata table
         const { error: metadataError } = await supabase
           .from("user_metadata")
@@ -273,6 +284,19 @@ export default async function usersRouter(
         if (metadataError) {
           return res.status(500).send({
             error: "Failed to update user access: " + metadataError.message,
+          });
+        }
+
+        // If access is being approved, send email notification
+        if (accessApproved) {
+          const dashboardUrl = `${Config.FRONTEND_URL}/dashboard`;
+          
+          // Send email asynchronously without blocking response
+          sendAccessApprovalEmail({
+            to: userData.user.email || "",
+            dashboardUrl,
+          }).catch(err => {
+            console.error(`Failed to send access approval email to ${userData.user.email}:`, err);
           });
         }
 
