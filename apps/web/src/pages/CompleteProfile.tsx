@@ -152,12 +152,12 @@ const CompleteProfile = () => {
         setTimeout(() => navigate('/dashboard'), 1500);
       } else {
         toast({
-          title: "Profile completed!",
-          description: "Your profile is set up. Waiting for admin approval...",
-        });
-        // User is not approved yet, redirect to dashboard which will show awaiting approval
-        setTimeout(() => navigate('/dashboard'), 1500);
-      }
+        title: "Profile completed!",
+        description: "Your profile is set up. Please acknowledge the terms to continue.",
+      });
+      // User is not approved yet, redirect to acknowledgement page
+      setTimeout(() => navigate('/acknowledgement'), 1500);
+    }
     } catch (error: any) {
       console.error('Profile completion failed:', error);
       toast({

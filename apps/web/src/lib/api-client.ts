@@ -19,6 +19,7 @@ export interface AuthUser {
   role?: string | null;
   accessApproved?: boolean;
   profileCompleted?: boolean;
+  hasAgreedToTerms?: boolean;
   emailVerified: boolean;
   createdAt: string;
   user_metadata?: {
@@ -426,6 +427,13 @@ class ApiClient {
     return this.request<ApproveWaitlistResponse>("/api/waitlist/approve", {
       method: "POST",
       body: JSON.stringify({ id, email }),
+    });
+  }
+
+  acknowledgeTerms(): Promise<{ message: string }> {
+    return this.request<{ message: string }>("/api/users/acknowledge-terms", {
+      method: "POST",
+      body: JSON.stringify({}),
     });
   }
 

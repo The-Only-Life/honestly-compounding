@@ -1,5 +1,5 @@
 import type { FastifyInstance } from "fastify";
-import { CreateUserSchema, UpdateUserRoleSchema } from "../schemas/users.schema";
+import { CreateUserSchema, UpdateUserRoleSchema, AcknowledgeTermsSchema } from "../schemas/users.schema";
 import type { FastifyCustomOptions } from "../types";
 import type { Static } from "@fastify/type-provider-typebox";
 import { sendAccessApprovalEmail } from "../utils/email";
@@ -112,6 +112,55 @@ export default async function usersRouter(
       });
     }
   });
+
+  // POST /acknowledge-terms - User acknowledges terms
+  server.post(
+    "/acknowledge-terms",
+    {
+      schema: {
+        body: AcknowledgeTermsSchema,
+      },
+      preHandler: async (req, res) => {
+        const accessToken = req.cookies["sb-access-token"];
+        if (!accessToken) {
+          return res.status(401).send({ error: "Not authenticated" });
+        }
+
+        const {
+          data: { user },
+          error,
+        } = await supabase.auth.getUser(accessToken);
+
+        if (error || !user) {
+          return res.status(401).send({ error: "Invalid token" });
+        }
+
+        (req as any).user = user;
+      },
+    },
+    async (req, res) => {
+      try {
+        const user = (req as any).user;
+
+        const { error } = await supabase
+          .from("user_metadata")
+          .update({ has_agreed_to_terms: true })
+          .eq("user_id", user.id);
+
+        if (error) {
+          req.log.error(error);
+          return res
+            .status(500)
+            .send({ error: "Failed to update acknowledgement status" });
+        }
+
+        return res.send({ message: "Terms acknowledged successfully" });
+      } catch (error: any) {
+        req.log.error(error);
+        return res.status(500).send({ error: "Internal server error" });
+      }
+    }
+  );
 
   // POST /users - Create new user with role (Admin only)
   server.post(

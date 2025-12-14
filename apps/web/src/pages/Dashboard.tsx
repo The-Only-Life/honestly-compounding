@@ -1,9 +1,18 @@
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, FileText, Briefcase, Shield, Building, TrendingUp } from 'lucide-react';
 
 const Dashboard = () => {
   const { user, userRole } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user && !user.hasAgreedToTerms) {
+      navigate('/acknowledgement');
+    }
+  }, [user, navigate]);
 
   const stats = [
     {
