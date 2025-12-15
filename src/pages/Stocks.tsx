@@ -1,59 +1,204 @@
+import React, { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Building, Plus, TrendingUp, TrendingDown, Download, Eye } from 'lucide-react';
+import { Eye, Plus, Building } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { useEffect, useState } from 'react';
-import { PDFViewer } from '@/components/PDFViewer';
-import { SecurePDFViewer } from '@/components/SecurePDFViewer';
+
+interface StockRel { name?: string | null }
+
+interface Stock {
+  id: number | string;
+  symbol: string;
+  company_name?: string | null;
+  pdf_url?: string | null; 
+  theme_id?: string | null;
+  risk_bucket_id?: string | null;
+  updated_at?: string | null;
+  themes?: StockRel;
+  risk_buckets?: StockRel;
+}
+
+interface StoragePDF {
+  name: string;
+  fileName: string;
+  updated_at?: string | null;
+  url?: string; // public or signed URL
+}
+
 
 export default function Stocks() {
   const { userRole } = useAuth();
-  const [stocks, setStocks] = useState<any[]>([]);
-  const [storagePDFs, setStoragePDFs] = useState<any[]>([]);
+  const [stocks, setStocks] = useState<Stock[]>([]);
+  const [storagePDFs, setStoragePDFs] = useState<StoragePDF[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedPDF, setSelectedPDF] = useState<{ url: string; title: string; fileName?: string } | null>(null);
-  const [stats, setStats] = useState({
-    totalStocks: 0
-  });
+  const [stats, setStats] = useState({ totalStocks: 0 });
+  const [debugInfo, setDebugInfo] = useState<any>(null);
+  const addDebug = (op: string, details: any, err?: any) => {
+    const payload = {
+      time: new Date().toISOString(),
+      op,
+      details,
+      error: err ? (err.message || JSON.stringify(err)) : null,
+    };
+    setDebugInfo(payload);
+    return payload;
+  };
+  // errorMessage is replaced by minimal toasts; kept debugInfo for internal diagnostics
+  const STORAGE_BUCKET = 'research-pdfs';
 
-  useEffect(() => {
-    fetchStocks();
-    fetchStoragePDFs();
-  }, []);
-
-  const fetchStoragePDFs = async () => {
+  // helper: try to create a signed url, fallback to public url
+  const makeFileUrl = async (fileName: string) => {
     try {
-      const { data, error } = await supabase.storage
-        .from('research-pdfs')
-        .list('', { limit: 100 });
+      if (!fileName || fileName === '') {
+        console.log('[makeFileUrl] Empty filename provided');
+        return null;
+      }
 
-      if (error) throw error;
+      console.log('[makeFileUrl] Resolving URL for file:', fileName);
 
-      const stockPDFs = data?.filter(file => 
-        file.name.toLowerCase().includes('stock') || 
-        file.name.toLowerCase().includes('note') ||
-        file.name.toLowerCase().includes('research')
-      ) || [];
+      // try signed url (private buckets)
+      const { data: signedData, error: signedErr } = await supabase.storage
+        .from(STORAGE_BUCKET)
+        .createSignedUrl(fileName, 60 * 60); 
 
-      const pdfUrls = stockPDFs.map((file) => ({
-        name: file.name,
-        fileName: file.name,
-        created_at: file.created_at
-      }));
+      if (signedErr) {
+        console.warn('[makeFileUrl] createSignedUrl error:', signedErr);
+        addDebug('makeFileUrl.createSignedUrl', { fileName }, signedErr);
+      }
 
-      console.log('Stock PDFs found:', pdfUrls);
-      setStoragePDFs(pdfUrls);
-    } catch (error) {
-      console.error('Error fetching storage PDFs:', error);
+      const signedUrl = (signedData as any)?.signedUrl || (signedData as any)?.signedurl || (signedData as any)?.signed_url;
+      if (signedUrl) {
+        console.log('[makeFileUrl] Got signed URL, length:', signedUrl.length);
+        return signedUrl;
+      }
+
+      
+      if (signedErr) {
+        const msg = (signedErr?.message || '').toLowerCase();
+        const statusCode = (signedErr as any)?.status;
+        if (statusCode === 404 || /not found|object not found|no such object/i.test(msg)) {
+          console.warn(`[makeFileUrl] File "${fileName}" not found in bucket "${STORAGE_BUCKET}".`, signedErr);
+          addDebug('makeFileUrl.notFound', { fileName, statusCode, msg }, signedErr);
+          return null;
+        }
+      }
+
+      const pubData = supabase.storage
+        .from(STORAGE_BUCKET)
+        .getPublicUrl(fileName);
+
+      const publicUrl = (pubData as any)?.data?.publicUrl || (pubData as any)?.publicUrl || (pubData as any)?.public_url;
+      console.log('[makeFileUrl] Got public URL, length:', publicUrl?.length);
+      console.log('[makeFileUrl] File path would be:', `${STORAGE_BUCKET}/${fileName}`);
+
+      if (publicUrl) {
+        try {
+          const res = await fetch(publicUrl, { method: 'HEAD' });
+          if (!res.ok) {
+            console.warn(`[makeFileUrl] Public URL head check failed (${res.status}) for ${publicUrl}`);
+            addDebug('makeFileUrl.headCheckFailed', { publicUrl, status: res.status });
+            return null;
+          }
+        } catch (headErr) {
+          console.warn('[makeFileUrl] HEAD request failed; returning public URL anyway:', headErr);
+          addDebug('makeFileUrl.headRequestError', { publicUrl }, headErr);
+        }
+      }
+
+      return publicUrl || null;
+    } catch (err) {
+      console.error('[makeFileUrl] Unexpected error:', err);
+      addDebug('makeFileUrl.unexpected', { fileName }, err);
+      return null;
     }
   };
 
-  const handleViewPDF = (fileName: string, title: string) => {
-    console.log('handleViewPDF called with:', { fileName, title });
-    setSelectedPDF({ url: '', title, fileName });
-  };
+  useEffect(() => {
+    let mounted = true;
+
+    const loadAll = async () => {
+      setLoading(true);
+      try {
+        const stocksPromise = fetchStocks();
+        const pdfsPromise = fetchStoragePDFs();
+        await Promise.all([stocksPromise, pdfsPromise]);
+      } catch (err) {
+        console.error('loadAll error', err);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+
+    loadAll();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  
+const fetchStoragePDFs = async () => {
+  try {
+    console.log('[fetchStoragePDFs] Attempting to list files from bucket:', STORAGE_BUCKET);
+
+    const { data, error } = await supabase.storage
+      .from(STORAGE_BUCKET)
+      .list('', { limit: 200 });
+    if (error) {
+      const msg = (error?.message || "").toLowerCase();
+      if (msg.includes("bucket not found")) {
+        console.warn(`[fetchStoragePDFs] Bucket "${STORAGE_BUCKET}" does not exist.`);
+        addDebug('fetchStoragePDFs.bucketNotFound', { bucket: STORAGE_BUCKET }, error);
+          toast({ title: 'Unable to fetch PDFs' });
+          setStoragePDFs([]);
+          return;
+      }
+      addDebug('fetchStoragePDFs.listError', { bucket: STORAGE_BUCKET }, error);
+      toast({ title: 'Unable to fetch PDFs' });
+      throw error;
+    }
+
+    const stockPDFs = (data || []).filter((file: any) => {
+      const name = (file.name || '').toLowerCase();
+      return (
+        name.includes('stock') ||
+        name.includes('note') ||
+        name.includes('research')
+      );
+    });
+
+      const mapped: StoragePDF[] = await Promise.all(
+      stockPDFs.map(async (file: any) => {
+        const fileName = file.name;
+        const url = await makeFileUrl(fileName);
+        if (!url) {
+          // record per-file unreachable status for debugging
+          addDebug('fetchStoragePDFs.fileUrlMissing', { fileName });
+        }
+
+        return {
+          name: fileName,
+          fileName,
+          updated_at: file.updated_at || file.last_modified || null,
+          url: url || undefined
+        };
+      })
+    );
+
+    const reachable = mapped.filter((m) => !!m.url);
+    setStoragePDFs(reachable);
+  } catch (error) {
+    console.error('[fetchStoragePDFs] Unexpected error:', error);
+    addDebug('fetchStoragePDFs.unexpected', {}, error);
+    toast({ title: 'Unable to fetch PDFs' });
+    setStoragePDFs([]);
+  }
+};
+
+
+
 
   const fetchStocks = async () => {
     try {
@@ -67,20 +212,59 @@ export default function Stocks() {
 
       if (stocksError) throw stocksError;
 
-      setStocks(stocksData || []);
-      setStats({
-        totalStocks: stocksData?.length || 0
-      });
+      const normalized = (stocksData || []) as Stock[];
+      setStocks(normalized);
+      setStats({ totalStocks: normalized.length });
     } catch (error) {
       console.error('Error fetching stocks:', error);
-    } finally {
-      setLoading(false);
+      setStocks([]);
+      setStats({ totalStocks: 0 });
     }
   };
 
-  if (loading) {
-    return <div className="flex items-center justify-center h-96">Loading...</div>;
+
+const handleViewPDF = useCallback(async (fileNameOrUrl: string) => {
+  try {
+    if (!fileNameOrUrl) {
+      addDebug('handleViewPDF.missingParam', { fileNameOrUrl });
+      toast({ title: 'PDF not available' });
+      return;
+    }
+
+    if (/^https?:\/\//i.test(fileNameOrUrl)) {
+      const newWindow = window.open(fileNameOrUrl, "_blank");
+      if (!newWindow) {
+        addDebug('handleViewPDF.popupBlocked', { fileNameOrUrl });
+        toast({ title: 'Unable to open PDF' });
+      }
+      return;
+    }
+
+
+    const url = await makeFileUrl(fileNameOrUrl);
+
+    if (!url) {
+      addDebug('handleViewPDF.notFound', { fileNameOrUrl });
+      toast({ title: 'File not found' });
+      return;
+    }
+
+    const newWindow = window.open(url, "_blank");
+    if (!newWindow) {
+      addDebug('handleViewPDF.popupBlocked', { url });
+      toast({ title: 'Unable to open PDF' });
+    }
+  } catch (err) {
+    console.error("[handleViewPDF] Error:", err);
+    const errorMsg = err instanceof Error ? err.message : String(err);
+    addDebug('handleViewPDF.unexpected', { fileNameOrUrl }, err);
+    toast({ title: 'Error opening PDF' });
   }
+}, []);
+
+
+
+  if (loading) return <div className="flex items-center justify-center h-96">Loading...</div>;
 
   return (
     <div className="space-y-6">
@@ -89,12 +273,16 @@ export default function Stocks() {
           <h1 className="text-3xl font-bold">Stock Research</h1>
           <p className="text-muted-foreground">Individual stock analysis and research reports</p>
         </div>
-        {(userRole === 'admin' || userRole === 'analyst') && (
-          <Button>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Stock
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          {(userRole === 'admin' || userRole === 'analyst') && (
+            <Button>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Stock
+            </Button>
+          )}
+
+  
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -121,21 +309,21 @@ export default function Stocks() {
             <div className="mb-8">
               <h3 className="text-lg font-semibold mb-4">Stock Research Documents</h3>
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {storagePDFs.map((pdf, index) => (
-                  <Card key={index} className="relative hover:shadow-md transition-shadow">
+                {storagePDFs.map((pdf) => (
+                  <Card key={pdf.fileName} className="relative hover:shadow-md transition-shadow">
                     <CardHeader>
                       <CardTitle className="text-base">{pdf.name}</CardTitle>
                       <CardDescription>
-                        Uploaded: {new Date(pdf.created_at || '').toLocaleDateString()}
+                        Uploaded: {pdf.updated_at ? new Date(pdf.updated_at).toLocaleDateString() : 'Unknown'}
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
                       <div className="flex gap-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
+                        <Button
+                          variant="outline"
+                          size="sm"
                           className="flex-1"
-                          onClick={() => handleViewPDF(pdf.fileName, pdf.name)}
+                          onClick={() => handleViewPDF(pdf.url)}
                         >
                           <Eye className="w-4 h-4 mr-1" />
                           View PDF
@@ -163,28 +351,18 @@ export default function Stocks() {
                       <div className="flex items-center gap-4 text-sm text-muted-foreground">
                         <span>Theme: {stock.themes?.name || 'N/A'}</span>
                         <span>Risk: {stock.risk_buckets?.name || 'N/A'}</span>
-                        <span>Updated: {new Date(stock.updated_at).toLocaleDateString()}</span>
+                        <span>Updated: {stock.updated_at ? new Date(stock.updated_at).toLocaleDateString() : 'N/A'}</span>
                       </div>
                     </div>
-                    
+
                     <div className="flex gap-2">
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" onClick={() => handleViewPDF(stock.pdf_url)}>
                         <Eye className="w-4 h-4 mr-1" />
                         View
                       </Button>
-                      {stock.pdf_url && (
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handleViewPDF(stock.pdf_url.split('/').pop() || '', stock.company_name)}
-                        >
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                      )}
+
                       {(userRole === 'admin' || userRole === 'analyst') && (
-                        <Button variant="outline" size="sm">
-                          Edit
-                        </Button>
+                        <Button variant="outline" size="sm">Edit</Button>
                       )}
                     </div>
                   </div>
@@ -200,13 +378,6 @@ export default function Stocks() {
           )}
         </CardContent>
       </Card>
-
-      <SecurePDFViewer 
-        isOpen={!!selectedPDF}
-        onClose={() => setSelectedPDF(null)}
-        fileName={selectedPDF?.fileName}
-        title={selectedPDF?.title || ''}
-      />
     </div>
   );
 }
