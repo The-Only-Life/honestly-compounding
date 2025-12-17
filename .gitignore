@@ -1,3 +1,15 @@
+node_modules
+dist
+dist-ssr
+*.local
+
+
+# Node / Bun / Vite
+node_modules/
+dist/
+.vite/
+.cache/
+
 # Logs
 logs
 *.log
@@ -7,18 +19,18 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
+# Build / test
+coverage/
+output/
+.cache/
+report/
 
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
+# IDEs / editors
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# OS files
 .DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+Thumbs.db

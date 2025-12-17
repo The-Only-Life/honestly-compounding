@@ -39,8 +39,37 @@ Welcome to the honestly-compounding repository! This is a monorepo containing bo
 Deployments are managed via [Railway](https://railway.app/) and are automatically triggered from the `development` branch.
 
 - **Configuration**: governed by `railway.toml`.
-- **Builder**: We use a `Dockerfile` to build the image (based on `oven/bun`).
+- **Builder**: We use a `Dockerfile` to build the image.
 - **Process**: The `start.sh` script handles the startup of both the web and server applications within the container.
+
+---
+
+## Local Docker deployment ⚙️
+
+You can run the app locally using Docker in two modes:
+
+### Production (build + serve via nginx) ✅
+
+Build the production image and run it (serves on port 3000):
+
+```bash
+docker compose build web
+docker compose up -d web
+# Open http://localhost:3000
+```
+
+### Development (uses Vite) 💡
+
+Run the dev container which mounts your workspace:
+
+```bash
+docker compose up --build dev
+# Open http://localhost:5173
+```
+
+Notes:
+- The `dev` service runs `bun install` and starts the Vite dev server; for faster iteration you can run `bun install` locally first.
+- This setup uses Bun for installs and scripts to match local development with containers.
 
 ## Contribution Guidelines
 
