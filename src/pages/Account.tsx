@@ -1,11 +1,13 @@
 import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { User, Mail, Shield, Clock, Settings, Key } from 'lucide-react';
 
 export default function Account() {
-  const { user, userRole } = useAuth();
+  const { user, userRole, signOut } = useAuth();
+  const navigate = useNavigate();
 
   const mockProfile = {
     fullName: "John Smith",
@@ -76,10 +78,23 @@ export default function Account() {
           <h1 className="text-3xl font-bold">Account Settings</h1>
           <p className="text-muted-foreground">Manage your profile and preferences</p>
         </div>
-        <Button>
-          <Settings className="mr-2 h-4 w-4" />
-          Edit Profile
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button>
+            <Settings className="mr-2 h-4 w-4" />
+            Edit Profile
+          </Button>
+
+          <Button
+            variant="outline"
+            className="text-red-600"
+            onClick={async () => {
+              await signOut();
+              navigate('/auth');
+            }}
+          >
+            Sign Out
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">

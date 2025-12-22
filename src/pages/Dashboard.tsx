@@ -1,9 +1,11 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, FileText, Briefcase, Shield, Building, TrendingUp } from 'lucide-react';
+import { Users, FileText, Briefcase, Shield, Building, TrendingUp, Settings } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
-  const { user, userRole } = useAuth();
+  const { user, userRole, signOut } = useAuth();
 
   const stats = [
     {
@@ -52,17 +54,34 @@ const Dashboard = () => {
 
   const visibleStats = stats.filter(stat => stat.visible);
 
+  const navigate = useNavigate()
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Dashboard</h1>
-        <p className="text-muted-foreground">
-          Welcome back, {user?.user_metadata?.full_name || user?.email}
-        </p>
-        <div className="mt-2">
-          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary">
-            {userRole?.charAt(0).toUpperCase()}{userRole?.slice(1)} Access
-          </span>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Dashboard</h1>
+          <p className="text-muted-foreground">
+            Welcome back, {user?.user_metadata?.full_name || user?.email}
+          </p>
+          <div className="mt-2">
+            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary">
+              {userRole?.charAt(0).toUpperCase()}{userRole?.slice(1)} Access
+            </span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            className="text-red-600"
+            onClick={async () => {
+              await signOut()
+              navigate('/auth')
+            }}
+          >
+            Log out
+          </Button>
         </div>
       </div>
 
