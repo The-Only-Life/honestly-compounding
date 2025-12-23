@@ -1,0 +1,23 @@
+# Copy this file to terraform.tfvars and fill in your values
+
+project_id = "honestly-insight-hub-test"
+region     = "asia-south1" # Mumbai, India
+app_name   = "honestly-insight-hub"
+
+# Environment variables for your application
+environment_variables = {
+  NODE_ENV = "production"
+  # Add your database URL, API keys, etc.
+  # DATABASE_URL = "your-database-url"
+  # SUPABASE_URL = "your-supabase-url"
+  # SUPABASE_KEY = "your-supabase-key"
+}
+
+# Resource configuration
+cpu_limit      = "2"
+memory_limit   = "2Gi"
+min_instances  = 0
+max_instances  = 10
+
+# Access control
+allow_public_access = true
