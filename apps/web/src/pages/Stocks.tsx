@@ -20,6 +20,7 @@ import { Building, Plus, Eye, FileText, ChevronLeft, ChevronRight } from "lucide
 import { useStocks } from "@/hooks/use-stocks-api";
 import { CreateStockDialog } from "@/components/CreateStockDialog";
 import { SidePanel } from "@/components/SidePanel";
+import { SecurePDFViewer } from "@/components/SecurePDFViewer";
 import ReactMarkdown from "react-markdown";
 import type { Stock } from "@/lib/api-client";
 
@@ -34,6 +35,10 @@ export default function Stocks() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(10);
   const [sidePanelView, setSidePanelView] = useState<SidePanelView>(null);
+  const [selectedPDF, setSelectedPDF] = useState<{
+    fileName: string;
+    title: string;
+  } | null>(null);
 
   const { data, isLoading, error } = useStocks(currentPage, pageSize);
 
@@ -65,12 +70,19 @@ export default function Stocks() {
 
   const handleViewPDF = (stock: Stock) => {
     if (stock.pdfUrl) {
-      window.open(stock.pdfUrl, '_blank');
+      setSelectedPDF({
+        fileName: stock.pdfUrl,
+        title: `${stock.symbol} - ${stock.companyName}`,
+      });
     }
   };
 
   const handleCloseSidePanel = () => {
     setSidePanelView(null);
+  };
+
+  const handleClosePDF = () => {
+    setSelectedPDF(null);
   };
 
   const canAddStocks = userRole === "admin";
@@ -294,6 +306,14 @@ export default function Stocks() {
           </div>
         )}
       </SidePanel>
+
+      {/* PDF Viewer */}
+      <SecurePDFViewer
+        isOpen={!!selectedPDF}
+        onClose={handleClosePDF}
+        fileName={selectedPDF?.fileName}
+        title={selectedPDF?.title || ""}
+      />
     </div>
   );
 }
