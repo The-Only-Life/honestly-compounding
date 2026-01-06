@@ -8,6 +8,13 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+        proxy: {
+      "/api": {
+        target: "http://server:4000", //change "locahost" to "server" when using docker compose
+        changeOrigin: true,
+        secure: false,
+      },
+    },
   },
   plugins: [
     react(),
