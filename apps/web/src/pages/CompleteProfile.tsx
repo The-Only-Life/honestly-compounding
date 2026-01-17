@@ -144,20 +144,28 @@ const CompleteProfile = () => {
 
       // Check if user's access is approved
       if (data.user?.accessApproved) {
-        toast({
-          title: "Profile completed!",
-          description: "Your account is ready. Redirecting to dashboard...",
-        });
-        // User is approved, redirect to dashboard
-        setTimeout(() => navigate('/dashboard'), 1500);
+        // User is approved, check if they need to acknowledge terms
+        if (!data.user?.hasAgreedToTerms) {
+          toast({
+            title: "Profile completed!",
+            description: "Please acknowledge our terms to continue.",
+          });
+          setTimeout(() => navigate('/acknowledgement'), 1500);
+        } else {
+          toast({
+            title: "Profile completed!",
+            description: "Your account is ready. Redirecting to dashboard...",
+          });
+          setTimeout(() => navigate('/dashboard'), 1500);
+        }
       } else {
         toast({
-        title: "Profile completed!",
-        description: "Your profile is set up. Please acknowledge the terms to continue.",
-      });
-      // User is not approved yet, redirect to acknowledgement page
-      setTimeout(() => navigate('/acknowledgement'), 1500);
-    }
+          title: "Profile completed!",
+          description: "Your profile is set up. Waiting for admin approval...",
+        });
+        // User is not approved yet, redirect to dashboard which will show awaiting approval
+        setTimeout(() => navigate('/dashboard'), 1500);
+      }
     } catch (error: any) {
       console.error('Profile completion failed:', error);
       toast({

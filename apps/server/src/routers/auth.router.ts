@@ -69,7 +69,7 @@ export default async function authRouter(
       // Fetch user metadata from user_metadata table
       const { data: metadata, error: metadataError } = await supabase
         .from("user_metadata")
-        .select("role, access_approved, profile_completed")
+        .select("role, access_approved, profile_completed, has_agreed_to_terms")
         .eq("user_id", data.user.id)
         .single();
 
@@ -85,6 +85,7 @@ export default async function authRouter(
           role: metadata?.role || null,
           accessApproved: metadata?.access_approved || false,
           profileCompleted: metadata?.profile_completed || false,
+          hasAgreedToTerms: metadata?.has_agreed_to_terms || false,
           emailVerified: !!data.user.email_confirmed_at,
           createdAt: data.user.created_at,
         },
@@ -131,7 +132,7 @@ export default async function authRouter(
       // Fetch user metadata from user_metadata table
       const { data: metadata, error: metadataError } = await supabase
         .from("user_metadata")
-        .select("role, access_approved, profile_completed")
+        .select("role, access_approved, profile_completed, has_agreed_to_terms")
         .eq("user_id", data.user.id)
         .single();
 
@@ -147,6 +148,7 @@ export default async function authRouter(
           role: metadata?.role || null,
           accessApproved: metadata?.access_approved || false,
           profileCompleted: metadata?.profile_completed || false,
+          hasAgreedToTerms: metadata?.has_agreed_to_terms || false,
           emailVerified: !!data.user.email_confirmed_at,
           createdAt: data.user.created_at,
         },
@@ -246,7 +248,7 @@ export default async function authRouter(
       // Fetch user metadata from user_metadata table
       const { data: metadata, error: metadataError } = await supabase
         .from("user_metadata")
-        .select("role, access_approved, profile_completed")
+        .select("role, access_approved, profile_completed, has_agreed_to_terms")
         .eq("user_id", user.id)
         .single();
 
@@ -262,6 +264,7 @@ export default async function authRouter(
           role: metadata?.role || null,
           accessApproved: metadata?.access_approved || false,
           profileCompleted: metadata?.profile_completed || false,
+          hasAgreedToTerms: metadata?.has_agreed_to_terms || false,
           emailVerified: !!user.email_confirmed_at,
           createdAt: user.created_at,
         },
@@ -708,7 +711,7 @@ export default async function authRouter(
         // Fetch user metadata from user_metadata table
         const { data: metadata, error: metadataError } = await supabase
           .from("user_metadata")
-          .select("role, access_approved, profile_completed")
+          .select("role, access_approved, profile_completed, has_agreed_to_terms")
           .eq("user_id", sessionData.user.id)
           .single();
 
@@ -726,6 +729,7 @@ export default async function authRouter(
             role: metadata?.role || null,
             accessApproved: metadata?.access_approved || false,
             profileCompleted: metadata?.profile_completed || false,
+            hasAgreedToTerms: metadata?.has_agreed_to_terms || false,
             emailVerified: !!sessionData.user.email_confirmed_at,
             createdAt: sessionData.user.created_at,
           },
@@ -908,7 +912,7 @@ export default async function authRouter(
         // Fetch user metadata from user_metadata table
         const { data: metadata, error: metadataError } = await supabase
           .from("user_metadata")
-          .select("role, access_approved, profile_completed")
+          .select("role, access_approved, profile_completed, has_agreed_to_terms")
           .eq("user_id", data.user.id)
           .single();
 
@@ -928,6 +932,7 @@ export default async function authRouter(
             role: metadata?.role || null,
             accessApproved: metadata?.access_approved || false,
             profileCompleted: metadata?.profile_completed || false,
+            hasAgreedToTerms: metadata?.has_agreed_to_terms || false,
             emailVerified: !!data.user.email_confirmed_at,
             createdAt: data.user.created_at,
           },
