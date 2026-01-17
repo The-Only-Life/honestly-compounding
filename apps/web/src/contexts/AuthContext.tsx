@@ -11,6 +11,7 @@ interface AuthContextType {
   signIn: (email: string, password: string, captchaToken?: string) => Promise<void>;
   signOut: () => Promise<void>;
   signUp: (email: string, password: string, fullName: string) => Promise<void>;
+  refetchUser: () => Promise<any>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -24,7 +25,7 @@ export const useAuth = () => {
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { data: currentUserData, isLoading } = useCurrentUser();
+  const { data: currentUserData, isLoading, refetch } = useCurrentUser();
   const loginMutation = useLogin();
   const logoutMutation = useLogout();
 
@@ -56,8 +57,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       signIn,
       signOut,
       signUp,
+      refetchUser: refetch,
     }),
-    [user, isLoading, isAuthenticated, userRole, signIn, signOut, signUp]
+    [user, isLoading, isAuthenticated, userRole, signIn, signOut, signUp, refetch]
   );
 
   // Show loading screen while checking authentication

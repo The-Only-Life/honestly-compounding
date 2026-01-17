@@ -144,12 +144,20 @@ const CompleteProfile = () => {
 
       // Check if user's access is approved
       if (data.user?.accessApproved) {
-        toast({
-          title: "Profile completed!",
-          description: "Your account is ready. Redirecting to dashboard...",
-        });
-        // User is approved, redirect to dashboard
-        setTimeout(() => navigate('/dashboard'), 1500);
+        // User is approved, check if they need to acknowledge terms
+        if (!data.user?.hasAgreedToTerms) {
+          toast({
+            title: "Profile completed!",
+            description: "Please acknowledge our terms to continue.",
+          });
+          setTimeout(() => navigate('/acknowledgement'), 1500);
+        } else {
+          toast({
+            title: "Profile completed!",
+            description: "Your account is ready. Redirecting to dashboard...",
+          });
+          setTimeout(() => navigate('/dashboard'), 1500);
+        }
       } else {
         toast({
           title: "Profile completed!",

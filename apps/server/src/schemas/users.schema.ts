@@ -10,6 +10,7 @@ export const CreateUserSchema = Type.Object({
   ]),
 });
 
+
 export const UpdateUserRoleSchema = Type.Object({
   role: Type.Union([
     Type.Literal("admin"),
@@ -17,3 +18,5 @@ export const UpdateUserRoleSchema = Type.Object({
     Type.Literal("subscriber"),
   ]),
 });
+
+export const AcknowledgeTermsSchema = Type.Object({});
