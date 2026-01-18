@@ -1,6 +1,7 @@
 import { Resend } from "resend";
 import { readFileSync } from "fs";
-import { join } from "path";
+import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 import Config from "../server.config";
 
 const resend = Config.RESEND_API_KEY ? new Resend(Config.RESEND_API_KEY) : null;
@@ -10,7 +11,9 @@ export interface SendInviteEmailParams {
   inviteUrl: string;
 }
 
-// Load email templates
+// Load email templates - Use import.meta.url for better compatibility with Bun
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 const TEMPLATES_DIR = join(__dirname, "../templates/emails");
 
 function loadTemplate(templateName: string): string {
