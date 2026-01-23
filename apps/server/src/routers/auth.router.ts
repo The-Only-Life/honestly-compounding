@@ -28,17 +28,22 @@ export default async function authRouter(
   const { supabase } = options;
   if (!supabase) throw new Error("Supabase client not initialized");
 
+    const emailRegex = /^[a-zA-Z0-9._%-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   // Login with email/password
   server.post("/login", async (req, res) => {
     try {
       const { email, password, captchaToken } = req.body as Static<typeof LoginSchema> & { captchaToken?: string };
-
       // Verify CAPTCHA if provided
       if (captchaToken) {
         const captchaValid = await verifyRecaptcha(captchaToken, req.ip);
         if (!captchaValid) {
           return res.status(400).send({ error: "Invalid CAPTCHA verification" });
         }
+      }
+
+      if (!emailRegex.test(email)) {
+        console.log("Invalid email format:", email);
+        return res.status(400).send({ error: "Invalid email format" });
       }
 
       // Authenticate with Supabase
