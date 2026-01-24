@@ -16,7 +16,6 @@ import Users from "./pages/Users";
 import Themes from "./pages/Themes";
 import Buckets from "./pages/Buckets";
 import Stocks from "./pages/Stocks";
-import ContentManagement from "./pages/ContentManagement";
 import Account from "./pages/Account";
 import Acknowledgement from "./pages/Acknowledgement";
 import NotFound from "./pages/NotFound";
@@ -110,16 +109,6 @@ const App = () => (
                   <ProtectedRoute requiredRoles={["admin", "sponsor", "subscriber"]}>
                     <DashboardLayout>
                       <Stocks />
-                    </DashboardLayout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/dashboard/content-management"
-                element={
-                  <ProtectedRoute requiredRoles={["admin", "sponsor", "subscriber"]}>
-                    <DashboardLayout>
-                      <ContentManagement />
                     </DashboardLayout>
                   </ProtectedRoute>
                 }
