@@ -6,8 +6,7 @@ import {
   LogOut,
   Shield,
   Building,
-  User,
-  FolderOpen
+  User
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -15,7 +14,6 @@ import {
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -37,7 +35,6 @@ const menuItems: MenuItem[] = [
   { title: "Themes", url: "/dashboard/themes", icon: Briefcase, allowedRoles: ['admin', 'sponsor', 'subscriber'] },
   { title: "Buckets", url: "/dashboard/buckets", icon: Shield, allowedRoles: ['admin', 'sponsor', 'subscriber'] },
   { title: "Stocks", url: "/dashboard/stocks", icon: Building, allowedRoles: ['admin', 'sponsor', 'subscriber'] },
-  { title: "Content Management", url: "/dashboard/content-management", icon: FolderOpen, allowedRoles: ['admin', 'sponsor', 'subscriber'] },
   { title: "Account", url: "/dashboard/account", icon: User, allowedRoles: ['admin', 'sponsor', 'subscriber'] },
 ];
 

@@ -16,8 +16,8 @@ import Users from "./pages/Users";
 import Themes from "./pages/Themes";
 import Buckets from "./pages/Buckets";
 import Stocks from "./pages/Stocks";
-import ContentManagement from "./pages/ContentManagement";
 import Account from "./pages/Account";
+import Acknowledgement from "./pages/Acknowledgement";
 import NotFound from "./pages/NotFound";
 import { PostHogProvider } from "posthog-js/react";
 import type { ConfigDefaults } from "posthog-js";
@@ -56,7 +56,15 @@ const App = () => (
               <Route path="/auth/confirm" element={<AuthConfirm />} />
               <Route path="/complete-profile" element={<CompleteProfile />} />
               <Route
-                path="/dashboard"
+              path="/acknowledgement"
+              element={
+                <ProtectedRoute>
+                  <Acknowledgement />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard"
                 element={
                   <ProtectedRoute requiredRoles={["admin", "sponsor", "subscriber"]}>
                     <DashboardLayout>
@@ -101,16 +109,6 @@ const App = () => (
                   <ProtectedRoute requiredRoles={["admin", "sponsor", "subscriber"]}>
                     <DashboardLayout>
                       <Stocks />
-                    </DashboardLayout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/dashboard/content-management"
-                element={
-                  <ProtectedRoute requiredRoles={["admin", "sponsor", "subscriber"]}>
-                    <DashboardLayout>
-                      <ContentManagement />
                     </DashboardLayout>
                   </ProtectedRoute>
                 }

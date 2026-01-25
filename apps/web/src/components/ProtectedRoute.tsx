@@ -31,6 +31,11 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <AwaitingApproval />;
   }
 
+  // Check if user hasn't agreed to terms yet (except when already on acknowledgement page)
+  if (!user.hasAgreedToTerms && location.pathname !== '/acknowledgement') {
+    return <Navigate to="/acknowledgement" replace />;
+  }
+
   // Check if user has wrong role for this route
   if (requiredRoles.length > 0 && !requiredRoles.includes(userRole)) {
     return <AccessDenied />;

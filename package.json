@@ -7,14 +7,14 @@
     "apps/*"
   ],
   "scripts": {
-    "dev:web": "bun --cwd apps/web run dev",
-    "dev:server": "bun --cwd apps/server run dev",
+    "dev:web": "cd apps/web && bun run dev",
+    "dev:server": "cd apps/server && bun run dev",
     "dev": "concurrently \"bun run dev:web\" \"bun run dev:server\"",
-    "build:web": "bun --cwd apps/web run build",
-    "build:server": "bun --cwd apps/server run build",
-    "build": "bun run build:web && bun run build:server",
-    "start": "concurrently \"bun --cwd apps/web run preview\" \"bun --cwd apps/server run start\"",
-    "lint": "bun --cwd apps/web run lint"
+    "build:web": "cd apps/web && bun run build",
+    "build:server": "cd apps/server && bun run build",
+    "build": "cd apps/web && bun run build && cd apps/server && bun run build",
+    "start": "concurrently \"cd apps/web && bun run preview\" \"cd apps/server && bun run start\"",
+    "lint": "cd apps/web && bun run lint"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"

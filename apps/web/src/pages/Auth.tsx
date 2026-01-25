@@ -11,6 +11,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 import { toast } from 'sonner';
 import { Eye, EyeOff } from 'lucide-react';
+
+// Enable reCAPTCHA only in production where keys are configured
+const RECAPTCHA_ENABLED =
+  import.meta.env.MODE === 'production' && !!import.meta.env.VITE_RECAPTCHA_SITE_KEY;
 // Phone OTP login hidden for POC
 // import { PhoneLoginForm } from '@/components/auth/PhoneLoginForm';
 
@@ -38,14 +42,18 @@ const Auth = () => {
       const email = formData.get('email') as string;
       const password = formData.get('password') as string;
 
-      // Execute reCAPTCHA v3
-      if (!executeRecaptcha) {
-        toast.error('reCAPTCHA not loaded. Please refresh the page.');
-        setLoading(false);
-        return;
-      }
+      let captchaToken: string | undefined;
 
-      const captchaToken = await executeRecaptcha('login');
+      if (RECAPTCHA_ENABLED) {
+        // Execute reCAPTCHA v3 only in production
+        if (!executeRecaptcha) {
+          toast.error('reCAPTCHA not loaded. Please refresh the page.');
+          setLoading(false);
+          return;
+        }
+
+        captchaToken = await executeRecaptcha('login');
+      }
 
       await signIn(email, password, captchaToken);
       // Navigation will happen automatically due to user state change
@@ -62,13 +70,17 @@ const Auth = () => {
     e.preventDefault();
 
     try {
-      // Execute reCAPTCHA v3
-      if (!executeRecaptcha) {
-        toast.error('reCAPTCHA not loaded. Please refresh the page.');
-        return;
-      }
+      let captchaToken: string | undefined;
 
-      const captchaToken = await executeRecaptcha('join_waitlist');
+      if (RECAPTCHA_ENABLED) {
+        // Execute reCAPTCHA v3 only in production
+        if (!executeRecaptcha) {
+          toast.error('reCAPTCHA not loaded. Please refresh the page.');
+          return;
+        }
+
+        captchaToken = await executeRecaptcha('join_waitlist');
+      }
 
       // Use the state value instead of FormData since this is a controlled input
       await joinWaitlistMutation.mutateAsync({ email: waitlistEmail, captchaToken });

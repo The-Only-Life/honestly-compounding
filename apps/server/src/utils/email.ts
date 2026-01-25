@@ -1,6 +1,7 @@
 import { Resend } from "resend";
 import { readFileSync } from "fs";
-import { join } from "path";
+import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 import Config from "../server.config";
 
 const resend = Config.RESEND_API_KEY ? new Resend(Config.RESEND_API_KEY) : null;
@@ -10,7 +11,9 @@ export interface SendInviteEmailParams {
   inviteUrl: string;
 }
 
-// Load email templates
+// Load email templates - Use import.meta.url for better compatibility with Bun
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 const TEMPLATES_DIR = join(__dirname, "../templates/emails");
 
 function loadTemplate(templateName: string): string {
@@ -104,6 +107,52 @@ export async function sendWaitlistApprovalEmail({
     return { success: true, data };
   } catch (error: any) {
     console.error("Error sending waitlist approval email via Resend:", error);
+    return { success: false, error: error.message };
+  }
+}
+
+export interface SendAccessApprovalEmailParams {
+  to: string;
+  dashboardUrl: string;
+}
+
+export async function sendAccessApprovalEmail({
+  to,
+  dashboardUrl,
+}: SendAccessApprovalEmailParams) {
+  if (!resend) {
+    console.warn("Resend API key not configured. Skipping email send.");
+    return { success: false, error: "Resend not configured" };
+  }
+
+  try {
+    const template = loadTemplate("access-approved");
+    const html = renderTemplate(template, {
+      DASHBOARD_URL: dashboardUrl,
+      USER_EMAIL: to,
+      CURRENT_YEAR: new Date().getFullYear().toString(),
+      LOGO_URL: `${Config.FRONTEND_URL}/Logo.png`,
+    });
+
+    const { data, error } = await resend.emails.send({
+      from: Config.EMAIL_FROM,
+      to: [to],
+      subject: "🎉 Access Granted - Welcome to Honestly Compounding",
+      html,
+    });
+
+    if (error) {
+      console.error(
+        "Failed to send access approval email via Resend:",
+        error
+      );
+      return { success: false, error: error.message };
+    }
+
+    console.log("Access approval email sent successfully via Resend:", data);
+    return { success: true, data };
+  } catch (error: any) {
+    console.error("Error sending access approval email via Resend:", error);
     return { success: false, error: error.message };
   }
 }

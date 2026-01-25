@@ -87,4 +87,5 @@ server.get("/health", async (_req, reply) => {
 });
 
 const port = Number(process.env.INTERNAL_PORT) || 3001;
-server.listen({ port, host: "0.0.0.0" });
+await server.listen({ port, host: "0.0.0.0" });
+console.log(`Server listening on http://0.0.0.0:${port}`);
