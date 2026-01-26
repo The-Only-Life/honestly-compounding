@@ -408,6 +408,13 @@ class ApiClient {
     });
   }
 
+  async resendInvitation(userId: string): Promise<{ message: string; user: { id: string; email: string } }> {
+    return this.request<{ message: string; user: { id: string; email: string } }>("/api/auth/resend-invite", {
+      method: "POST",
+      body: JSON.stringify({ userId }),
+    });
+  }
+
   async generateVerificationLink(userId: string): Promise<{ message: string; verificationUrl: string; user: { id: string; email: string; emailVerified: boolean } }> {
     return this.request<{ message: string; verificationUrl: string; user: { id: string; email: string; emailVerified: boolean } }>("/api/auth/generate-verification-link", {
       method: "POST",

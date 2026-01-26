@@ -146,6 +146,31 @@ export const useInviteUsersBulk = () => {
   });
 };
 
+// Hook to resend invitation email to an existing user
+export const useResendInvitation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (userId: string) => apiClient.resendInvitation(userId),
+    onSuccess: (response) => {
+      // Invalidate users list to refetch
+      queryClient.invalidateQueries({ queryKey: usersKeys.list() });
+
+      toast({
+        title: 'Success',
+        description: response.message,
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Failed to resend invitation',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+};
+
 // Hook to generate verification link for a user
 export const useGenerateVerificationLink = () => {
   return useMutation({

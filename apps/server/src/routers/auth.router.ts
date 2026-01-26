@@ -830,6 +830,80 @@ export default async function authRouter(
     }
   );
 
+  // Resend invitation email to an existing user (admin/sponsor only)
+  server.post(
+    "/resend-invite",
+    {
+      preHandler: verifyAdminOrSponsor,
+    },
+    async (req, res) => {
+      try {
+        const { userId } = req.body as { userId: string };
+
+        if (!userId) {
+          return res.status(400).send({ error: "User ID is required" });
+        }
+
+        // Get user details
+        const { data: userData, error: userError } = await supabase.auth.admin.getUserById(userId);
+
+        if (userError || !userData?.user) {
+          return res.status(404).send({ error: "User not found" });
+        }
+
+        const user = userData.user;
+
+        // Check if user has email
+        if (!user.email) {
+          return res.status(400).send({
+            error: "User does not have an email address. Cannot resend invitation."
+          });
+        }
+
+        // Generate new invite token
+        const { data: inviteData, error: inviteTokenError } =
+          await supabase.auth.admin.generateLink({
+            type: "invite",
+            email: user.email,
+          });
+
+        if (inviteTokenError || !inviteData) {
+          console.error("Failed to generate invite token:", inviteTokenError);
+          return res.status(500).send({
+            error: "Failed to generate invitation link",
+          });
+        }
+
+        // Send invite email via Resend
+        const inviteUrl = `${Config.FRONTEND_URL}/auth/confirm?token_hash=${inviteData.properties.hashed_token}&type=invite&next=/complete-profile`;
+        const emailResult = await sendInviteEmail({
+          to: user.email,
+          inviteUrl,
+        });
+
+        if (!emailResult.success) {
+          console.error("Failed to send invitation email:", emailResult.error);
+          return res.status(500).send({
+            error: `Failed to send invitation email: ${emailResult.error}`,
+          });
+        }
+
+        return res.send({
+          message: "Invitation email resent successfully",
+          user: {
+            id: user.id,
+            email: user.email,
+          },
+        });
+      } catch (error: any) {
+        console.error("Resend invitation error:", error);
+        return res.status(500).send({
+          error: "Internal server error: " + error.message,
+        });
+      }
+    }
+  );
+
   // Send OTP to phone number
   server.post(
     "/phone/send-otp",
@@ -892,7 +966,7 @@ export default async function authRouter(
           });
         }
 
-        if (!data.session) {
+        if (!data.session || !data.user) {
           return res.status(401).send({
             error: "Failed to create session",
           });
