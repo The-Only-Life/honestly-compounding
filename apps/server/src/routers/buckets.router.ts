@@ -248,4 +248,80 @@ export default async function bucketsRouter(
         return res.status(500).send({ error: "Internal server error" });
       }
     });
+
+  // PUT /api/buckets/:id - Update a bucket (admin only)
+  server.put("/:id", { preHandler: verifyAdmin }, async (req, res) => {
+    try {
+      const { id } = req.params as any;
+      const { name, description, riskMeasure } = req.body as any;
+
+      // Check if bucket exists
+      const { data: existingBucket, error: fetchError } = await supabase
+        .from("buckets")
+        .select("id")
+        .eq("id", id)
+        .single();
+
+      if (fetchError || !existingBucket) {
+        return res.status(404).send({ error: "Bucket not found" });
+      }
+
+      // Build update object with only provided fields
+      const updateData: any = {
+        updated_at: new Date().toISOString(),
+      };
+
+      if (name !== undefined) updateData.name = name;
+      if (description !== undefined) updateData.description = description;
+      if (riskMeasure !== undefined) updateData.risk_measure = riskMeasure;
+
+      // Update the bucket
+      const { data: bucket, error } = await supabase
+        .from("buckets")
+        .update(updateData)
+        .eq("id", id)
+        .select(
+          `
+          id,
+          name,
+          description,
+          risk_measure,
+          created_by,
+          created_at,
+          updated_at,
+          creator:profiles!buckets_creator_fkey(full_name)
+        `
+        )
+        .single();
+
+      if (error) {
+        if (error.code === "23505") {
+          return res
+            .status(409)
+            .send({ error: "A bucket with this name already exists" });
+        }
+        req.log.error(error);
+        return res.status(500).send({ error: "Failed to update bucket" });
+      }
+
+      // Format response
+      const formattedBucket = {
+        id: bucket.id,
+        name: bucket.name,
+        description: bucket.description,
+        riskMeasure: bucket.risk_measure,
+        createdBy: bucket.created_by,
+        createdAt: bucket.created_at,
+        updatedAt: bucket.updated_at,
+        creator: bucket.creator
+          ? { fullName: (bucket.creator as any).full_name }
+          : undefined,
+      };
+
+      return res.send(formattedBucket);
+    } catch (err) {
+      req.log.error(err);
+      return res.status(500).send({ error: "Internal server error" });
+    }
+  });
 }

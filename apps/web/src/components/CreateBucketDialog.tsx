@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -9,22 +9,41 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useCreateBucket } from "@/hooks/use-buckets-api";
+import { useCreateBucket, useUpdateBucket } from "@/hooks/use-buckets-api";
 import { RichTextEditor } from "@/components/RichTextEditor";
+import type { Bucket } from "@/lib/api-client";
 
 interface CreateBucketDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  bucket?: Bucket | null;
 }
 
 export function CreateBucketDialog({
   open,
   onOpenChange,
+  bucket,
 }: CreateBucketDialogProps) {
   const [name, setName] = useState("");
   const [riskMeasure, setRiskMeasure] = useState("");
   const [description, setDescription] = useState("");
   const createBucket = useCreateBucket();
+  const updateBucket = useUpdateBucket();
+
+  const isEditMode = !!bucket;
+
+  // Populate form when editing
+  useEffect(() => {
+    if (bucket) {
+      setName(bucket.name);
+      setRiskMeasure(bucket.riskMeasure);
+      setDescription(bucket.description);
+    } else {
+      setName("");
+      setRiskMeasure("");
+      setDescription("");
+    }
+  }, [bucket]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,11 +52,22 @@ export function CreateBucketDialog({
       return;
     }
 
-    await createBucket.mutateAsync({
-      name: name.trim(),
-      description: description.trim(),
-      riskMeasure: riskMeasure.trim(),
-    });
+    if (isEditMode && bucket) {
+      await updateBucket.mutateAsync({
+        id: bucket.id,
+        data: {
+          name: name.trim(),
+          description: description.trim(),
+          riskMeasure: riskMeasure.trim(),
+        },
+      });
+    } else {
+      await createBucket.mutateAsync({
+        name: name.trim(),
+        description: description.trim(),
+        riskMeasure: riskMeasure.trim(),
+      });
+    }
 
     // Reset form
     setName("");
@@ -50,9 +80,13 @@ export function CreateBucketDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Create New Bucket</DialogTitle>
+          <DialogTitle>
+            {isEditMode ? "Edit Bucket" : "Create New Bucket"}
+          </DialogTitle>
           <DialogDescription>
-            Add a new bucket with markdown description
+            {isEditMode
+              ? "Update the bucket details"
+              : "Add a new bucket with markdown description"}
           </DialogDescription>
         </DialogHeader>
 
@@ -97,8 +131,17 @@ export function CreateBucketDialog({
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={createBucket.isPending}>
-              {createBucket.isPending ? "Creating..." : "Create Bucket"}
+            <Button
+              type="submit"
+              disabled={createBucket.isPending || updateBucket.isPending}
+            >
+              {isEditMode
+                ? updateBucket.isPending
+                  ? "Updating..."
+                  : "Update Bucket"
+                : createBucket.isPending
+                ? "Creating..."
+                : "Create Bucket"}
             </Button>
           </div>
         </form>

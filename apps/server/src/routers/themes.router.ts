@@ -240,4 +240,77 @@ export default async function themesRouter(
       return res.status(500).send({ error: "Internal server error" });
     }
   });
+
+  // PUT /api/themes/:id - Update a theme (admin only)
+  server.put("/:id", { preHandler: verifyAdmin }, async (req, res) => {
+    try {
+      const { id } = req.params as any;
+      const { name, description } = req.body as any;
+
+      // Check if theme exists
+      const { data: existingTheme, error: fetchError } = await supabase
+        .from("themes")
+        .select("id")
+        .eq("id", id)
+        .single();
+
+      if (fetchError || !existingTheme) {
+        return res.status(404).send({ error: "Theme not found" });
+      }
+
+      // Build update object with only provided fields
+      const updateData: any = {
+        updated_at: new Date().toISOString(),
+      };
+
+      if (name !== undefined) updateData.name = name;
+      if (description !== undefined) updateData.description = description;
+
+      // Update the theme
+      const { data: theme, error } = await supabase
+        .from("themes")
+        .update(updateData)
+        .eq("id", id)
+        .select(
+          `
+          id,
+          name,
+          description,
+          created_by,
+          created_at,
+          updated_at,
+          creator:profiles!themes_creator_fkey(full_name)
+        `
+        )
+        .single();
+
+      if (error) {
+        if (error.code === "23505") {
+          return res
+            .status(409)
+            .send({ error: "A theme with this name already exists" });
+        }
+        req.log.error(error);
+        return res.status(500).send({ error: "Failed to update theme" });
+      }
+
+      // Format response
+      const formattedTheme = {
+        id: theme.id,
+        name: theme.name,
+        description: theme.description,
+        createdBy: theme.created_by,
+        createdAt: theme.created_at,
+        updatedAt: theme.updated_at,
+        creator: theme.creator
+          ? { fullName: (theme.creator as any).full_name }
+          : undefined,
+      };
+
+      return res.send(formattedTheme);
+    } catch (err) {
+      req.log.error(err);
+      return res.status(500).send({ error: "Internal server error" });
+    }
+  });
 }

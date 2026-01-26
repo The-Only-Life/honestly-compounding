@@ -9,16 +9,18 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Shield, Plus, Eye } from "lucide-react";
+import { Shield, Plus, Eye, Pencil } from "lucide-react";
 import { useBuckets } from "@/hooks/use-buckets-api";
 import { CreateBucketDialog } from "@/components/CreateBucketDialog";
 import { SidePanel } from "@/components/SidePanel";
 import ReactMarkdown from "react-markdown";
+import type { Bucket } from "@/lib/api-client";
 
 export default function Buckets() {
   const { userRole } = useAuth();
   const { data, isLoading } = useBuckets();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [editingBucket, setEditingBucket] = useState<Bucket | null>(null);
   const [selectedBucket, setSelectedBucket] = useState<{
     id: string;
     name: string;
@@ -35,6 +37,18 @@ export default function Buckets() {
       description: bucket.description || "No description available.",
       riskMeasure: bucket.riskMeasure,
     });
+  };
+
+  const handleEditBucket = (bucket: Bucket) => {
+    setEditingBucket(bucket);
+    setCreateDialogOpen(true);
+  };
+
+  const handleDialogClose = (open: boolean) => {
+    setCreateDialogOpen(open);
+    if (!open) {
+      setEditingBucket(null);
+    }
   };
 
   if (isLoading) {
@@ -112,14 +126,26 @@ export default function Buckets() {
                         Created by{" "}
                         {bucket.creator?.fullName || "Unknown"}
                       </span>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleViewBucket(bucket)}
-                      >
-                        <Eye className="mr-2 h-4 w-4" />
-                        View
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleViewBucket(bucket)}
+                        >
+                          <Eye className="mr-2 h-4 w-4" />
+                          View
+                        </Button>
+                        {isAdmin && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEditBucket(bucket)}
+                          >
+                            <Pencil className="mr-2 h-4 w-4" />
+                            Edit
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -145,10 +171,11 @@ export default function Buckets() {
         )}
       </SidePanel>
 
-      {/* Create Dialog */}
+      {/* Create/Edit Dialog */}
       <CreateBucketDialog
         open={createDialogOpen}
-        onOpenChange={setCreateDialogOpen}
+        onOpenChange={handleDialogClose}
+        bucket={editingBucket}
       />
     </div>
   );

@@ -8,16 +8,18 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Briefcase, Plus, Eye } from "lucide-react";
+import { Briefcase, Plus, Eye, Pencil } from "lucide-react";
 import { useThemes } from "@/hooks/use-themes-api";
 import { CreateThemeDialog } from "@/components/CreateThemeDialog";
 import { SidePanel } from "@/components/SidePanel";
 import ReactMarkdown from "react-markdown";
+import type { Theme } from "@/lib/api-client";
 
 export default function Themes() {
   const { userRole } = useAuth();
   const { data, isLoading } = useThemes();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [editingTheme, setEditingTheme] = useState<Theme | null>(null);
   const [selectedTheme, setSelectedTheme] = useState<{
     id: string;
     name: string;
@@ -32,6 +34,18 @@ export default function Themes() {
       name: theme.name,
       description: theme.description || "No description available.",
     });
+  };
+
+  const handleEditTheme = (theme: Theme) => {
+    setEditingTheme(theme);
+    setCreateDialogOpen(true);
+  };
+
+  const handleDialogClose = (open: boolean) => {
+    setCreateDialogOpen(open);
+    if (!open) {
+      setEditingTheme(null);
+    }
   };
 
   if (isLoading) {
@@ -106,14 +120,26 @@ export default function Themes() {
                         Created by{" "}
                         {theme.creator?.fullName || "Unknown"}
                       </span>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleViewTheme(theme)}
-                      >
-                        <Eye className="mr-2 h-4 w-4" />
-                        View
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleViewTheme(theme)}
+                        >
+                          <Eye className="mr-2 h-4 w-4" />
+                          View
+                        </Button>
+                        {isAdmin && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEditTheme(theme)}
+                          >
+                            <Pencil className="mr-2 h-4 w-4" />
+                            Edit
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -136,10 +162,11 @@ export default function Themes() {
         )}
       </SidePanel>
 
-      {/* Create Dialog */}
+      {/* Create/Edit Dialog */}
       <CreateThemeDialog
         open={createDialogOpen}
-        onOpenChange={setCreateDialogOpen}
+        onOpenChange={handleDialogClose}
+        theme={editingTheme}
       />
     </div>
   );
