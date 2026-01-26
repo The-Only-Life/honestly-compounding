@@ -14,9 +14,15 @@
     "build:server": "cd apps/server && bun run build",
     "build": "cd apps/web && bun run build && cd apps/server && bun run build",
     "start": "concurrently \"cd apps/web && bun run preview\" \"cd apps/server && bun run start\"",
-    "lint": "cd apps/web && bun run lint"
+    "lint": "cd apps/web && bun run lint",
+    "test": "bunx playwright test",
+    "test:ui": "bunx playwright test --ui",
+    "test:headed": "bunx playwright test --headed",
+    "test:debug": "bunx playwright test --debug",
+    "test:report": "bunx playwright show-report"
   },
   "devDependencies": {
+    "@playwright/test": "^1.58.0",
     "concurrently": "^8.2.2"
   },
   "dependencies": {
