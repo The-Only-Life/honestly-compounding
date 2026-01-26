@@ -59,6 +59,27 @@ export function RichTextEditor({
         class:
           "prose prose-slate max-w-none focus:outline-none min-h-[300px] px-4 py-3",
       },
+      handlePaste: (view, event) => {
+        const clipboardData = event.clipboardData;
+        if (!clipboardData) return false;
+
+        // Get plain text from clipboard
+        const text = clipboardData.getData("text/plain");
+
+        if (text) {
+          // Prevent default paste behavior
+          event.preventDefault();
+
+          // Insert the plain text
+          view.dispatch(
+            view.state.tr.insertText(text, view.state.selection.from, view.state.selection.to)
+          );
+
+          return true;
+        }
+
+        return false;
+      },
     },
   });
 
