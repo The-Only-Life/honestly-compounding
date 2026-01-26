@@ -27,7 +27,7 @@ await server.register(import("@fastify/cookie"), {
 // Register multipart plugin for file uploads
 await server.register(import("@fastify/multipart"), {
   limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB limit
+    fileSize: 50 * 1024 * 1024, // 50MB limit
   },
 });
 
