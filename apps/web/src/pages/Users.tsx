@@ -160,11 +160,15 @@ export default function Users() {
       return;
     }
 
-    await inviteUserMutation.mutateAsync({
-      email,
-      phone,
+    // Build request object with only defined fields to avoid validation errors
+    const request: { email?: string; phone?: string; role: UserRole } = {
       role: (role as UserRole) || 'subscriber',
-    });
+    };
+
+    if (email) request.email = email;
+    if (phone) request.phone = phone;
+
+    await inviteUserMutation.mutateAsync(request);
   };
 
   if (isLoading) {
