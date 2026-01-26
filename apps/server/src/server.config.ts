@@ -23,7 +23,7 @@ const cfg: Record<string, Omit<TConfig, "PROTOCOL">> = {
     COOKIE_SECRET:
       process.env.COOKIE_SECRET || "dev-secret-change-in-production",
     RESEND_API_KEY: process.env.RESEND_API_KEY,
-    EMAIL_FROM: process.env.EMAIL_FROM || "Honestly Compounding <noreply@honestlycompunding.com>",
+    EMAIL_FROM: process.env.EMAIL_FROM || "Honestly Compounding <noreply@honestlycompounding.com>",
     IS_PRODUCTION: false,
   },
   [Environment.PRODUCTION]: {
@@ -32,7 +32,7 @@ const cfg: Record<string, Omit<TConfig, "PROTOCOL">> = {
     SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY!,
     COOKIE_SECRET: process.env.COOKIE_SECRET!,
     RESEND_API_KEY: process.env.RESEND_API_KEY,
-    EMAIL_FROM: process.env.EMAIL_FROM || "Honestly Compounding <noreply@honestlycompunding.com>",
+    EMAIL_FROM: process.env.EMAIL_FROM || "Honestly Compounding <noreply@honestlycompounding.com>",
     IS_PRODUCTION: true,
   },
 };
