@@ -12,7 +12,6 @@ import { Briefcase, Plus, Eye, Pencil } from "lucide-react";
 import { useThemes } from "@/hooks/use-themes-api";
 import { CreateThemeDialog } from "@/components/CreateThemeDialog";
 import { SidePanel } from "@/components/SidePanel";
-import ReactMarkdown from "react-markdown";
 import type { Theme } from "@/lib/api-client";
 
 export default function Themes() {
@@ -156,9 +155,10 @@ export default function Themes() {
         title={selectedTheme ? `Theme: ${selectedTheme.name}` : ""}
       >
         {selectedTheme && (
-          <div className="prose dark:prose-invert max-w-none">
-            <ReactMarkdown>{selectedTheme.description}</ReactMarkdown>
-          </div>
+          <div
+            className="prose dark:prose-invert max-w-none"
+            dangerouslySetInnerHTML={{ __html: selectedTheme.description }}
+          />
         )}
       </SidePanel>
 

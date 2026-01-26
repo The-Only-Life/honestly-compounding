@@ -13,7 +13,6 @@ import { Shield, Plus, Eye, Pencil } from "lucide-react";
 import { useBuckets } from "@/hooks/use-buckets-api";
 import { CreateBucketDialog } from "@/components/CreateBucketDialog";
 import { SidePanel } from "@/components/SidePanel";
-import ReactMarkdown from "react-markdown";
 import type { Bucket } from "@/lib/api-client";
 
 export default function Buckets() {
@@ -165,9 +164,10 @@ export default function Buckets() {
         }
       >
         {selectedBucket && (
-          <div className="prose dark:prose-invert max-w-none">
-            <ReactMarkdown>{selectedBucket.description}</ReactMarkdown>
-          </div>
+          <div
+            className="prose dark:prose-invert max-w-none"
+            dangerouslySetInnerHTML={{ __html: selectedBucket.description }}
+          />
         )}
       </SidePanel>
 
