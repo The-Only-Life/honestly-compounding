@@ -42,6 +42,10 @@ export async function sendInviteEmail({
   }
 
   try {
+    console.log("EMAIL_FROM value:", Config.EMAIL_FROM);
+    console.log("EMAIL_FROM type:", typeof Config.EMAIL_FROM);
+    console.log("EMAIL_FROM length:", Config.EMAIL_FROM?.length);
+
     const template = loadTemplate("invite");
     const html = renderTemplate(template, {
       INVITE_URL: inviteUrl,
