@@ -1,7 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import type { FastifyCustomOptions } from "../types";
 import { randomBytes } from "crypto";
-import { PDFParse } from 'pdf-parse';
+
 
 // Simple CUID-like ID generator
 const generateId = () => `c${randomBytes(12).toString("base64url")}`;
@@ -353,21 +353,7 @@ export default async function stocksRouter(
         return res.status(400).send({ error: "No file uploaded" });
       }
 
-      const buffer = await data.toBuffer();
-
-      // Check pdf magic byte
-      if (buffer.slice(0, 5).toString() !== "%PDF-") {
-        return res.status(400).send({ error: "Failed to upload PDF" });
-      }
-
-      // Pdf parse check 
-      try {
-        const parser = new PDFParse({ data: buffer });
-        await parser.getText(); 
-        await parser.destroy();
-      } catch {
-        return res.status(400).send({ error: "Failed to upload PDF" });
-      }
+    const buffer = await data.toBuffer();
 
     const fileName = `stocks/${Date.now()}-${data.filename}`;
 
