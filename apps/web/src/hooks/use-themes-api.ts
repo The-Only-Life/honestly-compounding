@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { apiClient, type CreateThemeRequest } from "@/lib/api-client";
+import { apiClient, type CreateThemeRequest, type UpdateThemeRequest } from "@/lib/api-client";
 import { toast } from "sonner";
 
 export const THEMES_QUERY_KEY = ["themes"];
@@ -31,6 +31,22 @@ export function useCreateTheme() {
     },
     onError: (error: Error) => {
       toast.error(error.message || "Failed to create theme");
+    },
+  });
+}
+
+export function useUpdateTheme() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: UpdateThemeRequest }) =>
+      apiClient.updateTheme(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: THEMES_QUERY_KEY });
+      toast.success("Theme updated successfully");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to update theme");
     },
   });
 }

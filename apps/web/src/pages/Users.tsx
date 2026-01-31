@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useUsers, useInviteUser, useInviteUsersBulk, useUpdateUserRole, useUpdateUserAccess, useDeleteUser, useGenerateVerificationLink } from '@/hooks/use-users-api';
+import { useUsers, useInviteUser, useInviteUsersBulk, useResendInvitation, useUpdateUserRole, useUpdateUserAccess, useDeleteUser, useGenerateVerificationLink } from '@/hooks/use-users-api';
 import { useWaitlist, useApproveWaitlist } from '@/hooks/use-waitlist-api';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -60,6 +60,7 @@ export default function Users() {
   const { data: waitlistData, isLoading: isLoadingWaitlist } = useWaitlist('pending');
   const inviteUserMutation = useInviteUser();
   const inviteUsersBulkMutation = useInviteUsersBulk();
+  const resendInvitationMutation = useResendInvitation();
   const updateUserRoleMutation = useUpdateUserRole();
   const updateUserAccessMutation = useUpdateUserAccess();
   const deleteUserMutation = useDeleteUser();
@@ -155,16 +156,8 @@ export default function Users() {
     await approveWaitlistMutation.mutateAsync({ id, email });
   };
 
-  const handleResendInvite = async (email?: string, phone?: string, role?: string | null) => {
-    if (!email && !phone) {
-      return;
-    }
-
-    await inviteUserMutation.mutateAsync({
-      email,
-      phone,
-      role: (role as UserRole) || 'subscriber',
-    });
+  const handleResendInvite = async (userId: string) => {
+    await resendInvitationMutation.mutateAsync(userId);
   };
 
   if (isLoading) {
@@ -482,8 +475,8 @@ export default function Users() {
                               variant="ghost"
                               size="sm"
                               className="text-primary hover:text-primary"
-                              onClick={() => handleResendInvite(user.email, user.phone, user.role)}
-                              disabled={inviteUserMutation.isPending}
+                              onClick={() => handleResendInvite(user.id)}
+                              disabled={resendInvitationMutation.isPending}
                               title="Resend invitation email"
                             >
                               <Send className="h-4 w-4" />

@@ -196,6 +196,12 @@ export interface CreateBucketRequest {
   riskMeasure: string;
 }
 
+export interface UpdateBucketRequest {
+  name?: string;
+  description?: string;
+  riskMeasure?: string;
+}
+
 // Theme types
 export interface Theme {
   id: string;
@@ -217,6 +223,11 @@ export interface ThemesResponse {
 export interface CreateThemeRequest {
   name: string;
   description: string;
+}
+
+export interface UpdateThemeRequest {
+  name?: string;
+  description?: string;
 }
 
 // Stock types
@@ -397,6 +408,13 @@ class ApiClient {
     });
   }
 
+  async resendInvitation(userId: string): Promise<{ message: string; user: { id: string; email: string } }> {
+    return this.request<{ message: string; user: { id: string; email: string } }>("/api/auth/resend-invite", {
+      method: "POST",
+      body: JSON.stringify({ userId }),
+    });
+  }
+
   async generateVerificationLink(userId: string): Promise<{ message: string; verificationUrl: string; user: { id: string; email: string; emailVerified: boolean } }> {
     return this.request<{ message: string; verificationUrl: string; user: { id: string; email: string; emailVerified: boolean } }>("/api/auth/generate-verification-link", {
       method: "POST",
@@ -453,6 +471,13 @@ class ApiClient {
     });
   }
 
+  async updateBucket(id: string, data: UpdateBucketRequest): Promise<Bucket> {
+    return this.request<Bucket>(`/api/buckets/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+  }
+
   // Theme endpoints
   async getThemes(): Promise<ThemesResponse> {
     return this.request<ThemesResponse>("/api/themes");
@@ -465,6 +490,13 @@ class ApiClient {
   async createTheme(data: CreateThemeRequest): Promise<Theme> {
     return this.request<Theme>("/api/themes", {
       method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateTheme(id: string, data: UpdateThemeRequest): Promise<Theme> {
+    return this.request<Theme>(`/api/themes/${id}`, {
+      method: "PUT",
       body: JSON.stringify(data),
     });
   }

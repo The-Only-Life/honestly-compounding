@@ -9,6 +9,15 @@ export const CreateBucketSchema = Type.Object({
 
 export type CreateBucketInput = Static<typeof CreateBucketSchema>;
 
+// Schema for updating a bucket
+export const UpdateBucketSchema = Type.Object({
+  name: Type.Optional(Type.String({ minLength: 1, maxLength: 255 })),
+  description: Type.Optional(Type.String({ minLength: 1 })),
+  riskMeasure: Type.Optional(Type.String({ minLength: 1, maxLength: 255 })),
+});
+
+export type UpdateBucketInput = Static<typeof UpdateBucketSchema>;
+
 // Schema for bucket response
 export const BucketSchema = Type.Object({
   id: Type.String(),

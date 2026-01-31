@@ -2,6 +2,7 @@ import type { FastifyInstance } from "fastify";
 import type { FastifyCustomOptions } from "../types";
 import { randomBytes } from "crypto";
 
+
 // Simple CUID-like ID generator
 const generateId = () => `c${randomBytes(12).toString("base64url")}`;
 
@@ -352,23 +353,23 @@ export default async function stocksRouter(
         return res.status(400).send({ error: "No file uploaded" });
       }
 
-      const buffer = await data.toBuffer();
-      const fileName = `stocks/${Date.now()}-${data.filename}`;
+    const buffer = await data.toBuffer();
 
-      // Upload to Supabase Storage
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from("research-pdfs")
-        .upload(fileName, buffer, {
-          contentType: data.mimetype,
-          upsert: false,
-        });
+    const fileName = `stocks/${Date.now()}-${data.filename}`;
+
+      const { data: uploadData, error: uploadError } =
+        await supabase.storage
+          .from("research-pdfs")
+          .upload(fileName, buffer, {
+            contentType: "application/pdf",
+           upsert: false,
+          });
 
       if (uploadError) {
         req.log.error(uploadError);
         return res.status(500).send({ error: "Failed to upload PDF" });
       }
 
-      // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from("research-pdfs")
         .getPublicUrl(fileName);

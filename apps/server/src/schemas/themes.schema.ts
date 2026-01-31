@@ -8,6 +8,14 @@ export const CreateThemeSchema = Type.Object({
 
 export type CreateThemeInput = Static<typeof CreateThemeSchema>;
 
+// Schema for updating a theme
+export const UpdateThemeSchema = Type.Object({
+  name: Type.Optional(Type.String({ minLength: 1, maxLength: 255 })),
+  description: Type.Optional(Type.String({ minLength: 1 })),
+});
+
+export type UpdateThemeInput = Static<typeof UpdateThemeSchema>;
+
 // Schema for theme response
 export const ThemeSchema = Type.Object({
   id: Type.String(),

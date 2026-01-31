@@ -19,7 +19,7 @@ export function SidePanel({
 }: SidePanelProps) {
   return (
     <Sheet open={open} onOpenChange={onClose}>
-      <SheetContent side="right" className={`w-full sm:w-[600px] md:w-[700px] lg:w-[800px] ${className || ''}`}>
+      <SheetContent side="right" className={`w-full sm:w-[700px] md:w-[900px] lg:w-[1100px] ${className || ''}`}>
         <SheetHeader className="pb-4">
           <SheetTitle>{title}</SheetTitle>
           {description && <SheetDescription>{description}</SheetDescription>}
