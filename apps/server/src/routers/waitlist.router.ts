@@ -66,13 +66,18 @@ export default async function waitlistRouter(
     async (req, res) => {
       try {
         const { email, captchaToken } = req.body as Static<typeof JoinWaitlistSchema> & { captchaToken?: string };
-
+        const emailRegex = /^[a-zA-Z0-9._%-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
         // Verify CAPTCHA if provided
         if (captchaToken) {
           const captchaValid = await verifyRecaptcha(captchaToken, req.ip);
           if (!captchaValid) {
             return res.status(400).send({ error: "Invalid CAPTCHA verification" });
           }
+        }
+
+        if (!emailRegex.test(email)) {
+          console.log("Invalid email format:", email);
+          return res.status(400).send({ error: "Invalid email format" });
         }
 
         // Check if email already exists
