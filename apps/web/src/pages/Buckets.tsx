@@ -15,6 +15,13 @@ import { CreateBucketDialog } from "@/components/CreateBucketDialog";
 import { SidePanel } from "@/components/SidePanel";
 import type { Bucket } from "@/lib/api-client";
 
+// Helper function to strip HTML tags from text
+const stripHtml = (html: string) => {
+  const tmp = document.createElement("div");
+  tmp.innerHTML = html;
+  return tmp.textContent || tmp.innerText || "";
+};
+
 export default function Buckets() {
   const { userRole } = useAuth();
   const { data, isLoading } = useBuckets();
@@ -118,7 +125,8 @@ export default function Buckets() {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <p className="text-sm text-gray-600 line-clamp-3">
-                      {bucket.description.substring(0, 150)}...
+                      {stripHtml(bucket.description).substring(0, 150)}
+                      {stripHtml(bucket.description).length > 150 ? "..." : ""}
                     </p>
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-gray-500">

@@ -14,6 +14,13 @@ import { CreateThemeDialog } from "@/components/CreateThemeDialog";
 import { SidePanel } from "@/components/SidePanel";
 import type { Theme } from "@/lib/api-client";
 
+// Helper function to strip HTML tags from text
+const stripHtml = (html: string) => {
+  const tmp = document.createElement("div");
+  tmp.innerHTML = html;
+  return tmp.textContent || tmp.innerText || "";
+};
+
 export default function Themes() {
   const { userRole } = useAuth();
   const { data, isLoading } = useThemes();
@@ -112,7 +119,8 @@ export default function Themes() {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <p className="text-sm text-gray-600 line-clamp-3">
-                      {theme.description.substring(0, 150)}...
+                      {stripHtml(theme.description).substring(0, 150)}
+                      {stripHtml(theme.description).length > 150 ? "..." : ""}
                     </p>
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-gray-500">
