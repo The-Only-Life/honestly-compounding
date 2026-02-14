@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Shield, Plus, Eye, Pencil } from "lucide-react";
+import { Plus, Eye, Pencil } from "lucide-react";
 import { useBuckets } from "@/hooks/use-buckets-api";
 import { CreateBucketDialog } from "@/components/CreateBucketDialog";
 import { SidePanel } from "@/components/SidePanel";
@@ -64,7 +64,6 @@ export default function Buckets() {
   }
 
   const buckets = data?.buckets || [];
-  const totalBuckets = data?.total || 0;
 
   return (
     <div className="space-y-6">
@@ -81,21 +80,6 @@ export default function Buckets() {
             Create Bucket
           </Button>
         )}
-      </div>
-
-      {/* Stats */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Total Buckets
-            </CardTitle>
-            <Shield className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalBuckets}</div>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Buckets List */}
