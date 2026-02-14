@@ -272,6 +272,14 @@ export interface CreateStockRequest {
   pdfUrl?: string;
 }
 
+export interface UpdateStockRequest {
+  symbol?: string;
+  companyName?: string;
+  themeId?: string;
+  bucketId?: string;
+  pdfUrl?: string | null;
+}
+
 export interface UploadPDFResponse {
   fileName: string;
   url: string;
@@ -515,6 +523,28 @@ class ApiClient {
       method: "POST",
       body: JSON.stringify(data),
     });
+  }
+
+  async updateStock(id: string, data: UpdateStockRequest): Promise<Stock> {
+    return this.request<Stock>(`/api/stocks/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteStock(id: string): Promise<void> {
+    const url = `${this.baseUrl}/api/stocks/${id}`;
+    const response = await fetch(url, {
+      method: "DELETE",
+      credentials: "include",
+    });
+
+    if (!response.ok) {
+      const error: ApiError = await response.json().catch(() => ({
+        error: `HTTP error ${response.status}`,
+      }));
+      throw new Error(error.error);
+    }
   }
 
   async uploadStockPDF(file: File): Promise<UploadPDFResponse> {
