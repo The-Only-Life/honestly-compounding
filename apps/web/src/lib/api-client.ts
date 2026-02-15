@@ -285,6 +285,21 @@ export interface UploadPDFResponse {
   url: string;
 }
 
+// Notification types
+export interface Notification {
+  id: string;
+  entityType: 'stock' | 'theme' | 'bucket';
+  action: 'created' | 'updated';
+  entityId: string;
+  entityName: string;
+  createdBy: string;
+  createdAt: string;
+}
+
+export interface NotificationsResponse {
+  notifications: Notification[];
+}
+
 class ApiClient {
   private baseUrl: string;
 
@@ -566,6 +581,11 @@ class ApiClient {
     }
 
     return response.json();
+  }
+
+  // Notification endpoints
+  async getNotifications(): Promise<NotificationsResponse> {
+    return this.request<NotificationsResponse>("/api/notifications");
   }
 }
 

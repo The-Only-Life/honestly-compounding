@@ -2,10 +2,13 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, Briefcase, Shield, Building } from 'lucide-react';
 import { useDashboardStats } from '@/hooks/use-dashboard-stats';
+import { useNotifications } from '@/hooks/use-notifications';
+import { formatRelativeTime } from '@/lib/format-time';
 
 const Dashboard = () => {
   const { user, userRole } = useAuth();
   const { userCount, themeCount, bucketCount, stockCount, isLoading } = useDashboardStats();
+  const { notifications, isLoading: notificationsLoading } = useNotifications();
 
   const stats = [
     {
@@ -83,29 +86,42 @@ const Dashboard = () => {
             <CardDescription>Latest platform updates and actions</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center space-x-4">
-                <div className="w-2 h-2 bg-primary rounded-full"></div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">New theme "AI & Automation" published</p>
-                  <p className="text-xs text-muted-foreground">2 hours ago</p>
-                </div>
+            {notificationsLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="text-sm text-muted-foreground">Loading activity...</div>
               </div>
-              <div className="flex items-center space-x-4">
-                <div className="w-2 h-2 bg-primary rounded-full"></div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">Stock TSLA added to Tech Growth theme</p>
-                  <p className="text-xs text-muted-foreground">4 hours ago</p>
-                </div>
+            ) : notifications.length === 0 ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="text-sm text-muted-foreground">No recent activity</div>
               </div>
-              <div className="flex items-center space-x-4">
-                <div className="w-2 h-2 bg-primary rounded-full"></div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">Risk bucket "High Growth" updated</p>
-                  <p className="text-xs text-muted-foreground">1 day ago</p>
-                </div>
+            ) : (
+              <div className="space-y-4">
+                {notifications.map((notification) => {
+                  let entityTypeLabel = 'Bucket';
+                  if (notification.entityType === 'stock') {
+                    entityTypeLabel = 'Stock';
+                  } else if (notification.entityType === 'theme') {
+                    entityTypeLabel = 'Theme';
+                  }
+
+                  const actionLabel = notification.action === 'created' ? 'added' : 'updated';
+
+                  return (
+                    <div key={notification.id} className="flex items-center space-x-4">
+                      <div className="w-2 h-2 bg-primary rounded-full"></div>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">
+                          {entityTypeLabel} "{notification.entityName}" {actionLabel}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {formatRelativeTime(notification.createdAt)}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-            </div>
+            )}
           </CardContent>
         </Card>
 
