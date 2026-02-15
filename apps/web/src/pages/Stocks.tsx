@@ -34,6 +34,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import ReactMarkdown from "react-markdown";
 import type { Stock } from "@/lib/api-client";
+import { apiClient } from "@/lib/api-client";
+import { toast } from "sonner";
 
 type SidePanelView =
   | { type: "theme"; theme: { id: string; name: string; description: string } }
@@ -50,6 +52,7 @@ export default function Stocks() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(10);
   const [sidePanelView, setSidePanelView] = useState<SidePanelView>(null);
+  const [sidePanelLoading, setSidePanelLoading] = useState(false);
   const [selectedPDF, setSelectedPDF] = useState<{
     fileName: string;
     title: string;
@@ -58,29 +61,47 @@ export default function Stocks() {
   const { data, isLoading, error } = useStocks(currentPage, pageSize);
   const deleteStock = useDeleteStock();
 
-  const handleViewTheme = (stock: Stock) => {
+  const handleViewTheme = async (stock: Stock) => {
     if (stock.theme) {
-      setSidePanelView({
-        type: "theme",
-        theme: {
-          id: stock.theme.id,
-          name: stock.theme.name,
-          description: stock.theme.description || "No description available.",
-        },
-      });
+      setSidePanelLoading(true);
+      try {
+        const theme = await apiClient.getTheme(stock.theme.id);
+        setSidePanelView({
+          type: "theme",
+          theme: {
+            id: theme.id,
+            name: theme.name,
+            description: theme.description || "No description available.",
+          },
+        });
+      } catch (error) {
+        toast.error("Failed to load theme details");
+        console.error(error);
+      } finally {
+        setSidePanelLoading(false);
+      }
     }
   };
 
-  const handleViewBucket = (stock: Stock) => {
+  const handleViewBucket = async (stock: Stock) => {
     if (stock.bucket) {
-      setSidePanelView({
-        type: "bucket",
-        bucket: {
-          id: stock.bucket.id,
-          name: stock.bucket.name,
-          description: stock.bucket.description || "No description available.",
-        },
-      });
+      setSidePanelLoading(true);
+      try {
+        const bucket = await apiClient.getBucket(stock.bucket.id);
+        setSidePanelView({
+          type: "bucket",
+          bucket: {
+            id: bucket.id,
+            name: bucket.name,
+            description: bucket.description || "No description available.",
+          },
+        });
+      } catch (error) {
+        toast.error("Failed to load bucket details");
+        console.error(error);
+      } finally {
+        setSidePanelLoading(false);
+      }
     }
   };
 
@@ -95,6 +116,7 @@ export default function Stocks() {
 
   const handleCloseSidePanel = () => {
     setSidePanelView(null);
+    setSidePanelLoading(false);
   };
 
   const handleClosePDF = () => {
@@ -364,19 +386,27 @@ export default function Stocks() {
 
       {/* Side Panel for Theme/Bucket */}
       <SidePanel
-        open={!!sidePanelView}
+        open={!!sidePanelView || sidePanelLoading}
         onClose={handleCloseSidePanel}
         title={getSidePanelTitle()}
       >
-        {sidePanelView?.type === "theme" && (
-          <div className="prose dark:prose-invert max-w-none">
-            <ReactMarkdown>{sidePanelView.theme.description}</ReactMarkdown>
+        {sidePanelLoading ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="text-muted-foreground">Loading...</div>
           </div>
-        )}
-        {sidePanelView?.type === "bucket" && (
-          <div className="prose dark:prose-invert max-w-none">
-            <ReactMarkdown>{sidePanelView.bucket.description}</ReactMarkdown>
-          </div>
+        ) : (
+          <>
+            {sidePanelView?.type === "theme" && (
+              <div className="prose dark:prose-invert max-w-none">
+                <ReactMarkdown>{sidePanelView.theme.description}</ReactMarkdown>
+              </div>
+            )}
+            {sidePanelView?.type === "bucket" && (
+              <div className="prose dark:prose-invert max-w-none">
+                <ReactMarkdown>{sidePanelView.bucket.description}</ReactMarkdown>
+              </div>
+            )}
+          </>
         )}
       </SidePanel>
 
