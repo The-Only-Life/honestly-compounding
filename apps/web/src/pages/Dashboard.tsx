@@ -125,28 +125,30 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-            <CardDescription>Common administrative tasks</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <button className="w-full text-left p-3 rounded-md hover:bg-accent transition-colors">
-                <div className="font-medium">Add New Stock</div>
-                <div className="text-sm text-muted-foreground">Add a company to research coverage</div>
-              </button>
-              <button className="w-full text-left p-3 rounded-md hover:bg-accent transition-colors">
-                <div className="font-medium">Create Theme</div>
-                <div className="text-sm text-muted-foreground">Start a new research theme</div>
-              </button>
-              <button className="w-full text-left p-3 rounded-md hover:bg-accent transition-colors">
-                <div className="font-medium">Grant Access</div>
-                <div className="text-sm text-muted-foreground">Provide content access to users</div>
-              </button>
-            </div>
-          </CardContent>
-        </Card>
+        {userRole === 'admin' && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Quick Actions</CardTitle>
+              <CardDescription>Common administrative tasks</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <button className="w-full text-left p-3 rounded-md hover:bg-accent transition-colors">
+                  <div className="font-medium">Add New Stock</div>
+                  <div className="text-sm text-muted-foreground">Add a company to research coverage</div>
+                </button>
+                <button className="w-full text-left p-3 rounded-md hover:bg-accent transition-colors">
+                  <div className="font-medium">Create Theme</div>
+                  <div className="text-sm text-muted-foreground">Start a new research theme</div>
+                </button>
+                <button className="w-full text-left p-3 rounded-md hover:bg-accent transition-colors">
+                  <div className="font-medium">Grant Access</div>
+                  <div className="text-sm text-muted-foreground">Provide content access to users</div>
+                </button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );
