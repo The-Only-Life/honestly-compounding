@@ -16,11 +16,22 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Building, Plus, Eye, FileText, ChevronLeft, ChevronRight } from "lucide-react";
-import { useStocks } from "@/hooks/use-stocks-api";
+import { Building, Plus, FileText, ChevronLeft, ChevronRight, Pencil, Trash2 } from "lucide-react";
+import { useStocks, useDeleteStock } from "@/hooks/use-stocks-api";
 import { CreateStockDialog } from "@/components/CreateStockDialog";
+import { EditStockDialog } from "@/components/EditStockDialog";
 import { SidePanel } from "@/components/SidePanel";
 import { SecurePDFViewer } from "@/components/SecurePDFViewer";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import ReactMarkdown from "react-markdown";
 import type { Stock } from "@/lib/api-client";
 
@@ -32,6 +43,10 @@ type SidePanelView =
 export default function Stocks() {
   const { userRole } = useAuth();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingStock, setEditingStock] = useState<Stock | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deletingStock, setDeletingStock] = useState<Stock | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(10);
   const [sidePanelView, setSidePanelView] = useState<SidePanelView>(null);
@@ -41,6 +56,7 @@ export default function Stocks() {
   } | null>(null);
 
   const { data, isLoading, error } = useStocks(currentPage, pageSize);
+  const deleteStock = useDeleteStock();
 
   const handleViewTheme = (stock: Stock) => {
     if (stock.theme) {
@@ -83,6 +99,24 @@ export default function Stocks() {
 
   const handleClosePDF = () => {
     setSelectedPDF(null);
+  };
+
+  const handleEditStock = (stock: Stock) => {
+    setEditingStock(stock);
+    setEditDialogOpen(true);
+  };
+
+  const handleDeleteStock = (stock: Stock) => {
+    setDeletingStock(stock);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (deletingStock) {
+      await deleteStock.mutateAsync(deletingStock.id);
+      setDeleteDialogOpen(false);
+      setDeletingStock(null);
+    }
   };
 
   const canAddStocks = userRole === "admin";
@@ -134,19 +168,6 @@ export default function Stocks() {
             Add Stock
           </Button>
         )}
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Stocks</CardTitle>
-            <Building className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalStocks}</div>
-            <p className="text-xs text-muted-foreground">Under coverage</p>
-          </CardContent>
-        </Card>
       </div>
 
       <Card>
@@ -237,9 +258,29 @@ export default function Stocks() {
                           )}
                         </TableCell>
                         <TableCell className="text-right">
-                          <Button variant="ghost" size="sm">
-                            <Eye className="w-4 h-4" />
-                          </Button>
+                          <div className="flex justify-end gap-1">
+                            {canAddStocks && (
+                              <>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleEditStock(stock)}
+                                  title="Edit stock"
+                                >
+                                  <Pencil className="w-4 h-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleDeleteStock(stock)}
+                                  title="Delete stock"
+                                  className="text-destructive hover:text-destructive"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </>
+                            )}
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -288,6 +329,38 @@ export default function Stocks() {
         open={createDialogOpen}
         onOpenChange={setCreateDialogOpen}
       />
+
+      {/* Edit Stock Dialog */}
+      {editingStock && (
+        <EditStockDialog
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          stock={editingStock}
+        />
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Stock</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete {deletingStock?.symbol} -{" "}
+              {deletingStock?.companyName}? This action cannot be undone and
+              will also delete the associated PDF if present.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Side Panel for Theme/Bucket */}
       <SidePanel

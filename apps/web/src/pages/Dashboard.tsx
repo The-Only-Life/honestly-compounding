@@ -1,52 +1,40 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, FileText, Briefcase, Shield, Building, TrendingUp } from 'lucide-react';
+import { Users, Briefcase, Shield, Building } from 'lucide-react';
+import { useDashboardStats } from '@/hooks/use-dashboard-stats';
 
 const Dashboard = () => {
   const { user, userRole } = useAuth();
+  const { userCount, themeCount, bucketCount, stockCount, isLoading } = useDashboardStats();
 
   const stats = [
     {
       title: "Total Users",
-      value: "156",
+      value: isLoading ? "-" : userCount.toString(),
       description: "Active subscribers and analysts",
       icon: Users,
       visible: userRole === 'admin'
     },
     {
       title: "Research Themes",
-      value: "24",
+      value: isLoading ? "-" : themeCount.toString(),
       description: "Published research themes",
       icon: Briefcase,
       visible: true
     },
     {
       title: "Risk Buckets",
-      value: "8",
+      value: isLoading ? "-" : bucketCount.toString(),
       description: "Risk categorization buckets",
       icon: Shield,
       visible: true
     },
     {
       title: "Stocks Covered",
-      value: "342",
+      value: isLoading ? "-" : stockCount.toString(),
       description: "Companies under analysis",
       icon: Building,
       visible: true
-    },
-    {
-      title: "Content Access Grants",
-      value: "89",
-      description: "Active content permissions",
-      icon: FileText,
-      visible: true
-    },
-    {
-      title: "Monthly Growth",
-      value: "+12%",
-      description: "Platform usage increase",
-      icon: TrendingUp,
-      visible: userRole === 'admin'
     }
   ];
 

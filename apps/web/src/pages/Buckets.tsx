@@ -9,11 +9,18 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Shield, Plus, Eye, Pencil } from "lucide-react";
+import { Plus, Eye, Pencil } from "lucide-react";
 import { useBuckets } from "@/hooks/use-buckets-api";
 import { CreateBucketDialog } from "@/components/CreateBucketDialog";
 import { SidePanel } from "@/components/SidePanel";
 import type { Bucket } from "@/lib/api-client";
+
+// Helper function to strip HTML tags from text
+const stripHtml = (html: string) => {
+  const tmp = document.createElement("div");
+  tmp.innerHTML = html;
+  return tmp.textContent || tmp.innerText || "";
+};
 
 export default function Buckets() {
   const { userRole } = useAuth();
@@ -57,7 +64,6 @@ export default function Buckets() {
   }
 
   const buckets = data?.buckets || [];
-  const totalBuckets = data?.total || 0;
 
   return (
     <div className="space-y-6">
@@ -74,21 +80,6 @@ export default function Buckets() {
             Create Bucket
           </Button>
         )}
-      </div>
-
-      {/* Stats */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Total Buckets
-            </CardTitle>
-            <Shield className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalBuckets}</div>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Buckets List */}
@@ -118,7 +109,8 @@ export default function Buckets() {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <p className="text-sm text-gray-600 line-clamp-3">
-                      {bucket.description.substring(0, 150)}...
+                      {stripHtml(bucket.description).substring(0, 150)}
+                      {stripHtml(bucket.description).length > 150 ? "..." : ""}
                     </p>
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-gray-500">
