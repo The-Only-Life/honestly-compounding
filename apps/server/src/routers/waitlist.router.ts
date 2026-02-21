@@ -236,7 +236,7 @@ export default async function waitlistRouter(
           .insert({
             user_id: authData.user.id,
             role: "subscriber",
-            access_approved: true, // Admin has already approved by clicking "Approve & Invite"
+            access_approved: false, // Subscribers need approval after profile completion
             invited_by: invitedBy,
             contact_method: "email",
             profile_completed: false,
