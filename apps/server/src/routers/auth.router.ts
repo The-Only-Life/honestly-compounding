@@ -811,11 +811,15 @@ export default async function authRouter(
           });
         }
 
-        // Use "magiclink" for existing users — confirms their email and returns a valid session.
-        // "invite" fails with email_exists for already-created users.
+        // Reset email confirmation so we can re-generate an invite link.
+        // generateLink({ type: "invite" }) fails with email_exists for already-confirmed users.
+        await supabase.auth.admin.updateUserById(user.id, {
+          email_confirm: false,
+        });
+
         const { data: inviteData, error: inviteTokenError } =
           await supabase.auth.admin.generateLink({
-            type: "magiclink",
+            type: "invite",
             email: user.email,
           });
 
@@ -827,7 +831,7 @@ export default async function authRouter(
         }
 
         // Generate the verification URL
-        const verificationUrl = `${Config.FRONTEND_URL}/auth/confirm?token_hash=${inviteData.properties.hashed_token}&type=magiclink&next=/complete-profile`;
+        const verificationUrl = `${Config.FRONTEND_URL}/auth/confirm?token_hash=${inviteData.properties.hashed_token}&type=invite&next=/complete-profile`;
 
         return res.send({
           message: "Verification link generated successfully",
