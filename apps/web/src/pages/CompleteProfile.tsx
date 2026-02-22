@@ -40,7 +40,7 @@ const CompleteProfile = () => {
   const [userEmail, setUserEmail] = useState('');
   const [userPhone, setUserPhone] = useState('');
   const [userFullName, setUserFullName] = useState('');
-  const [authType, setAuthType] = useState<'invite' | 'phone'>('invite');
+  const [authType, setAuthType] = useState<'invite' | 'recovery' | 'phone'>('invite');
 
   // Verify token exists in URL and extract user data
   useEffect(() => {
@@ -51,8 +51,8 @@ const CompleteProfile = () => {
         const accessToken = hashParams.get('access_token') || searchParams.get('access_token');
         const type = hashParams.get('type') || searchParams.get('type');
 
-        // Accept both 'invite' and 'phone' types
-        if (!accessToken || (type !== 'invite' && type !== 'phone')) {
+        // Accept 'invite', 'recovery', and 'phone' types
+        if (!accessToken || (type !== 'invite' && type !== 'recovery' && type !== 'phone')) {
           toast({
             title: "Invalid link",
             description: "This link is invalid or has expired.",
@@ -63,7 +63,7 @@ const CompleteProfile = () => {
         }
 
         // Store auth type
-        setAuthType(type as 'invite' | 'phone');
+        setAuthType(type as 'invite' | 'recovery' | 'phone');
 
         // Decode JWT to get user information
         const payload = decodeJWT(accessToken);

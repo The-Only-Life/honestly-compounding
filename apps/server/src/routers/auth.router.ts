@@ -811,10 +811,10 @@ export default async function authRouter(
           });
         }
 
-        // Generate invite token (works even if email is already verified)
+        // Use "recovery" type for existing users — "invite" fails with email_exists for them
         const { data: inviteData, error: inviteTokenError } =
           await supabase.auth.admin.generateLink({
-            type: "invite",
+            type: "recovery",
             email: user.email,
           });
 
@@ -826,7 +826,7 @@ export default async function authRouter(
         }
 
         // Generate the verification URL
-        const verificationUrl = `${Config.FRONTEND_URL}/auth/confirm?token_hash=${inviteData.properties.hashed_token}&type=invite&next=/complete-profile`;
+        const verificationUrl = `${Config.FRONTEND_URL}/auth/confirm?token_hash=${inviteData.properties.hashed_token}&type=recovery&next=/complete-profile`;
 
         return res.send({
           message: "Verification link generated successfully",
