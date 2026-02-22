@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { apiClient, type Notification } from "@/lib/api-client";
-import { AppConfig } from "@/config";
+import { apiClient } from "@/lib/api-client";
+import { supabase } from "@/lib/supabase";
 import { useEffect } from "react";
 
 export const NOTIFICATIONS_QUERY_KEY = ["notifications"];
@@ -15,19 +15,27 @@ export function useNotifications() {
     staleTime: 30000, // 30 seconds
   });
 
-  // Subscribe to server-sent events for real-time updates
+  // Subscribe to Realtime updates
   useEffect(() => {
-    const eventSource = new EventSource(
-      `${AppConfig.API_BASE_URL}/api/notifications/stream`,
-      { withCredentials: true }
-    );
+    const channel = supabase
+      .channel("notifications-changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "*", // Listen to all events (INSERT, UPDATE, DELETE)
+          schema: "public",
+          table: "notifications",
+        },
+        () => {
+          // Invalidate and refetch notifications when changes occur
+          queryClient.invalidateQueries({ queryKey: NOTIFICATIONS_QUERY_KEY });
+        }
+      )
+      .subscribe();
 
-    eventSource.onmessage = () => {
-      queryClient.invalidateQueries({ queryKey: NOTIFICATIONS_QUERY_KEY });
-    };
-
+    // Cleanup subscription on unmount
     return () => {
-      eventSource.close();
+      supabase.removeChannel(channel);
     };
   }, [queryClient]);
 
