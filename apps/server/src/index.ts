@@ -1,3 +1,4 @@
+// Server entry point
 import Fastify from "fastify";
 import authRouter from "./routers/auth.router";
 import usersRouter from "./routers/users.router";
@@ -9,6 +10,7 @@ import notificationsRouter from "./routers/notifications.router";
 import type { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
 import { createClient } from "@supabase/supabase-js";
 import Config from "./server.config";
+import { initRealtimeSubscription } from "./notification-broadcaster";
 
 const server = Fastify({
   logger: true,
@@ -82,6 +84,8 @@ await server.register(bucketsRouter, { prefix: "/api/buckets", supabase });
 await server.register(themesRouter, { prefix: "/api/themes", supabase });
 await server.register(stocksRouter, { prefix: "/api/stocks", supabase });
 await server.register(notificationsRouter, { prefix: "/api/notifications", supabase });
+
+initRealtimeSubscription(supabase);
 
 // Health check endpoint
 server.get("/health", async (_req, reply) => {
