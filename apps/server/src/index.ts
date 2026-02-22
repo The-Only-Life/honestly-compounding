@@ -1,3 +1,4 @@
+// Server entry point
 import Fastify from "fastify";
 import authRouter from "./routers/auth.router";
 import usersRouter from "./routers/users.router";
