@@ -881,6 +881,13 @@ export default async function authRouter(
           });
         }
 
+        // Reset email confirmation before generating the invite link.
+        // If the user clicked the original link (confirming their email) but never
+        // completed the profile, generateLink({ type: "invite" }) would fail with email_exists.
+        await supabase.auth.admin.updateUserById(user.id, {
+          email_confirm: false,
+        });
+
         // Generate new invite token
         const { data: inviteData, error: inviteTokenError } =
           await supabase.auth.admin.generateLink({
