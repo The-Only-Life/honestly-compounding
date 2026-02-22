@@ -1,12 +1,5 @@
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -192,30 +185,22 @@ export default function Stocks() {
         )}
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Stock Universe</CardTitle>
-          <CardDescription>
-            Browse all stocks and research documents
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {stocks.length === 0 ? (
-            <div className="text-center py-12">
-              <Building className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-              <p className="text-muted-foreground text-lg mb-2">
-                No stocks found
-              </p>
-              {canAddStocks && (
-                <p className="text-sm text-muted-foreground">
-                  Click "Add Stock" to create your first stock entry
-                </p>
-              )}
-            </div>
-          ) : (
-            <>
-              <div className="rounded-md border">
-                <Table>
+      {stocks.length === 0 ? (
+        <div className="text-center py-12">
+          <Building className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+          <p className="text-muted-foreground text-lg mb-2">
+            No stocks found
+          </p>
+          {canAddStocks && (
+            <p className="text-sm text-muted-foreground">
+              Click "Add Stock" to create your first stock entry
+            </p>
+          )}
+        </div>
+      ) : (
+        <>
+          <div className="rounded-md border">
+            <Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead>Stock Name</TableHead>
@@ -308,43 +293,41 @@ export default function Stocks() {
                     ))}
                   </TableBody>
                 </Table>
-              </div>
+          </div>
 
-              {/* Pagination */}
-              {totalPages > 1 && (
-                <div className="flex items-center justify-between mt-4">
-                  <div className="text-sm text-muted-foreground">
-                    Showing page {currentPage} of {totalPages} ({totalStocks}{" "}
-                    total stocks)
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                      disabled={currentPage === 1}
-                    >
-                      <ChevronLeft className="w-4 h-4 mr-1" />
-                      Previous
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() =>
-                        setCurrentPage((p) => Math.min(totalPages, p + 1))
-                      }
-                      disabled={currentPage === totalPages}
-                    >
-                      Next
-                      <ChevronRight className="w-4 h-4 ml-1" />
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </>
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between mt-4">
+              <div className="text-sm text-muted-foreground">
+                Showing page {currentPage} of {totalPages} ({totalStocks}{" "}
+                total stocks)
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                >
+                  <ChevronLeft className="w-4 h-4 mr-1" />
+                  Previous
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    setCurrentPage((p) => Math.min(totalPages, p + 1))
+                  }
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                  <ChevronRight className="w-4 h-4 ml-1" />
+                </Button>
+              </div>
+            </div>
           )}
-        </CardContent>
-      </Card>
+        </>
+      )}
 
       {/* Create Stock Dialog */}
       <CreateStockDialog
