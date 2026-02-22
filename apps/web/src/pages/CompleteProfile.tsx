@@ -69,8 +69,8 @@ const CompleteProfile = () => {
         const payload = decodeJWT(accessToken);
         if (payload) {
           setUserEmail(payload.email || '');
-          setUserPhone(payload.phone || '');
-          // full_name is stored in user_metadata at approval time
+          // phone may be top-level (direct invite) or in user_metadata (waitlist approval)
+          setUserPhone(payload.user_metadata?.phone || payload.phone || '');
           setUserFullName(payload.user_metadata?.full_name || '');
         }
 

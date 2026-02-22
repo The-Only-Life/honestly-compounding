@@ -227,6 +227,7 @@ export default async function waitlistRouter(
             email_confirm: false,
             user_metadata: {
               full_name: waitlistEntry.name || null,
+              phone: waitlistEntry.phone || null,
             },
           });
 
