@@ -1,8 +1,11 @@
 import { useState } from "react";
 import "../styles/InviteSection.css";
 import InviteImage from "../assets/Invitation-Card.jpg";
+import { useJoinWaitlist } from "@/hooks/use-waitlist-api";
 
 export default function InviteSection() {
+  const joinWaitlist = useJoinWaitlist();
+  const [submitted, setSubmitted] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
@@ -11,16 +14,21 @@ export default function InviteSection() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log("Form submitted:", formData);
-    // Form submission logic to be added 
+    try {
+      await joinWaitlist.mutateAsync({
+        email: formData.email,
+        name: formData.name,
+        phone: formData.phone,
+      });
+      setSubmitted(true);
+    } catch {
+      // error toast handled inside the hook
+    }
   };
 
   return (
@@ -39,7 +47,7 @@ export default function InviteSection() {
         <div className="invite-right">
           <div className="invite-content">
             <h2 className="invite-heading">
-              Honestly is an <br></br>
+              Honestly is an <br />
               <span className="invite-highlight"> invite-only</span> platform.
             </h2>
 
@@ -47,54 +55,60 @@ export default function InviteSection() {
               Access is shared through existing members.
             </p>
 
-            <form className="invite-form" onSubmit={handleSubmit}>
-              {/* Name Field */}
-              <div className="form-group">
-                <label className="form-label">Name</label>
-                <input
-                  type="text"
-                  name="name"
-                  placeholder=""
-                  className="form-input"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
+            {submitted ? (
+              <p className="invite-success">
+                You're on the list! We'll be in touch soon.
+              </p>
+            ) : (
+              <form className="invite-form" onSubmit={handleSubmit}>
+                <div className="form-group">
+                  <label className="form-label">Name</label>
+                  <input
+                    type="text"
+                    name="name"
+                    placeholder=""
+                    className="form-input"
+                    value={formData.name}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
 
-              {/* Phone Field */}
-              <div className="form-group">
-                <label className="form-label">Phone number</label>
-                <input
-                  type="tel"
-                  name="phone"
-                  placeholder=""
-                  className="form-input"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
+                <div className="form-group">
+                  <label className="form-label">Phone number</label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    placeholder=""
+                    className="form-input"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
 
-              {/* Email Field */}
-              <div className="form-group">
-                <label className="form-label">Email</label>
-                <input
-                  type="email"
-                  name="email"
-                  placeholder=""
-                  className="form-input"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
+                <div className="form-group">
+                  <label className="form-label">Email</label>
+                  <input
+                    type="email"
+                    name="email"
+                    placeholder=""
+                    className="form-input"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
 
-              {/* Submit Button */}
-              <button type="submit" className="invite-button">
-                Request Invite
-              </button>
-            </form>
+                <button
+                  type="submit"
+                  className="invite-button"
+                  disabled={joinWaitlist.isPending}
+                >
+                  {joinWaitlist.isPending ? "Submitting..." : "Request Invite"}
+                </button>
+              </form>
+            )}
           </div>
         </div>
       </div>

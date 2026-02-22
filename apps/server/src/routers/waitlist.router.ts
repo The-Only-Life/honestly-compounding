@@ -65,7 +65,7 @@ export default async function waitlistRouter(
     },
     async (req, res) => {
       try {
-        const { email, captchaToken } = req.body as Static<typeof JoinWaitlistSchema> & { captchaToken?: string };
+        const { email, name, phone, captchaToken } = req.body as Static<typeof JoinWaitlistSchema> & { captchaToken?: string };
         const emailRegex = /^[a-zA-Z0-9._%-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
         // Verify CAPTCHA if provided
         if (captchaToken) {
@@ -103,6 +103,8 @@ export default async function waitlistRouter(
           .from("waitlist")
           .insert({
             email,
+            name: name || null,
+            phone: phone || null,
             status: "pending",
           })
           .select()
@@ -194,7 +196,7 @@ export default async function waitlistRouter(
         // Verify the waitlist entry exists and is pending
         const { data: waitlistEntry, error: fetchError } = await supabase
           .from("waitlist")
-          .select("*")
+          .select("id, email, name, phone, status")
           .eq("id", id)
           .eq("email", email)
           .single();
@@ -216,12 +218,16 @@ export default async function waitlistRouter(
           Math.random().toString(36).slice(-12) +
           Math.random().toString(36).slice(-12);
 
-        // Create user via Supabase Admin API
+        // Create user via Supabase Admin API, storing name in user_metadata
+        // so CompleteProfile can pre-populate the field from the JWT
         const { data: authData, error: authError } =
           await supabase.auth.admin.createUser({
             email,
             password: tempPassword,
             email_confirm: false,
+            user_metadata: {
+              full_name: waitlistEntry.name || null,
+            },
           });
 
         if (authError) {
@@ -230,16 +236,19 @@ export default async function waitlistRouter(
           });
         }
 
-        // Insert into user_metadata table with subscriber role
+        // Insert into user_metadata table with subscriber role, carrying
+        // name and phone captured from the waitlist submission
         const { error: metadataError } = await supabase
           .from("user_metadata")
           .insert({
             user_id: authData.user.id,
             role: "subscriber",
-            access_approved: false, // Subscribers need approval after profile completion
+            access_approved: false,
             invited_by: invitedBy,
             contact_method: "email",
             profile_completed: false,
+            full_name: waitlistEntry.name || null,
+            phone: waitlistEntry.phone || null,
           });
 
         if (metadataError) {

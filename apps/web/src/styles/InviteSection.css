@@ -233,3 +233,13 @@
     font-size: 13px;
   }
 }
+.invite-success {
+  color: #fff;
+  font-size: 18px;
+  font-weight: 600;
+  margin-top: 24px;
+  padding: 16px 20px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  text-align: center;
+}

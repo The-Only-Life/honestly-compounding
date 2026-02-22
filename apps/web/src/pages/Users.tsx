@@ -585,7 +585,9 @@ export default function Users() {
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead>Name</TableHead>
                       <TableHead>Email</TableHead>
+                      <TableHead>Phone</TableHead>
                       <TableHead>Requested</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
@@ -595,7 +597,13 @@ export default function Users() {
                     {waitlistEntries.map((entry) => (
                       <TableRow key={entry.id}>
                         <TableCell>
+                          <div className="font-medium">{entry.name || '—'}</div>
+                        </TableCell>
+                        <TableCell>
                           <div className="font-medium">{entry.email}</div>
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {entry.phone || '—'}
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground">
                           {new Date(entry.created_at).toLocaleDateString()}

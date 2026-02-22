@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import "../styles/Navbar.css";
 import gsap from "gsap";
 import ScrollTrigger from "gsap/ScrollTrigger";
@@ -67,9 +68,14 @@ export default function Navbar() {
         </ul>
 
         
-        <a href="#invite" className="navbar-button">
-          Request Invite
-        </a>
+        <div className="navbar-actions">
+          <Link to="/auth" className="navbar-signin">
+            Sign In
+          </Link>
+          <a href="#invite" className="navbar-button">
+            Request Invite
+          </a>
+        </div>
 
       </div>
     </nav>

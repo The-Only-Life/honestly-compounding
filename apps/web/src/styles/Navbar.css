@@ -83,6 +83,31 @@
   transform: scale(1.06);
 }
 
+/* Navbar Actions (Sign In + Request Invite group) */
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+/* Sign In link */
+.navbar-signin {
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+  padding: 8px 14px;
+  border-radius: 25px;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.navbar-signin:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.12);
+}
+
 /* Navbar Button */
 .navbar-button {
   background: #1a1a3e;
