@@ -811,10 +811,11 @@ export default async function authRouter(
           });
         }
 
-        // Use "recovery" type for existing users — "invite" fails with email_exists for them
+        // Use "magiclink" for existing users — confirms their email and returns a valid session.
+        // "invite" fails with email_exists for already-created users.
         const { data: inviteData, error: inviteTokenError } =
           await supabase.auth.admin.generateLink({
-            type: "recovery",
+            type: "magiclink",
             email: user.email,
           });
 
@@ -826,7 +827,7 @@ export default async function authRouter(
         }
 
         // Generate the verification URL
-        const verificationUrl = `${Config.FRONTEND_URL}/auth/confirm?token_hash=${inviteData.properties.hashed_token}&type=recovery&next=/complete-profile`;
+        const verificationUrl = `${Config.FRONTEND_URL}/auth/confirm?token_hash=${inviteData.properties.hashed_token}&type=magiclink&next=/complete-profile`;
 
         return res.send({
           message: "Verification link generated successfully",

@@ -44,7 +44,10 @@ export const BulkInviteUserSchema = Type.Object({
 
 export const VerifyInviteSchema = Type.Object({
     token_hash: Type.String(),
-    type: Type.Literal("invite")
+    type: Type.Union([
+        Type.Literal("invite"),
+        Type.Literal("magiclink"),
+    ])
 })
 
 export const CompleteProfileSchema = Type.Object({
