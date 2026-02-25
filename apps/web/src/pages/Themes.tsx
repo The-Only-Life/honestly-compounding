@@ -3,7 +3,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -80,65 +79,57 @@ export default function Themes() {
       </div>
 
       {/* Themes List */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Themes</CardTitle>
-          <CardDescription>View all available themes</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {themes.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              No themes available yet.
-              {isAdmin && " Click 'Create Theme' to add one."}
-            </div>
-          ) : (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {themes.map((theme) => (
-                <Card
-                  key={theme.id}
-                  className="hover:shadow-lg transition-shadow"
-                >
-                  <CardHeader>
-                    <CardTitle className="text-lg">{theme.name}</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <p className="text-sm text-gray-600 line-clamp-3">
-                      {stripHtml(theme.description).substring(0, 150)}
-                      {stripHtml(theme.description).length > 150 ? "..." : ""}
-                    </p>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-gray-500">
-                        Created by{" "}
-                        {theme.creator?.fullName || "Unknown"}
-                      </span>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleViewTheme(theme)}
-                        >
-                          <Eye className="mr-2 h-4 w-4" />
-                          View
-                        </Button>
-                        {isAdmin && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleEditTheme(theme)}
-                          >
-                            <Pencil className="mr-2 h-4 w-4" />
-                            Edit
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      {themes.length === 0 ? (
+        <div className="text-center py-8 text-gray-500">
+          No themes available yet.
+          {isAdmin && " Click 'Create Theme' to add one."}
+        </div>
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {themes.map((theme) => (
+            <Card
+              key={theme.id}
+              className="hover:shadow-lg transition-shadow"
+            >
+              <CardHeader>
+                <CardTitle className="text-lg">{theme.name}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-gray-600 line-clamp-3">
+                  {stripHtml(theme.description).substring(0, 150)}
+                  {stripHtml(theme.description).length > 150 ? "..." : ""}
+                </p>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-gray-500">
+                    Created by{" "}
+                    {theme.creator?.fullName || "Unknown"}
+                  </span>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleViewTheme(theme)}
+                    >
+                      <Eye className="mr-2 h-4 w-4" />
+                      View
+                    </Button>
+                    {isAdmin && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEditTheme(theme)}
+                      >
+                        <Pencil className="mr-2 h-4 w-4" />
+                        Edit
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
 
       {/* Side Panel for Theme Details */}
       <SidePanel

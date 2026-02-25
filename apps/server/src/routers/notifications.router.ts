@@ -1,7 +1,5 @@
 import type { FastifyInstance } from "fastify";
-import type { ServerResponse } from "http";
 import type { FastifyCustomOptions } from "../types";
-import { addClient, removeClient } from "../notification-broadcaster";
 
 export default async function notificationsRouter(
   server: FastifyInstance,
@@ -58,48 +56,4 @@ export default async function notificationsRouter(
     }
   });
 
-  // GET /api/notifications/stream - SSE endpoint for real-time notification updates
-  server.get("/stream", async (req, res) => {
-    const accessToken = req.cookies["sb-access-token"];
-
-    if (!accessToken) {
-      return res.status(401).send({ error: "Not authenticated" });
-    }
-
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser(accessToken);
-
-    if (authError || !user) {
-      return res.status(401).send({ error: "Invalid token" });
-    }
-
-    res.hijack();
-
-    const raw = res.raw as ServerResponse;
-
-    raw.writeHead(200, {
-      "Content-Type": "text/event-stream",
-      "Cache-Control": "no-cache",
-      "Connection": "keep-alive",
-      "X-Accel-Buffering": "no",
-    });
-
-    addClient(raw);
-    raw.write("event: connected\ndata: {}\n\n");
-
-    const heartbeat = setInterval(() => {
-      if (!raw.writableEnded) {
-        raw.write(":heartbeat\n\n");
-      } else {
-        clearInterval(heartbeat);
-      }
-    }, 30000);
-
-    req.raw.on("close", () => {
-      clearInterval(heartbeat);
-      removeClient(raw);
-    });
-  });
 }

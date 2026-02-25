@@ -74,7 +74,7 @@ export default async function authRouter(
       // Fetch user metadata from user_metadata table
       const { data: metadata, error: metadataError } = await supabase
         .from("user_metadata")
-        .select("role, access_approved, profile_completed, has_agreed_to_terms")
+        .select("role, access_approved, profile_completed, has_agreed_to_terms, full_name, phone")
         .eq("user_id", data.user.id)
         .single();
 
@@ -87,6 +87,8 @@ export default async function authRouter(
         user: {
           id: data.user.id,
           email: data.user.email!,
+          phone: metadata?.phone || null,
+          fullName: metadata?.full_name || null,
           role: metadata?.role || null,
           accessApproved: metadata?.access_approved || false,
           profileCompleted: metadata?.profile_completed || false,
@@ -137,7 +139,7 @@ export default async function authRouter(
       // Fetch user metadata from user_metadata table
       const { data: metadata, error: metadataError } = await supabase
         .from("user_metadata")
-        .select("role, access_approved, profile_completed, has_agreed_to_terms")
+        .select("role, access_approved, profile_completed, has_agreed_to_terms, full_name, phone")
         .eq("user_id", data.user.id)
         .single();
 
@@ -150,6 +152,8 @@ export default async function authRouter(
         user: {
           id: data.user.id,
           email: data.user.email!,
+          phone: metadata?.phone || null,
+          fullName: metadata?.full_name || null,
           role: metadata?.role || null,
           accessApproved: metadata?.access_approved || false,
           profileCompleted: metadata?.profile_completed || false,
@@ -253,7 +257,7 @@ export default async function authRouter(
       // Fetch user metadata from user_metadata table
       const { data: metadata, error: metadataError } = await supabase
         .from("user_metadata")
-        .select("role, access_approved, profile_completed, has_agreed_to_terms")
+        .select("role, access_approved, profile_completed, has_agreed_to_terms, full_name, phone")
         .eq("user_id", user.id)
         .single();
 
@@ -266,6 +270,8 @@ export default async function authRouter(
         user: {
           id: user.id,
           email: user.email!,
+          phone: metadata?.phone || null,
+          fullName: metadata?.full_name || null,
           role: metadata?.role || null,
           accessApproved: metadata?.access_approved || false,
           profileCompleted: metadata?.profile_completed || false,
@@ -657,7 +663,7 @@ export default async function authRouter(
           return res.status(401).send({ error: "Invalid access token" });
         }
 
-        const { email, phone, password } = req.body as Static<
+        const { email, phone, full_name, password } = req.body as Static<
           typeof CompleteProfileSchema
         >;
 
@@ -703,10 +709,14 @@ export default async function authRouter(
           maxAge: 604800, // 7 days
         });
 
-        // Update user_metadata to mark profile as completed
+        // Update user_metadata: mark profile as completed and persist name/phone
         const { error: updateMetadataError } = await supabase
           .from("user_metadata")
-          .update({ profile_completed: true })
+          .update({
+            profile_completed: true,
+            ...(full_name ? { full_name } : {}),
+            ...(phone ? { phone } : {}),
+          })
           .eq("user_id", sessionData.user.id);
 
         if (updateMetadataError) {
@@ -716,7 +726,7 @@ export default async function authRouter(
         // Fetch user metadata from user_metadata table
         const { data: metadata, error: metadataError } = await supabase
           .from("user_metadata")
-          .select("role, access_approved, profile_completed, has_agreed_to_terms")
+          .select("role, access_approved, profile_completed, has_agreed_to_terms, full_name, phone")
           .eq("user_id", sessionData.user.id)
           .single();
 
@@ -730,7 +740,8 @@ export default async function authRouter(
           user: {
             id: sessionData.user.id,
             email: sessionData.user.email!,
-            phone: sessionData.user.phone,
+            phone: metadata?.phone || sessionData.user.phone,
+            fullName: metadata?.full_name || null,
             role: metadata?.role || null,
             accessApproved: metadata?.access_approved || false,
             profileCompleted: metadata?.profile_completed || false,
@@ -800,7 +811,12 @@ export default async function authRouter(
           });
         }
 
-        // Generate invite token (works even if email is already verified)
+        // Reset email confirmation so we can re-generate an invite link.
+        // generateLink({ type: "invite" }) fails with email_exists for already-confirmed users.
+        await supabase.auth.admin.updateUserById(user.id, {
+          email_confirm: false,
+        });
+
         const { data: inviteData, error: inviteTokenError } =
           await supabase.auth.admin.generateLink({
             type: "invite",
@@ -864,6 +880,13 @@ export default async function authRouter(
             error: "User does not have an email address. Cannot resend invitation."
           });
         }
+
+        // Reset email confirmation before generating the invite link.
+        // If the user clicked the original link (confirming their email) but never
+        // completed the profile, generateLink({ type: "invite" }) would fail with email_exists.
+        await supabase.auth.admin.updateUserById(user.id, {
+          email_confirm: false,
+        });
 
         // Generate new invite token
         const { data: inviteData, error: inviteTokenError } =
@@ -991,7 +1014,7 @@ export default async function authRouter(
         // Fetch user metadata from user_metadata table
         const { data: metadata, error: metadataError } = await supabase
           .from("user_metadata")
-          .select("role, access_approved, profile_completed, has_agreed_to_terms")
+          .select("role, access_approved, profile_completed, has_agreed_to_terms, full_name, phone")
           .eq("user_id", data.user.id)
           .single();
 
@@ -1007,7 +1030,8 @@ export default async function authRouter(
           user: {
             id: data.user.id,
             email: data.user.email,
-            phone: data.user.phone,
+            phone: metadata?.phone || data.user.phone,
+            fullName: metadata?.full_name || null,
             role: metadata?.role || null,
             accessApproved: metadata?.access_approved || false,
             profileCompleted: metadata?.profile_completed || false,

@@ -3,6 +3,8 @@ import type { Static } from "@fastify/type-provider-typebox";
 
 export const JoinWaitlistSchema = Type.Object({
   email: Type.String({ format: "email" }),
+  name: Type.Optional(Type.String({ minLength: 1 })),
+  phone: Type.Optional(Type.String()),
 });
 
 export const GetWaitlistSchema = Type.Object({

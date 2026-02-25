@@ -1,0 +1,270 @@
+/* Navbar */
+.navbar {
+  position: fixed;
+  bottom: 25px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  width: auto;
+}
+
+/* Navbar Content */
+.navbar-content {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  background: linear-gradient(
+    90deg,
+    #b13bffb2 100%
+  );
+  padding: 9px 24px 9px 12px;
+  border-radius: 40px;
+  box-shadow: 0 8px 30px rgba(166, 31, 255, 0.2);
+  backdrop-filter: blur(9px);
+}
+
+/* Navbar Logo */
+.navbar-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.navbar-logo svg {
+  width: 18px;
+  height: 18px;
+}
+
+.navbar-logo:hover {
+  background: rgba(255, 255, 255, 0.5);
+  transform: scale(1.05);
+}
+
+/* Navbar Menu */
+.navbar-menu {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 25px;
+}
+
+/* Navbar Link */
+.navbar-link {
+  font-size: 14px;
+  font-weight: 500;
+  color: #ffffff90;
+  text-decoration: none;
+  padding: 6px 14px;
+  border-radius: 20px;
+  transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.navbar-link:hover {
+  opacity: 0.8;
+}
+
+
+.navbar-link.active {
+  color: #fff;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.22);
+  box-shadow:
+    0 0 12px rgba(255, 255, 255, 0.25),
+    inset 0 0 8px rgba(255, 255, 255, 0.2);
+  transform: scale(1.06);
+}
+
+/* Navbar Actions (Sign In + Request Invite group) */
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+/* Sign In link */
+.navbar-signin {
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+  padding: 8px 14px;
+  border-radius: 25px;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.navbar-signin:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* Navbar Button */
+.navbar-button {
+  background: #1a1a3e;
+  color: #fff;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 25px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.navbar-button:hover {
+  background: #0d0d2b;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(26, 26, 62, 0.3);
+}
+
+.navbar-button:active {
+  transform: translateY(0);
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .navbar-content {
+    gap: 20px;
+    padding: 8px 18px 8px 10px;
+  }
+
+  .navbar-logo {
+    width: 34px;
+    height: 34px;
+  }
+
+  .navbar-menu {
+    gap: 18px;
+  }
+
+  .navbar-link {
+    font-size: 13px;
+  }
+
+  .navbar-button {
+    padding: 7px 15px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 600px) {
+  .navbar {
+    bottom: 18px;
+    width: calc(100% - 35px);
+    left: 18px;
+    right: 18px;
+    transform: none;
+  }
+
+  .navbar-content {
+    padding: 8px 18px 8px 10px;
+    gap: 18px;
+  }
+
+  .navbar-menu {
+    gap: 14px;
+  }
+
+  .navbar-link {
+    padding: 5px 0;
+    font-size: 12px;
+  }
+
+  .navbar-logo {
+    width: 30px;
+    height: 30px;
+  }
+
+  .navbar-logo svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .navbar-button {
+    padding: 6px 14px;
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 400px) {
+  .navbar-menu {
+    display: none;
+  }
+
+  .navbar-content {
+    gap: 12px;
+  }
+
+  .navbar-button {
+    padding: 5px 10px;
+    font-size: 10px;
+  }
+}
+
+/* ===== Premium Carousel Buttons (Only Button Changed) ===== */
+
+.carousel-button {
+  width: 55px;
+  height: 55px;
+  border-radius: 50%;
+
+  background: rgba(177, 59, 255, 0.25);
+  border: 1.5px solid rgba(177, 59, 255, 0.7);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+  position: relative;
+
+  backdrop-filter: blur(10px);
+  transition: all 0.25s ease;
+}
+
+/* SVG Arrow */
+.carousel-button svg {
+  width: 22px;
+  height: 22px;
+  stroke: #fff;
+  stroke-width: 2.5;
+  fill: none;
+  transition: transform 0.25s ease;
+}
+
+/* Hover */
+.carousel-button:hover {
+  background: rgba(177, 59, 255, 0.4);
+  transform: scale(1.08);
+  box-shadow: 0 0 18px rgba(177, 59, 255, 0.45);
+}
+
+.carousel-button:hover svg {
+  transform: scale(1.15);
+}
+
+/* Click */
+.carousel-button:active {
+  transform: scale(0.95);
+}
+
+/* Disabled */
+.carousel-button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}

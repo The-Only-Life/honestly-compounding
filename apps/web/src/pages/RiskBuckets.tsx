@@ -2,15 +2,16 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Shield, Plus, AlertTriangle, TrendingDown, TrendingUp, Download, Eye } from 'lucide-react';
+import { Shield, Plus, AlertTriangle, TrendingDown, TrendingUp, Eye } from 'lucide-react';
 
 import { useEffect, useState } from 'react';
-import { PDFViewer } from '@/components/PDFViewer';
 import { SecurePDFViewer } from '@/components/SecurePDFViewer';
+import { supabase } from '@/lib/supabase';
+import { apiClient, type Bucket } from '@/lib/api-client';
 
 export default function RiskBuckets() {
   const { userRole } = useAuth();
-  const [riskBuckets, setRiskBuckets] = useState<any[]>([]);
+  const [riskBuckets, setRiskBuckets] = useState<Bucket[]>([]);
   const [storagePDFs, setStoragePDFs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedPDF, setSelectedPDF] = useState<{ url: string; title: string; fileName?: string } | null>(null);
@@ -32,8 +33,8 @@ export default function RiskBuckets() {
 
       if (error) throw error;
 
-      const bucketPDFs = data?.filter(file => 
-        file.name.toLowerCase().includes('bucket') || 
+      const bucketPDFs = data?.filter(file =>
+        file.name.toLowerCase().includes('bucket') ||
         file.name.toLowerCase().includes('risk')
       ) || [];
 
@@ -55,25 +56,15 @@ export default function RiskBuckets() {
 
   const fetchRiskBuckets = async () => {
     try {
-      const { data: bucketsData, error: bucketsError } = await supabase
-        .from('risk_buckets')
-        .select(`
-          *,
-          stocks:stocks(count)
-        `);
+      const [bucketsResponse, stocksResponse] = await Promise.all([
+        apiClient.getBuckets(),
+        apiClient.getStocks(1, 1),
+      ]);
 
-      if (bucketsError) throw bucketsError;
-
-      const { data: stocksData, error: stocksError } = await supabase
-        .from('stocks')
-        .select('count');
-
-      if (stocksError) throw stocksError;
-
-      setRiskBuckets(bucketsData || []);
+      setRiskBuckets(bucketsResponse.buckets);
       setStats({
-        totalBuckets: bucketsData?.length || 0,
-        totalStocks: stocksData?.length || 0
+        totalBuckets: bucketsResponse.total,
+        totalStocks: stocksResponse.total,
       });
     } catch (error) {
       console.error('Error fetching risk buckets:', error);
@@ -132,7 +123,7 @@ export default function RiskBuckets() {
             <p className="text-xs text-muted-foreground">Risk categories</p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Stocks</CardTitle>
@@ -166,9 +157,9 @@ export default function RiskBuckets() {
                     </CardHeader>
                     <CardContent>
                       <div className="flex gap-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
+                        <Button
+                          variant="outline"
+                          size="sm"
                           className="flex-1"
                           onClick={() => handleViewPDF(pdf.fileName, pdf.name)}
                         >
@@ -197,6 +188,12 @@ export default function RiskBuckets() {
                             <Shield className="h-4 w-4" />
                             {bucket.name}
                           </CardTitle>
+                          {(bucket as any).riskLevel && (
+                            <Badge className={getRiskColor((bucket as any).riskLevel)}>
+                              {getRiskIcon((bucket as any).riskLevel)}
+                              <span className="ml-1">{(bucket as any).riskLevel} Risk</span>
+                            </Badge>
+                          )}
                         </div>
                       </div>
                       <CardDescription>{bucket.description || 'No description available'}</CardDescription>
@@ -205,22 +202,22 @@ export default function RiskBuckets() {
                       <div className="space-y-3">
                         <div className="flex justify-between text-sm">
                           <span className="text-muted-foreground">Created:</span>
-                          <span className="font-medium">{new Date(bucket.created_at).toLocaleDateString()}</span>
+                          <span className="font-medium">{new Date(bucket.createdAt).toLocaleDateString()}</span>
                         </div>
                         <div className="flex justify-between text-sm">
                           <span className="text-muted-foreground">Updated:</span>
-                          <span className="font-medium">{new Date(bucket.updated_at).toLocaleDateString()}</span>
+                          <span className="font-medium">{new Date(bucket.updatedAt).toLocaleDateString()}</span>
                         </div>
-                        
+
                         <div className="flex gap-2 mt-4">
                           <Button variant="outline" size="sm" className="flex-1">
                             View Stocks
                           </Button>
-                          {bucket.pdf_url && (
-                            <Button 
-                              variant="outline" 
+                          {(bucket as any).pdf_url && (
+                            <Button
+                              variant="outline"
                               size="sm"
-                              onClick={() => handleViewPDF(bucket.pdf_url.split('/').pop() || '', bucket.name)}
+                              onClick={() => handleViewPDF((bucket as any).pdf_url.split('/').pop() || '', bucket.name)}
                             >
                               <Eye className="w-4 h-4" />
                             </Button>
@@ -247,7 +244,7 @@ export default function RiskBuckets() {
         </CardContent>
       </Card>
 
-      <SecurePDFViewer 
+      <SecurePDFViewer
         isOpen={!!selectedPDF}
         onClose={() => setSelectedPDF(null)}
         fileName={selectedPDF?.fileName}

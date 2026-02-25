@@ -17,6 +17,7 @@ import Themes from "./pages/Themes";
 import Buckets from "./pages/Buckets";
 import Stocks from "./pages/Stocks";
 import Account from "./pages/Account";
+import Landing from "./pages/Landing";
 import Acknowledgement from "./pages/Acknowledgement";
 import NotFound from "./pages/NotFound";
 import { PostHogProvider } from "posthog-js/react";
@@ -51,7 +52,8 @@ const App = () => (
               <Sonner />
               <BrowserRouter>
                 <Routes>
-              <Route path="/" element={<Index />} />
+              <Route path="/" element={<Landing />} />
+              <Route path="/index" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/auth/confirm" element={<AuthConfirm />} />
               <Route path="/complete-profile" element={<CompleteProfile />} />

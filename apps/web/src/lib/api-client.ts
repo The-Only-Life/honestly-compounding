@@ -16,16 +16,14 @@ export interface LoginRequest {
 export interface AuthUser {
   id: string;
   email: string;
+  phone?: string | null;
+  fullName?: string | null;
   role?: string | null;
   accessApproved?: boolean;
   profileCompleted?: boolean;
   hasAgreedToTerms?: boolean;
   emailVerified: boolean;
   createdAt: string;
-  user_metadata?: {
-    full_name?: string;
-    [key: string]: any;
-  };
 }
 
 export interface LoginResponse {
@@ -144,6 +142,8 @@ export interface BulkInviteUserResponse {
 export interface WaitlistEntry {
   id: string;
   email: string;
+  name?: string | null;
+  phone?: string | null;
   status: 'pending' | 'invited';
   created_at: string;
 }
@@ -452,10 +452,10 @@ class ApiClient {
   }
 
   // Waitlist endpoints
-  async joinWaitlist(email: string, captchaToken?: string): Promise<JoinWaitlistResponse> {
+  async joinWaitlist(email: string, name?: string, phone?: string, captchaToken?: string): Promise<JoinWaitlistResponse> {
     return this.request<JoinWaitlistResponse>("/api/waitlist/join", {
       method: "POST",
-      body: JSON.stringify({ email, captchaToken }),
+      body: JSON.stringify({ email, name, phone, captchaToken }),
     });
   }
 

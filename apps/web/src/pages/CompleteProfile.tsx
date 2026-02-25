@@ -39,7 +39,8 @@ const CompleteProfile = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [userEmail, setUserEmail] = useState('');
   const [userPhone, setUserPhone] = useState('');
-  const [authType, setAuthType] = useState<'invite' | 'phone'>('invite');
+  const [userFullName, setUserFullName] = useState('');
+  const [authType, setAuthType] = useState<'invite' | 'magiclink' | 'phone'>('invite');
 
   // Verify token exists in URL and extract user data
   useEffect(() => {
@@ -50,8 +51,8 @@ const CompleteProfile = () => {
         const accessToken = hashParams.get('access_token') || searchParams.get('access_token');
         const type = hashParams.get('type') || searchParams.get('type');
 
-        // Accept both 'invite' and 'phone' types
-        if (!accessToken || (type !== 'invite' && type !== 'phone')) {
+        // Accept 'invite', 'magiclink', and 'phone' types
+        if (!accessToken || (type !== 'invite' && type !== 'magiclink' && type !== 'phone')) {
           toast({
             title: "Invalid link",
             description: "This link is invalid or has expired.",
@@ -62,15 +63,15 @@ const CompleteProfile = () => {
         }
 
         // Store auth type
-        setAuthType(type as 'invite' | 'phone');
+        setAuthType(type as 'invite' | 'magiclink' | 'phone');
 
         // Decode JWT to get user information
         const payload = decodeJWT(accessToken);
         if (payload) {
-          console.log('Decoded token:', payload);
-          // Extract email and phone from the JWT payload
           setUserEmail(payload.email || '');
-          setUserPhone(payload.phone || '');
+          // phone may be top-level (direct invite) or in user_metadata (waitlist approval)
+          setUserPhone(payload.user_metadata?.phone || payload.phone || '');
+          setUserFullName(payload.user_metadata?.full_name || '');
         }
 
         // Token is valid (JWT from Supabase)
@@ -99,6 +100,7 @@ const CompleteProfile = () => {
       const formData = new FormData(e.currentTarget);
       const email = formData.get('email') as string;
       const phone = formData.get('phone') as string;
+      const full_name = formData.get('full_name') as string;
       const password = formData.get('password') as string;
       const confirmPassword = formData.get('confirmPassword') as string;
 
@@ -126,6 +128,7 @@ const CompleteProfile = () => {
         body: JSON.stringify({
           email,
           phone,
+          full_name,
           password,
         }),
       });
@@ -213,6 +216,16 @@ const CompleteProfile = () => {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleCompleteProfile} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="full_name">Full Name</Label>
+              <Input
+                id="full_name"
+                name="full_name"
+                type="text"
+                placeholder="Enter your full name"
+                defaultValue={userFullName}
+              />
+            </div>
             {authType === 'phone' ? (
               <>
                 <div className="space-y-2">

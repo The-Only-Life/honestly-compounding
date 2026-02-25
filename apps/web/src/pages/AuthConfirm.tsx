@@ -30,9 +30,9 @@ const AuthConfirm = () => {
           return;
         }
 
-        // For invite type, verify the token with our backend
+        // For invite/magiclink type, verify the token with our backend
         // The backend will exchange the token_hash for a real JWT access_token
-        if (type === 'invite') {
+        if (type === 'invite' || type === 'magiclink') {
           try {
             // Call our backend to verify the token_hash
             const response = await fetch(`${AppConfig.API_BASE_URL}/api/auth/verify-invite`, {

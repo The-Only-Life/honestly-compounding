@@ -43,6 +43,12 @@ export default function Account() {
             <CardDescription>Your account details</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            {user.fullName && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-muted-foreground">Name</label>
+                <p className="font-medium">{user.fullName}</p>
+              </div>
+            )}
             <div className="space-y-2">
               <label className="text-sm font-medium text-muted-foreground">Email</label>
               <div className="flex items-center gap-2">
@@ -56,6 +62,12 @@ export default function Account() {
               </div>
             </div>
 
+            {user.phone && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-muted-foreground">Phone</label>
+                <p className="font-medium">{user.phone}</p>
+              </div>
+            )}
             <div className="space-y-2">
               <label className="text-sm font-medium text-muted-foreground">Role</label>
               <div className="flex items-center gap-2">
