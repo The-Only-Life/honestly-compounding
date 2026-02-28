@@ -1,6 +1,6 @@
 import { useState } from "react";
 import "../styles/InviteSection.css";
-import InviteImage from "../assets/Invitation-Card.jpg";
+import InviteImage from "../assets/Invitation-Card.png";
 import { useJoinWaitlist } from "@/hooks/use-waitlist-api";
 
 export default function InviteSection() {

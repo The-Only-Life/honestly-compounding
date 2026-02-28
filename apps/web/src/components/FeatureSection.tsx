@@ -1,31 +1,43 @@
 import { useState } from "react";
 import "../styles/FeatureSection.css";
 
+// Import images from assets
+import image1 from "../assets/card1.png";
+import image2 from "../assets/card2.png";
+import image3 from "../assets/card3.png";
+import image4 from "../assets/card4.png";
+import image5 from "../assets/card5.png";
+
 const cards = [
   {
     title: "We stay with you.",
     text: "From first investment to long term decisions, we guide every phase not just entry points.",
     color: "#B13BFF",
+    image: image1,
   },
   {
     title: "Product Over Projections",
     text: "We focus on product strength, adoption, and capability rather than short-term earnings or distant forecasts.",
     color: "#2D78FE",
+    image: image2,
   },
   {
     title: "A focused set to choose from.",
     text: "A basket of 50+ researched stocks that suits your goals not endless recommendations.",
     color: "#27D8F7",
+    image: image3,
   },
   {
     title: "Diversification, made visible",
     text: "Stocks spread across industries and risk buckets to help balance desicions.",
     color: "#2BFF4B",
+    image: image4,
   },
   {
     title: "Portfolio review",
     text: "Annual reviews of equity, debt, gold, and more-at no extra cost.",
     color: "#FFCB3A",
+    image: image5,
   },
 ];
 
@@ -47,7 +59,6 @@ export default function FeatureSection() {
   return (
     <section id="research" className="feature-section">
       <div className="feature-container">
-        {/* Heading */}
         <h2 className="feature-heading">
           The Structure Behind <br />
           the <span>Simplicity</span>
@@ -58,7 +69,6 @@ export default function FeatureSection() {
           decisions, cycles, and time.
         </p>
 
-        {/* Carousel Container */}
         <div className="carousel-wrapper">
           <button
             className="carousel-button"
@@ -70,8 +80,6 @@ export default function FeatureSection() {
             </svg>
           </button>
 
-
-          {/* Cards */}
           <div className="card-grid">
             {cards.slice(currentIndex, currentIndex + 3).map((card, i) => (
               <div
@@ -82,22 +90,26 @@ export default function FeatureSection() {
                 <h4 className="card-title">{card.title}</h4>
                 <p className="card-text">{card.text}</p>
 
-                {/* Image placeholder */}
-                <div className="card-image" />
+                {card.image && (
+                  <img 
+                    src={card.image} 
+                    alt={card.title}
+                    className="card-image"
+                  />
+                )}
               </div>
             ))}
           </div>
 
-            <button
-              className="carousel-button"
-              onClick={handleNext}
-              disabled={currentIndex === cards.length - 3}
-            >
-              <svg viewBox="0 0 24 24">
-                <path d="M9 18L15 12L9 6" />
-              </svg>
-            </button>
-
+          <button
+            className="carousel-button"
+            onClick={handleNext}
+            disabled={currentIndex === cards.length - 3}
+          >
+            <svg viewBox="0 0 24 24">
+              <path d="M9 18L15 12L9 6" />
+            </svg>
+          </button>
         </div>
       </div>
     </section>

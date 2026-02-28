@@ -1,5 +1,6 @@
 import "../styles/HeroSection.css";
 import logoImage from "../assets/Logo.png"
+import HeroImage from "../assets/Hero_Section.png";
 
 export default function HeroSection() {
   return (
@@ -22,7 +23,7 @@ export default function HeroSection() {
               Built for Long Term{" "}
               <span className="hero-highlight">Investors.</span>
             </h1>
-            <h2 className="hero-subheading">Reserved for a Select Few.</h2>
+            <h2 className="hero-subheading">Reserved for a Select <br></br>Few.</h2>
             <p className="hero-description">
               An invite-only platform offering honest, research driven investment
               guidance.
@@ -31,16 +32,7 @@ export default function HeroSection() {
         </div>
 
         <div className="hero-video-container">
-          <video
-            className="hero-video"
-            autoPlay
-            muted
-            loop
-            playsInline
-          >
-            <source src="/your-video.mp4" type="video/mp4" />
-            Your browser does not support the video tag.
-          </video>
+          <img src={HeroImage} alt="Hero Image" className="hero-image" />
         </div>
       </div>
     </section>
