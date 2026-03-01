@@ -3,9 +3,9 @@
   min-height: 100vh;
   background: linear-gradient(
     180deg,
-  #f5f3f9 0%,
-  #f0ecf8 65%,
-  #e0b4fe 100% /*#B13BFFB2*/
+    #f5f3f9 0%,
+    #f0ecf8 75%,
+    #e0b4fe 100%
   );
   display: flex;
   flex-direction: column;
@@ -70,24 +70,22 @@
 
 /* Hero Heading */
 .hero-heading {
-  font-size: clamp(36px, 4.5vw, 72px);
+  font-size: clamp(36px, 4.5vw, 60px);
   line-height: 1.2;
   font-weight: 700;
   color: #222;
   margin: 0;
   margin-bottom: 0.2em;
-  letter-spacing: 0.03em;
 }
 
 /* Hero Highlight */
 .hero-highlight {
   color: #a61fff;
-  text-shadow: 0 0 18px rgba(166, 31, 255, 0.4);
 }
 
 /* Hero Subheading */
 .hero-subheading {
-  font-size: clamp(36px, 4.5vw, 72px);
+  font-size: clamp(36px, 4.5vw, 60px);
   line-height: 1.3;
   font-weight: 600;
   color: #6b7280;
@@ -97,7 +95,7 @@
 
 /* Hero Description */
 .hero-description {
-  font-size: clamp(16px, 1.8vw, 20px);
+  font-size: clamp(16px, 1.8vw, 30px);
   line-height: 1.6;
   font-weight: 400;
   color: #6b7280;
@@ -109,29 +107,19 @@
 .hero-video-container {
   flex: 1;
   margin-right: 60px;
-  min-width: 0;
   aspect-ratio: 9 / 16;
   border-radius: 80px;
   overflow: hidden;
-  box-shadow: 
-    0 20px 60px rgba(0, 0, 0, 0.15),
-    inset 0 0 40px rgba(255, 255, 255, 0.2);
-  background: linear-gradient(
-    180deg,
-    #d096f7 0%,
-  );
-  border: 8px solid rgba(120, 80, 150, 0.3);
-  max-width: 300px;
+  max-width: 400px;
 }
 
 /* Hero Video */
-.hero-video {
+.hero-image {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-/* Responsive */
 @media (max-width: 1024px) {
   .hero-wrapper {
     flex-direction: column;
@@ -139,8 +127,7 @@
   }
 
   .hero-video-container {
-    width: 100%;
-    max-width: 500px;
+    display: none;
   }
 }
 
@@ -168,8 +155,7 @@
   }
 
   .hero-video-container {
-    width: 100%;
-    max-width: 100%;
+    display: none;
   }
 
   .hero-container {
@@ -183,5 +169,180 @@
 
   .hero-subheading {
     margin-bottom: 1.5rem;
+  }
+}
+
+
+@media (max-width: 599px) {
+  .hero-section {
+    min-height: auto;
+    padding: 90px 16px 30px 16px;
+  }
+
+  .hero-header {
+    padding: 15px 16px;
+  }
+
+  .hero-logo {
+    height: 28px;
+  }
+
+  .hero-company-name {
+    font-size: clamp(14px, 3.5vw, 18px);
+  }
+
+  .hero-wrapper {
+    gap: 20px;
+  }
+
+  .hero-heading {
+    font-size: clamp(28px, 7vw, 44px);
+    margin-bottom: 0.3em;
+  }
+
+  .hero-subheading {
+    font-size: clamp(24px, 5.5vw, 40px);
+    margin-bottom: 1.2rem;
+  }
+
+  .hero-description {
+    font-size: clamp(14px, 3.5vw, 16px);
+    line-height: 1.5;
+  }
+
+  .hero-video-container {
+    display: none;
+  }
+}
+
+@media (max-width: 767px) and (min-width: 600px) {
+  .hero-section {
+    min-height: auto;
+    padding: 95px 20px 35px 20px;
+  }
+
+  .hero-header {
+    padding: 18px 20px;
+  }
+
+  .hero-logo {
+    height: 30px;
+  }
+
+  .hero-company-name {
+    font-size: clamp(15px, 3vw, 18px);
+  }
+
+  .hero-wrapper {
+    gap: 25px;
+  }
+
+  .hero-heading {
+    font-size: clamp(32px, 6vw, 48px);
+    margin-bottom: 0.4em;
+  }
+
+  .hero-subheading {
+    font-size: clamp(28px, 5vw, 44px);
+    margin-bottom: 1.3rem;
+  }
+
+  .hero-description {
+    font-size: clamp(15px, 3.2vw, 17px);
+    line-height: 1.55;
+    max-width: 100%;
+  }
+
+  .hero-video-container {
+    display: none;
+  }
+}
+
+@media (max-height: 480px) and (orientation: landscape) {
+  .hero-section {
+    min-height: auto;
+    padding: 70px 16px 20px 16px;
+  }
+
+  .hero-header {
+    padding: 10px 16px;
+  }
+
+  .hero-wrapper {
+    flex-direction: row;
+    gap: 15px;
+  }
+
+  .hero-heading {
+    font-size: clamp(24px, 5vw, 32px);
+    margin-bottom: 0.2em;
+  }
+
+  .hero-subheading {
+    font-size: clamp(16px, 4vw, 24px);
+    margin-bottom: 0.8rem;
+  }
+
+  .hero-description {
+    font-size: clamp(12px, 2.5vw, 14px);
+    line-height: 1.4;
+  }
+
+  .hero-video-container {
+    display: none;
+  }
+}
+
+@media (max-width: 379px) {
+  .hero-section {
+    min-height: auto;
+    padding: 80px 12px 25px 12px;
+  }
+
+  .hero-header {
+    padding: 12px 12px;
+  }
+
+  .hero-logo {
+    height: 24px;
+  }
+
+  .hero-company-name {
+    font-size: clamp(12px, 4vw, 16px);
+  }
+
+  .hero-logo-container {
+    gap: 8px;
+  }
+
+  .hero-heading {
+    font-size: clamp(24px, 8vw, 36px);
+    margin-bottom: 0.3em;
+  }
+
+  .hero-subheading {
+    font-size: clamp(20px, 6vw, 32px);
+    margin-bottom: 1rem;
+  }
+
+  .hero-description {
+    font-size: clamp(13px, 3.8vw, 15px);
+    line-height: 1.5;
+  }
+
+  .hero-video-container {
+    display: none;
+  }
+}
+
+@media print {
+  .hero-section {
+    min-height: auto;
+    padding: 20px;
+  }
+
+  .hero-header {
+    position: static;
+    padding: 10px 20px;
   }
 }

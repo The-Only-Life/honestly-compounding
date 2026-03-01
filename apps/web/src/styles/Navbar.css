@@ -15,7 +15,7 @@
   gap: 30px;
   background: linear-gradient(
     90deg,
-    #b13bffb2 100%
+    #e0b4fe 100%
   );
   padding: 9px 24px 9px 12px;
   border-radius: 40px;
@@ -36,11 +36,13 @@
   cursor: pointer;
   transition: all 0.3s ease;
   flex-shrink: 0;
+  
 }
 
 .navbar-logo svg {
   width: 18px;
   height: 18px;
+  
 }
 
 .navbar-logo:hover {
@@ -57,11 +59,13 @@
   gap: 25px;
 }
 
+
+
 /* Navbar Link */
 .navbar-link {
   font-size: 14px;
-  font-weight: 500;
-  color: #ffffff90;
+  font-weight: 600;
+  color: #111;
   text-decoration: none;
   padding: 6px 14px;
   border-radius: 20px;
@@ -74,8 +78,8 @@
 
 
 .navbar-link.active {
-  color: #fff;
-  font-weight: 700;
+  color: #111;
+  font-weight: 900;
   background: rgba(255, 255, 255, 0.22);
   box-shadow:
     0 0 12px rgba(255, 255, 255, 0.25),
@@ -245,7 +249,7 @@
   transition: transform 0.25s ease;
 }
 
-/* Hover */
+
 .carousel-button:hover {
   background: rgba(177, 59, 255, 0.4);
   transform: scale(1.08);
@@ -256,12 +260,12 @@
   transform: scale(1.15);
 }
 
-/* Click */
+
 .carousel-button:active {
   transform: scale(0.95);
 }
 
-/* Disabled */
+
 .carousel-button:disabled {
   opacity: 0.35;
   cursor: not-allowed;

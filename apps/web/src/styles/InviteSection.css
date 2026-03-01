@@ -1,6 +1,6 @@
 /* Invite Section */
 .invite-section {
-  background: #111;
+  background: #1E1E1E;
   padding: 80px 5vw;
   min-height: 100vh;
   display: flex;
@@ -19,11 +19,12 @@
   border-radius: 5px;
   overflow: hidden;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  background: linear-gradient(135deg, #B13BFF 0%, #d4a0ff 5%, #f5f3f9 20%, #f5f3f9 75%, #d4a0ff 92%, #B13BFF 100%);
 }
 
 /* Left Side - Image */
 .invite-left {
-  background: linear-gradient(135deg, #f4d27f 0%, #f9e5b3 100%);
+  background: transparent;
   padding: 60px 40px;
   display: flex;
   align-items: center;
@@ -40,7 +41,7 @@
 
 /* Right Side - Form */
 .invite-right {
-  background: linear-gradient(135deg, #f5f3f9 0%, #f0ecf8 70%, #c586ef 100%);
+  background: transparent;
   padding: 60px;
   display: flex;
   align-items: center;
@@ -233,6 +234,7 @@
     font-size: 13px;
   }
 }
+
 .invite-success {
   color: #fff;
   font-size: 18px;
