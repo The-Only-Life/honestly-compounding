@@ -7,7 +7,7 @@
   --font-size-min: 44px;
   --font-size-max: 88px;
   --font-size-vw: 6vw;
-  --spacing-padding: 6vw;
+  --spacing-padding: 15vw;
   --line-height: 1.3;
   --font-weight: 600;
   --letter-spacing: -0.02em;
@@ -17,16 +17,16 @@
   padding-top: 100px;
   position: absolute;
   top: 60px;
-  left: 315px;
-  font-weight: 800;
+  left: var(--spacing-padding);
+  right: var(--spacing-padding);
 
   font-size: clamp(22px, 6vw, 30px); 
   font-weight: 600;
   line-height: 1.2;
 
-
   text-align: left;
   color: #222;
+  max-width: 900px;
 }
 
 .scroll-section__header span {
@@ -35,7 +35,7 @@
 
 /* Main section */
 .scroll-section {
-  height: 350vh;
+  height: 310vh;
   background: linear-gradient(
     180deg,
   #e0b4fe 0%,
@@ -55,13 +55,13 @@
 
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
 
   padding: 0 var(--spacing-padding);
 }
 
 .scroll-section__text {
-  margin-top: 265vh;
+  margin-top: 225vh;
   max-width: 900px;
   font-size: clamp(40px, 6vw, 70px);
   font-weight: 600;
@@ -84,95 +84,188 @@
   color: #a61fff;
 }
 
-/* Responsive Styles */
-@media (max-width: 1024px) {
-  .scroll-section__header {
-    left: 25px;
-    top: 40px;
-  }
 
-  .scroll-section {
-    height: 280vh;
-  }
-
-  .scroll-section__text {
-    padding-top: 1300px;
-  }
-}
-
+/* ===== MOBILE & TABLET PORTRAIT (≤768px) ===== */
 @media (max-width: 768px) {
+  :root {
+    --spacing-padding: 10vw;
+  }
+
   .scroll-section__header {
-    left: 20px;
     top: 30px;
-  }
-
-  .scroll-section {
-    height: 250vh;
+    padding-top: 70px;
+    font-size: clamp(18px, 4.5vw, 26px);
+    left: var(--spacing-padding);
+    right: var(--spacing-padding);
   }
 
   .scroll-section__text {
-    padding-top: 1500px;
+    font-size: clamp(28px, 4.5vw, 50px);
+    letter-spacing: 0.8px;
+    line-height: 2.5;
+    max-width: 100%;
+  }
+
+  .scroll-section {
+    height: 175vh;
+  }
+
+  .scroll-section__text {
+    margin-top: 100vh;
   }
 }
 
-@media (max-width: 599px) {
+/* ===== SMALL MOBILE (480px - 600px) ===== */
+@media (max-width: 600px) {
+  :root {
+    --spacing-padding: 8vw;
+  }
+
+  .scroll-section__container {
+    padding: 0 var(--spacing-padding);
+  }
+
   .scroll-section__header {
-    padding-top: 40px;
-    left: 30px;
     top: 20px;
+    padding-top: 50px;
+    font-size: clamp(10px, 3.5vw, 15px);
+    left: var(--spacing-padding);
+    right: var(--spacing-padding);
+  }
+
+  .scroll-section__text {
+    font-size: clamp(30px, 3.5vw, 40px);
+    letter-spacing: 0.5px;
+    max-width: 100%;
+    line-height: 2.5;
+    max-width: 400px;
+  }
+
+  .scroll-section {  
+    background: linear-gradient(
+    180deg,
+    #e8c6ff 0%,
+    #f0ecf8 35%,
+    #f5f3f9 100%
+  );
+    height: 180vh;
+  }
+
+  .scroll-section__text {
+    margin-top: 90vh;
+  }
+}
+
+/* ===== EXTRA SMALL MOBILE (≤480px) ===== */
+@media (max-width: 480px) {
+  :root {
+    --spacing-padding: 6vw;
+  }
+
+  .scroll-section__container {
+    padding: 0 var(--spacing-padding);
+  }
+
+  .scroll-section__header {
+    top: 75px;
+    padding-top: 40px;
+    font-size: clamp(12px, 3vw, 18px);
+    left: var(--spacing-padding);
+    right: var(--spacing-padding);
+  }
+
+  .scroll-section__text {
+    font-size: clamp(25px, 3vw, 36px);
+    letter-spacing: 0.4px;
+    line-height: 2.2;
+    max-width: 100%;
+    max-width: 300px;
   }
 
   .scroll-section {
+    background: linear-gradient(
+    180deg,
+    #e8c6ff 0%,
+    #f0ecf8 35%,
+    #f5f3f9 100%
+  );
+    height: 145vh;
+  }
+
+  .scroll-section__text {
+    margin-top: 50vh;
+  }
+}
+
+@media (max-width: 380px) {
+  :root {
+    --spacing-padding: 6vw;
+  }
+
+  .scroll-section__container {
+    padding: 0 var(--spacing-padding);
+  }
+
+  .scroll-section__header {
+    top: 75px;
+    padding-top: 40px;
+    font-size: clamp(12px, 3vw, 18px);
+    left: var(--spacing-padding);
+    right: var(--spacing-padding);
+  }
+
+  .scroll-section__text {
+    font-size: clamp(25px, 3vw, 36px);
+    letter-spacing: 0.4px;
+    line-height: 2.5;
+    max-width: 100%;
+    max-width: 300px;
+  }
+
+  .scroll-section {
+    background: linear-gradient(
+    180deg,
+    #e8c6ff 0%,
+    #f0ecf8 35%,
+    #f5f3f9 100%
+  );
     height: 200vh;
   }
 
   .scroll-section__text {
-    padding-top: 850px;
+    margin-top: 110vh;
   }
 }
 
-@media (max-width: 767px) and (min-width: 600px) {
+/* ===== LANDSCAPE (Low height) ===== */
+@media (orientation: landscape) and (max-height: 600px) {
   .scroll-section__header {
-    left: 45px;
-    top: 25px;
-  }
-
-  .scroll-section {
-    height: 200vh;
-  }
-
-  .scroll-section__text {
-    padding-top: 1000px;
-  }
-}
-
-@media (max-height: 480px) and (orientation: landscape) {
-  .scroll-section__header {
-    left: 25px;
     top: 15px;
+    padding-top: 20px;
   }
 
   .scroll-section {
-    height: 300vh;
+    height: 260vh;
   }
 
   .scroll-section__text {
-    padding-top: 800px;
+    margin-top: 180vh;
   }
 }
 
-@media (max-width: 379px) {
+
+/* ===== RETINA DISPLAYS ===== */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .scroll-section__text,
   .scroll-section__header {
-    padding-top: 10px;
-    left: 25px;
-    top: 15px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
+}
 
-  .scroll-section {
-    height: 280vh;
-  }
-
-  .scroll-section__text {
-    padding-top: 1200px;
+/* ===== ACCESSIBILITY ===== */
+@media (prefers-reduced-motion: reduce) {
+  .word {
+    transition: none;
   }
 }

@@ -16,16 +16,19 @@
   padding: 0 6vw;
 }
 
+/* Top layout */
 .footer__top {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
+/* Left stays empty intentionally */
 .footer__left {
   flex: 1;
 }
 
+/* Right side content */
 .footer__right {
   display: flex;
   align-items: center;
@@ -33,7 +36,7 @@
   gap: 28px;
 }
 
-
+/* Divider line */
 .footer__divider {
   width: 100%;
   height: 1px;
@@ -42,7 +45,7 @@
   margin: 25px 0 40px;
 }
 
-
+/* Button */
 .footer__button {
   background: #0a0146;
   color: white;
@@ -53,6 +56,7 @@
   font-weight: 500;
 }
 
+/* Links */
 .footer__link {
   text-decoration: none;
   color: #333;
@@ -63,6 +67,7 @@
   opacity: 0.7;
 }
 
+/* Bottom logo */
 .footer__bottom {
   display: flex;
   align-items: center;
@@ -76,3 +81,78 @@
   margin-top: 40px;
   max-width: 100%;
 }
+
+/* ================================
+   MOBILE RESPONSIVE (Phones)
+   ================================ */
+@media (max-width: 480px) {
+
+  .footer {
+    height: auto;
+    padding: 20px 0 40px;
+  }
+
+  .footer__top {
+    align-items: flex-start;
+  }
+
+  /* Turn right section into grid only on mobile */
+  .footer__right {
+    display: grid;
+    grid-template-columns: auto auto;
+    grid-template-rows: auto auto;
+    gap: 6px 16px;
+  }
+
+  /* Button position */
+  .footer__button {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  /* Terms */
+  .footer__link:nth-of-type(2) {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  /* Privacy below */
+  .footer__link:nth-of-type(1) {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  /* Logo responsive */
+  .footer__logo {
+    width: 100%;
+    height: auto;
+    margin-top: 30px;
+  }
+
+}
+
+/* -----------------------------
+   Tablet View (<= 1024px)
+----------------------------- */
+@media (max-width: 1024px) {
+  .footer {
+    height: auto;
+    padding: 40px 0;
+  }
+
+  .footer__container {
+    padding: 0 5vw;
+  }
+
+  .footer__right {
+    gap: 18px;
+    margin-top: 0;
+  }
+
+  .footer__logo {
+    width: 900px;
+    height: auto;
+    margin-top: 30px;
+  }
+}
+

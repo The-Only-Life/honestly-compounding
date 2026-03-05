@@ -11,21 +11,34 @@ export default function ScrollSection() {
 
   useEffect(() => {
     const paragraph = textRef.current;
+    let html = "";
 
-    const words = paragraph.innerText.split(" ");
+    // Get all child nodes (text nodes and br elements)
+    Array.from(paragraph.childNodes).forEach((node) => {
+      if (node.nodeType === Node.TEXT_NODE) {
+        // Split text by spaces and filter empty strings
+        const words = node.textContent
+          .split(/\s+/)
+          .filter((w) => w.length > 0);
 
-paragraph.innerHTML = words
-  .map((word) => {
-    const cleanWord = word.replace(/[^\w]/g, "").toLowerCase();
+        html += words
+          .map((word) => {
+            const cleanWord = word.replace(/[^\w]/g, "").toLowerCase();
 
-    if (cleanWord === "honesty" || cleanWord === "patience") {
-      return `<span class="word highlight-word">${word} </span>`;
-    }
+            if (cleanWord === "honesty" || cleanWord === "patience") {
+              return `<span class="word highlight-word">${word} </span>`;
+            }
 
-    return `<span class="word">${word} </span>`;
-  })
-  .join("");
+            return `<span class="word">${word} </span>`;
+          })
+          .join("");
+      } else if (node.tagName === "BR") {
+        // Preserve br tags
+        html += "<br>";
+      }
+    });
 
+    paragraph.innerHTML = html;
 
     const wordElements = paragraph.querySelectorAll(".word");
 
@@ -56,25 +69,22 @@ paragraph.innerHTML = words
   }, []);
 
   return (
-<section id="approach" ref={sectionRef} className="scroll-section">
-  <div className="scroll-section__container">
+    <section id="approach" ref={sectionRef} className="scroll-section">
+      <div className="scroll-section__container">
+        <div className="scroll-section__header">
+          FOR THOSE WHO INVEST WITH <span>PATIENCE.</span>
+        </div>
 
-    {/* Header */}
-    <div className="scroll-section__header">
-      FOR THOSE WHO INVEST WITH <span>PATIENCE.</span>
-    </div>
-
-    <p ref={textRef} className="scroll-section__text">
-      Our work is built around patience. We offer a carefully chosen basket
-      of stocks and identify rare short-term opportunities when they appear.
-      We stay with you through every phase of your investing life. Decisions
-      are deliberate, transparent, and designed for the long term. Your
-      wealth and assets are reviewed each year with clarity and honesty. All
-      for a simple fee and no commissions — your money stays with you.
-    </p>
-
-  </div>
-</section>
-
+        <p ref={textRef} className="scroll-section__text">
+          Our work is built around patience.
+          <br />
+          We offer a carefully chosen basket of stocks
+          <br />
+          And identify rare short-term opportunities when they appear, While We stay with you through every phase of your investing life.
+          <br />
+          Your wealth and assets are reviewed each year with clarity and honesty. All for a simple fee and no commissions — your money stays with you.
+        </p>
+      </div>
+    </section>
   );
 }
