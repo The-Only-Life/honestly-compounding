@@ -82,9 +82,7 @@
   max-width: 100%;
 }
 
-/* ================================
-   MOBILE RESPONSIVE (Phones)
-   ================================ */
+
 @media (max-width: 480px) {
 
   .footer {
@@ -131,9 +129,6 @@
 
 }
 
-/* -----------------------------
-   Tablet View (<= 1024px)
------------------------------ */
 @media (max-width: 1024px) {
   .footer {
     height: auto;

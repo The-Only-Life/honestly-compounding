@@ -228,7 +228,7 @@
     position: relative;
   }
 
-  /* Position image absolutely to top-right */
+  
   .invite-left {
     position: absolute;
     top: 40px;
