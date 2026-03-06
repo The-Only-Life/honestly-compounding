@@ -59,9 +59,6 @@
   gap: 25px;
 }
 
-
-
-/* Navbar Link */
 .navbar-link {
   font-size: 14px;
   font-weight: 600;
@@ -87,7 +84,7 @@
   transform: scale(1.06);
 }
 
-/* Navbar Actions (Sign In + Request Invite group) */
+
 .navbar-actions {
   display: flex;
   align-items: center;
@@ -95,20 +92,12 @@
   flex-shrink: 0;
 }
 
-/* Sign In link */
+
 .navbar-signin {
-  font-size: 13px;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.8);
-  text-decoration: none;
-  padding: 8px 14px;
-  border-radius: 25px;
-  transition: all 0.3s ease;
   white-space: nowrap;
 }
 
 .navbar-signin:hover {
-  color: #fff;
   background: rgba(255, 255, 255, 0.12);
 }
 
@@ -138,16 +127,126 @@
   transform: translateY(0);
 }
 
+
+.navbar-hamburger {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  cursor: pointer;
+  background: rgba(230, 200, 255, 0.5);
+  border: none;
+  padding: 10px 14px;
+  border-radius: 25px;
+  z-index: 1001;
+  transition: all 0.3s ease;
+}
+
+.navbar-hamburger:hover {
+  background: rgba(230, 200, 255, 0.7);
+}
+
+.navbar-hamburger span {
+  width: 20px;
+  height: 2px;
+  background: #333;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+  display: block;
+}
+
+.navbar-hamburger.open span:nth-child(1) {
+  transform: rotate(45deg) translateY(9px);
+}
+
+.navbar-hamburger.open span:nth-child(2) {
+  opacity: 0;
+}
+
+.navbar-hamburger.open span:nth-child(3) {
+  padding-left: 5px;
+  transform: rotate(-45deg) translateY(-9px);
+}
+
+
+.mobile-menu-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  z-index: 998;
+}
+
+.mobile-menu-overlay.open {
+  opacity: 1;
+  visibility: visible;
+}
+
+
+.mobile-menu {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 100%;
+  height: 100vh;
+  background: linear-gradient(
+    180deg,
+    #f5f3f9 0%,
+    #f0ecf8 75%,
+    #e0b4fe 100%
+  );
+  transform: translateX(100%);
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  padding: 80px 30px 30px;
+  box-shadow: -5px 0 30px rgba(166, 31, 255, 0.2);
+  overflow-y: auto;
+}
+
+.mobile-menu.open {
+  transform: translateX(0);
+}
+
+.mobile-menu-links {
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 30px;
+}
+
+.mobile-menu-link {
+  font-size: 20px;
+  font-weight: 500;
+  color: #111;
+  text-decoration: none;
+  padding: 14px 0;
+  transition: all 0.3s ease;
+  display: block;
+  border-bottom: 1px solid #d1d5db;
+  padding-left: 0;
+  max-width: 100%;
+}
+
+.mobile-menu-link:hover {
+  transform: none;
+  color: #1a1a3e;
+  border-bottom-color: #9ca3af;
+  opacity: 1;
+}
+
 /* Responsive */
 @media (max-width: 900px) {
   .navbar-content {
     gap: 20px;
     padding: 8px 18px 8px 10px;
-  }
-
-  .navbar-logo {
-    width: 34px;
-    height: 34px;
   }
 
   .navbar-menu {
@@ -187,68 +286,108 @@
     font-size: 12px;
   }
 
-  .navbar-logo {
-    width: 30px;
-    height: 30px;
-  }
-
-  .navbar-logo svg {
-    width: 16px;
-    height: 16px;
-  }
-
   .navbar-button {
     padding: 6px 14px;
     font-size: 11px;
   }
 }
 
-@media (max-width: 400px) {
+@media (max-width: 450px) {
+  .navbar {
+    position: absolute;
+    bottom: auto;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    transform: none;
+    background: transparent;
+  }
+
+  .navbar-content {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    justify-content: flex-end;
+    padding: 12px 20px;
+    gap: 0;
+    background: transparent;
+    backdrop-filter: none;
+    box-shadow: none;
+    margin-top: 20px;
+    margin-right: 10px;
+    border-radius: 0;
+    z-index: 1000;
+  }
+
+  .navbar-logo {
+    width: 38px;
+    height: 38px;
+    background: transparent;
+    display: flex;
+    padding-left: 20px;
+  }
+
+  .navbar-logo svg {
+    width: 24px;
+    height: 24px;
+    padding-left: 20px;
+  }
+
+  .navbar-logo a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
   .navbar-menu {
     display: none;
   }
 
-  .navbar-content {
-    gap: 12px;
+  .navbar-actions {
+    display: none;
   }
 
-  .navbar-button {
-    padding: 5px 10px;
-    font-size: 10px;
+  .navbar-hamburger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 45px;
+    height: 35px;
+    background: rgba(230, 200, 255, 0.5);
+    border-radius: 35%;
+    border: none;
+    padding: 10px;
   }
 }
 
-/* ===== Premium Carousel Buttons (Only Button Changed) ===== */
 
 .carousel-button {
   width: 55px;
   height: 55px;
   border-radius: 50%;
-
   background: rgba(177, 59, 255, 0.25);
   border: 1.5px solid rgba(177, 59, 255, 0.7);
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   cursor: pointer;
   position: relative;
-
   backdrop-filter: blur(10px);
   transition: all 0.25s ease;
 }
 
-/* SVG Arrow */
 .carousel-button svg {
   width: 22px;
   height: 22px;
+  padding-left: 5px;
   stroke: #fff;
   stroke-width: 2.5;
   fill: none;
   transition: transform 0.25s ease;
 }
-
 
 .carousel-button:hover {
   background: rgba(177, 59, 255, 0.4);
@@ -260,11 +399,9 @@
   transform: scale(1.15);
 }
 
-
 .carousel-button:active {
   transform: scale(0.95);
 }
-
 
 .carousel-button:disabled {
   opacity: 0.35;
