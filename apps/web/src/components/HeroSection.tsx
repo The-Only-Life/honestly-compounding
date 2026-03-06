@@ -24,10 +24,16 @@ export default function HeroSection() {
               <span className="hero-highlight">Investors.</span>
             </h1>
             <h2 className="hero-subheading">Reserved for a Select <br></br>Few.</h2>
+
             <p className="hero-description">
               An invite-only platform offering honest, research driven investment
               guidance.
             </p>
+
+            {/* Request Invite Button - Mobile Only */}
+            <a href="#invite" className="hero-request-button">
+              Request Invite
+            </a>
           </div>
         </div>
 
