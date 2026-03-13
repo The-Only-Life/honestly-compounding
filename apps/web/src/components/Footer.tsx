@@ -10,7 +10,8 @@ export default function Footer() {
         <div className="footer__top">
           <div className="footer__left"></div>
 
-          <div className="footer__right">
+          {/* Footer invite, privacy policy and terms & condition removed for now, use it in future if required (CSS is ready) */}
+          {/* <div className="footer__right">
             <a href="#invite" className="footer__button">
               Request Invite
             </a>
@@ -22,7 +23,7 @@ export default function Footer() {
             <a href="#" className="footer__link">
               Privacy policy
             </a>
-          </div>
+          </div> */}
         </div>
 
         <div className="footer__bottom">
