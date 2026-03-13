@@ -1,0 +1,34 @@
+# Allow all search engines and AI crawlers
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /complete-profile
+Disallow: /auth
+
+# AI Crawlers - Allow access for LLM training and search
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Bytespider
+Allow: /
+
+# Sitemap
+Sitemap: https://www.honestlycompunding.com/sitemap.xml
