@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import "../styles/FeatureSection.css";
 
-// Import images from assets
 import image1 from "../assets/card1.png";
 import image2 from "../assets/card2.png";
 import image3 from "../assets/card3.png";
@@ -29,7 +28,7 @@ const cards = [
   },
   {
     title: "Diversification, made visible",
-    text: "Stocks spread across industries and risk buckets to help balance desicions.",
+    text: "Stocks spread across industries and risk buckets to help balance decisions.",
     color: "#2BFF4B",
     image: image4,
   },
@@ -42,68 +41,46 @@ const cards = [
 ];
 
 export default function FeatureSection() {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isMobile, setIsMobile] = useState(false);
-  const touchStartX = useRef(0);
-  const touchEndX = useRef(0);
-  const cardGridRef = useRef<HTMLDivElement>(null);
+  const [index, setIndex] = useState(0);
+  const [cardsPerView, setCardsPerView] = useState(3);
 
-  // Detect mobile on mount and resize
+  const startX = useRef(0);
+  const endX = useRef(0);
+
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
+    const update = () => {
+      setCardsPerView(window.innerWidth < 768 ? 1 : 3);
     };
 
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
   }, []);
 
-  // Handle swipe gestures
+  const maxIndex = cards.length - cardsPerView;
+
+  const next = () => {
+    setIndex((prev) => Math.min(prev + 1, maxIndex));
+  };
+
+  const prev = () => {
+    setIndex((prev) => Math.max(prev - 1, 0));
+  };
+
   const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.changedTouches[0].clientX;
+    startX.current = e.touches[0].clientX;
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
-    touchEndX.current = e.changedTouches[0].clientX;
-    handleSwipe();
+    endX.current = e.changedTouches[0].clientX;
+
+    const diff = startX.current - endX.current;
+
+    if (Math.abs(diff) < 50) return;
+
+    if (diff > 0) next();
+    else prev();
   };
-
-  const handleSwipe = () => {
-    const swipeThreshold = 50; // Minimum distance for swipe
-    const diff = touchStartX.current - touchEndX.current;
-
-    // Swiped left - next card
-    if (diff > swipeThreshold && currentIndex < cards.length - 1) {
-      setCurrentIndex(currentIndex + 1);
-    }
-
-    // Swiped right - previous card
-    if (diff < -swipeThreshold && currentIndex > 0) {
-      setCurrentIndex(currentIndex - 1);
-    }
-  };
-
-  // Handle desktop buttons
-  const handleNext = () => {
-    if (currentIndex < cards.length - 3) {
-      setCurrentIndex(currentIndex + 1);
-    }
-  };
-
-  const handlePrev = () => {
-    if (currentIndex > 0) {
-      setCurrentIndex(currentIndex - 1);
-    }
-  };
-
-  // Go to specific slide
-  const goToSlide = (index: number) => {
-    setCurrentIndex(index);
-  };
-
-  // For mobile: 1 card, for desktop: 3 cards
-  const displayCount = isMobile ? 1 : 3;
 
   return (
     <section id="research" className="feature-section">
@@ -119,55 +96,46 @@ export default function FeatureSection() {
         </p>
 
         <div className="carousel-wrapper">
-          {/* Desktop buttons (hidden on mobile via CSS) */}
-          <button
-            className="carousel-button"
-            onClick={handlePrev}
-            disabled={currentIndex === 0}
-            aria-label="Previous card"
-          >
+          <button className="carousel-button" onClick={prev} disabled={index === 0}>
             <svg viewBox="0 0 24 24">
               <path d="M15 18L9 12L15 6" />
             </svg>
           </button>
 
-          {/* Card Grid with Swipe Support */}
           <div
-            className="card-grid"
-            ref={cardGridRef}
+            className="card-viewport"
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
-            role="region"
-            aria-label="Card carousel"
           >
-            {cards
-              .slice(currentIndex, currentIndex + displayCount)
-              .map((card, i) => (
+            <div
+              className="card-track"
+              style={{
+                transform: `translate3d(-${index * (100 / cardsPerView)}%,0,0)`
+              }}
+            >
+              {cards.map((card, i) => (
                 <div
-                  key={currentIndex + i}
+                  key={i}
                   className="feature-card"
                   style={{ "--accent": card.color } as React.CSSProperties}
                 >
                   <h4 className="card-title">{card.title}</h4>
                   <p className="card-text">{card.text}</p>
 
-                  {card.image && (
-                    <img
-                      src={card.image}
-                      alt={card.title}
-                      className="card-image"
-                    />
-                  )}
+                  <img
+                    src={card.image}
+                    alt={card.title}
+                    className="card-image"
+                  />
                 </div>
               ))}
+            </div>
           </div>
 
-          {/* Desktop buttons (hidden on mobile via CSS) */}
           <button
             className="carousel-button"
-            onClick={handleNext}
-            disabled={currentIndex === cards.length - displayCount}
-            aria-label="Next card"
+            onClick={next}
+            disabled={index === maxIndex}
           >
             <svg viewBox="0 0 24 24">
               <path d="M9 18L15 12L9 6" />
@@ -175,17 +143,12 @@ export default function FeatureSection() {
           </button>
         </div>
 
-        {/* Indicator Dots - Visible on mobile only */}
         <div className="carousel-indicators">
-          {cards.map((_, index) => (
+          {cards.map((_, i) => (
             <button
-              key={index}
-              className={`indicator-dot ${
-                index === currentIndex ? "active" : ""
-              }`}
-              onClick={() => goToSlide(index)}
-              aria-label={`Go to card ${index + 1}`}
-              aria-current={index === currentIndex ? "true" : "false"}
+              key={i}
+              className={`indicator-dot ${i === index ? "active" : ""}`}
+              onClick={() => setIndex(i)}
             />
           ))}
         </div>
