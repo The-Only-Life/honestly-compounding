@@ -69,6 +69,7 @@ export interface User {
   role?: string | null;
   accessApproved?: boolean;
   profileCompleted?: boolean;
+  hasAgreedToTerms?: boolean;
   emailVerified: boolean;
   createdAt: string;
   lastSignInAt?: string;
@@ -440,6 +441,20 @@ class ApiClient {
 
   async generateVerificationLink(userId: string): Promise<{ message: string; verificationUrl: string; user: { id: string; email: string; emailVerified: boolean } }> {
     return this.request<{ message: string; verificationUrl: string; user: { id: string; email: string; emailVerified: boolean } }>("/api/auth/generate-verification-link", {
+      method: "POST",
+      body: JSON.stringify({ userId }),
+    });
+  }
+
+  async resendAcknowledgement(userId: string): Promise<{ message: string; user: { id: string; email: string } }> {
+    return this.request<{ message: string; user: { id: string; email: string } }>("/api/auth/resend-acknowledgement", {
+      method: "POST",
+      body: JSON.stringify({ userId }),
+    });
+  }
+
+  async generateAcknowledgementLink(userId: string): Promise<{ message: string; acknowledgeUrl: string; user: { id: string; email: string } }> {
+    return this.request<{ message: string; acknowledgeUrl: string; user: { id: string; email: string } }>("/api/auth/generate-acknowledgement-link", {
       method: "POST",
       body: JSON.stringify({ userId }),
     });

@@ -16,7 +16,7 @@ CREATE TABLE themes (
   created_by UUID NOT NULL,
   created_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP(3) NOT NULL,
-  CONSTRAINT themes_creator_fkey FOREIGN KEY (created_by) REFERENCES profiles(user_id) ON DELETE RESTRICT ON UPDATE CASCADE
+  CONSTRAINT themes_creator_fkey FOREIGN KEY (created_by) REFERENCES user_metadata(user_id) ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
 -- Step 3: Create new buckets table (renamed from risk_buckets, added risk_measure field)
@@ -28,7 +28,7 @@ CREATE TABLE buckets (
   created_by UUID NOT NULL,
   created_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP(3) NOT NULL,
-  CONSTRAINT buckets_creator_fkey FOREIGN KEY (created_by) REFERENCES profiles(user_id) ON DELETE RESTRICT ON UPDATE CASCADE
+  CONSTRAINT buckets_creator_fkey FOREIGN KEY (created_by) REFERENCES user_metadata(user_id) ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
 -- Step 4: Recreate stocks table with updated foreign keys
@@ -44,7 +44,7 @@ CREATE TABLE stocks (
   updated_at TIMESTAMP(3) NOT NULL,
   CONSTRAINT stocks_theme_fkey FOREIGN KEY (theme_id) REFERENCES themes(id) ON DELETE RESTRICT ON UPDATE CASCADE,
   CONSTRAINT stocks_bucket_fkey FOREIGN KEY (bucket_id) REFERENCES buckets(id) ON DELETE RESTRICT ON UPDATE CASCADE,
-  CONSTRAINT stocks_creator_fkey FOREIGN KEY (created_by) REFERENCES profiles(user_id) ON DELETE RESTRICT ON UPDATE CASCADE
+  CONSTRAINT stocks_creator_fkey FOREIGN KEY (created_by) REFERENCES user_metadata(user_id) ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
 -- Step 5: Create indexes for better query performance

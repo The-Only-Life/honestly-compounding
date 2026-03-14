@@ -194,6 +194,50 @@ export const useGenerateVerificationLink = () => {
   });
 };
 
+// Hook to resend acknowledgement email to a user who completed profile but hasn't agreed to terms
+export const useResendAcknowledgement = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (userId: string) => apiClient.resendAcknowledgement(userId),
+    onSuccess: (response) => {
+      queryClient.invalidateQueries({ queryKey: usersKeys.list() });
+      toast({
+        title: 'Success',
+        description: response.message,
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Failed to resend acknowledgement email',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+};
+
+// Hook to generate acknowledgement link for clipboard copy
+export const useGenerateAcknowledgementLink = () => {
+  return useMutation({
+    mutationFn: (userId: string) => apiClient.generateAcknowledgementLink(userId),
+    onSuccess: (response) => {
+      navigator.clipboard.writeText(response.acknowledgeUrl);
+      toast({
+        title: 'Acknowledgement link generated',
+        description: 'Link copied to clipboard. Send it to the user.',
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Failed to generate acknowledgement link',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+};
+
 // Hook to delete a user
 export const useDeleteUser = () => {
   const queryClient = useQueryClient();
