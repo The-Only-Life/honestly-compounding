@@ -11,7 +11,7 @@ CREATE TABLE notifications (
   entity_name TEXT NOT NULL,
   created_by UUID NOT NULL,
   created_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT notifications_creator_fkey FOREIGN KEY (created_by) REFERENCES profiles(user_id) ON DELETE CASCADE
+  CONSTRAINT notifications_creator_fkey FOREIGN KEY (created_by) REFERENCES user_metadata(user_id) ON DELETE CASCADE
 );
 
 -- Step 2: Create index for faster queries (ordered by created_at DESC)

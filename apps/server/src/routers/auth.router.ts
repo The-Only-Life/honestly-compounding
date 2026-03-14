@@ -11,7 +11,7 @@ import {
 import type { FastifyCustomOptions } from "../types";
 import type { Static } from "@fastify/type-provider-typebox";
 import Config from "../server.config";
-import { sendInviteEmail } from "../utils/email";
+import { sendInviteEmail, sendAcknowledgementEmail } from "../utils/email";
 import { verifyRecaptcha } from "../utils/recaptcha";
 
 const COOKIE_OPTIONS = {
@@ -928,6 +928,123 @@ export default async function authRouter(
         return res.status(500).send({
           error: "Internal server error: " + error.message,
         });
+      }
+    }
+  );
+
+  // POST /resend-acknowledgement - Resend acknowledgement email to a user who completed profile but hasn't agreed to terms
+  server.post(
+    "/resend-acknowledgement",
+    {
+      preHandler: verifyAdminOrSponsor,
+    },
+    async (req, res) => {
+      try {
+        const { userId } = req.body as { userId: string };
+
+        if (!userId) {
+          return res.status(400).send({ error: "User ID is required" });
+        }
+
+        const { data: userData, error: userError } = await supabase.auth.admin.getUserById(userId);
+
+        if (userError || !userData?.user) {
+          return res.status(404).send({ error: "User not found" });
+        }
+
+        const user = userData.user;
+
+        if (!user.email) {
+          return res.status(400).send({
+            error: "User does not have an email address. Cannot send acknowledgement email.",
+          });
+        }
+
+        const { data: magicLinkData, error: magicLinkError } =
+          await supabase.auth.admin.generateLink({
+            type: "magiclink",
+            email: user.email,
+          });
+
+        if (magicLinkError || !magicLinkData) {
+          console.error("Failed to generate magic link:", magicLinkError);
+          return res.status(500).send({ error: "Failed to generate acknowledgement link" });
+        }
+
+        const acknowledgeUrl = `${Config.FRONTEND_URL}/auth/confirm?token_hash=${magicLinkData.properties.hashed_token}&type=magiclink&next=/acknowledgement`;
+
+        const emailResult = await sendAcknowledgementEmail({
+          to: user.email,
+          acknowledgeUrl,
+        });
+
+        if (!emailResult.success) {
+          console.error("Failed to send acknowledgement email:", emailResult.error);
+          return res.status(500).send({
+            error: `Failed to send acknowledgement email: ${emailResult.error}`,
+          });
+        }
+
+        return res.send({
+          message: "Acknowledgement email sent successfully",
+          user: { id: user.id, email: user.email },
+        });
+      } catch (error: any) {
+        console.error("Resend acknowledgement error:", error);
+        return res.status(500).send({ error: "Internal server error: " + error.message });
+      }
+    }
+  );
+
+  // POST /generate-acknowledgement-link - Generate a magic link to /acknowledgement for clipboard copy
+  server.post(
+    "/generate-acknowledgement-link",
+    {
+      preHandler: verifyAdminOrSponsor,
+    },
+    async (req, res) => {
+      try {
+        const { userId } = req.body as { userId: string };
+
+        if (!userId) {
+          return res.status(400).send({ error: "User ID is required" });
+        }
+
+        const { data: userData, error: userError } = await supabase.auth.admin.getUserById(userId);
+
+        if (userError || !userData?.user) {
+          return res.status(404).send({ error: "User not found" });
+        }
+
+        const user = userData.user;
+
+        if (!user.email) {
+          return res.status(400).send({
+            error: "User does not have an email address. Acknowledgement links require email.",
+          });
+        }
+
+        const { data: magicLinkData, error: magicLinkError } =
+          await supabase.auth.admin.generateLink({
+            type: "magiclink",
+            email: user.email,
+          });
+
+        if (magicLinkError || !magicLinkData) {
+          console.error("Failed to generate magic link:", magicLinkError);
+          return res.status(500).send({ error: "Failed to generate acknowledgement link" });
+        }
+
+        const acknowledgeUrl = `${Config.FRONTEND_URL}/auth/confirm?token_hash=${magicLinkData.properties.hashed_token}&type=magiclink&next=/acknowledgement`;
+
+        return res.send({
+          message: "Acknowledgement link generated successfully",
+          acknowledgeUrl,
+          user: { id: user.id, email: user.email },
+        });
+      } catch (error: any) {
+        console.error("Generate acknowledgement link error:", error);
+        return res.status(500).send({ error: "Internal server error: " + error.message });
       }
     }
   );

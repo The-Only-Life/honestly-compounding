@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useUsers, useInviteUser, useInviteUsersBulk, useResendInvitation, useUpdateUserRole, useUpdateUserAccess, useDeleteUser, useGenerateVerificationLink } from '@/hooks/use-users-api';
+import { useUsers, useInviteUser, useInviteUsersBulk, useResendInvitation, useUpdateUserRole, useUpdateUserAccess, useDeleteUser, useGenerateVerificationLink, useResendAcknowledgement, useGenerateAcknowledgementLink } from '@/hooks/use-users-api';
 import { useWaitlist, useApproveWaitlist } from '@/hooks/use-waitlist-api';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -66,6 +66,8 @@ export default function Users() {
   const deleteUserMutation = useDeleteUser();
   const approveWaitlistMutation = useApproveWaitlist();
   const generateVerificationLinkMutation = useGenerateVerificationLink();
+  const resendAcknowledgementMutation = useResendAcknowledgement();
+  const generateAcknowledgementLinkMutation = useGenerateAcknowledgementLink();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isBulkDialogOpen, setIsBulkDialogOpen] = useState(false);
@@ -490,6 +492,30 @@ export default function Users() {
                               onClick={() => generateVerificationLinkMutation.mutate(user.id)}
                               disabled={generateVerificationLinkMutation.isPending}
                               title="Get verification link (copies to clipboard) - Only for users who haven't completed profile"
+                            >
+                              <Link2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                          {user.email && user.profileCompleted && !user.hasAgreedToTerms && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-amber-600 hover:text-amber-700"
+                              onClick={() => resendAcknowledgementMutation.mutate(user.id)}
+                              disabled={resendAcknowledgementMutation.isPending}
+                              title="Resend acknowledgement email"
+                            >
+                              <Send className="h-4 w-4" />
+                            </Button>
+                          )}
+                          {user.email && user.profileCompleted && !user.hasAgreedToTerms && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-amber-600 hover:text-amber-700"
+                              onClick={() => generateAcknowledgementLinkMutation.mutate(user.id)}
+                              disabled={generateAcknowledgementLinkMutation.isPending}
+                              title="Copy acknowledgement link to clipboard"
                             >
                               <Link2 className="h-4 w-4" />
                             </Button>

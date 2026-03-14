@@ -111,6 +111,49 @@ export async function sendWaitlistApprovalEmail({
   }
 }
 
+export interface SendAcknowledgementEmailParams {
+  to: string;
+  acknowledgeUrl: string;
+}
+
+export async function sendAcknowledgementEmail({
+  to,
+  acknowledgeUrl,
+}: SendAcknowledgementEmailParams) {
+  if (!resend) {
+    console.warn("Resend API key not configured. Skipping email send.");
+    return { success: false, error: "Resend not configured" };
+  }
+
+  try {
+    const template = loadTemplate("invite");
+    const html = renderTemplate(template, {
+      INVITE_URL: acknowledgeUrl,
+      USER_EMAIL: to,
+      CURRENT_YEAR: new Date().getFullYear().toString(),
+      LOGO_URL: `${Config.FRONTEND_URL}/Logo.png`,
+    });
+
+    const { data, error } = await resend.emails.send({
+      from: Config.EMAIL_FROM,
+      to: [to],
+      subject: "Complete your registration - Honestly Compounding",
+      html,
+    });
+
+    if (error) {
+      console.error("Failed to send acknowledgement email via Resend:", error);
+      return { success: false, error: error.message };
+    }
+
+    console.log("Acknowledgement email sent successfully via Resend:", data);
+    return { success: true, data };
+  } catch (error: any) {
+    console.error("Error sending acknowledgement email via Resend:", error);
+    return { success: false, error: error.message };
+  }
+}
+
 export interface SendAccessApprovalEmailParams {
   to: string;
   dashboardUrl: string;
