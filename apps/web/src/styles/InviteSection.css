@@ -357,12 +357,12 @@
 }
 
   .invite-heading {
-    font-size: clamp(16px, 4vw, 20px);
+    font-size: clamp(25px, 4vw, 20px);
     margin-bottom: 12px;
   }
 
   .invite-subtext {
-    font-size: 12px;
+    font-size: 15px;
     margin-bottom: 24px;
   }
 
@@ -494,6 +494,9 @@
 
   .invite-content span{
     color: #a61fff;;
+  }
+  .invite-heading{
+    font-size: 20px;
   }
 
   .invite-container,

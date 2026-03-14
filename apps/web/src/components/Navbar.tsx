@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import "../styles/Navbar.css";
 import gsap from "gsap";
 import ScrollTrigger from "gsap/ScrollTrigger";
+import vector from "../assets/Vector.png";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -62,17 +63,7 @@ export default function Navbar() {
         <div className="navbar-content">
                   <div className="navbar-logo">
           <a href="#philosophy">
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="white"
-              stroke="Black"
-              strokeWidth="2"
-            >
-              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-              <polyline points="9 22 9 12 15 12 15 22" />
-            </svg>
+            <img src={vector} alt="Company Logo" className="navbar-logo-image" />
           </a>
         </div>
           

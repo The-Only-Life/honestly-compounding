@@ -1,10 +1,21 @@
 import "../styles/HeroSection.css";
-import logoImage from "../assets/Logo.png"
-import HeroImage from "../assets/Hero_Section.png";
+import logoImage from "../assets/Logo.png";
+import Background from "../assets/Background.png";
 
 export default function HeroSection() {
   return (
     <section id="philosophy" className="hero-section">
+
+        <video
+        className="hero-background-video"
+        autoPlay
+        muted
+        loop
+        playsInline
+      >
+        {/* Change video to image if required (import from assets) */}
+        <source src="/hero-video.mp4" type="video/mp4" /> 
+      </video>
       <header className="hero-header">
         <div className="hero-logo-container">
           <img 
@@ -37,9 +48,7 @@ export default function HeroSection() {
           </div>
         </div>
 
-        <div className="hero-video-container">
-          <img src={HeroImage} alt="Hero Image" className="hero-image" />
-        </div>
+
       </div>
     </section>
   );
