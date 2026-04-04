@@ -17,9 +17,9 @@ type TConfig = {
 const cfg: Record<string, Omit<TConfig, "PROTOCOL">> = {
   [Environment.DEVELOPMENT]: {
     AUTH_HOST:
-      process.env.SUPABASE_URL || "https://xpuezfeikepencugnkqt.supabase.co",
+      process.env.SUPABASE_URL || "https://uzscnckjhxzjeowjqywa.supabase.co",
     FRONTEND_URL: process.env.FRONTEND_URL || "http://localhost:8080",
-    SERVICE_ROLE_KEY: process.env.SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwdWV6ZmVpa2VwZW5jdWdua3F0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzNzI5MjMsImV4cCI6MjA4ODk0ODkyM30.GTX-F_sdRs2YUQy9VXc80OSd0KJo1dJk2e2GgsqsoQs",
+    SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY!,
     COOKIE_SECRET:
       process.env.COOKIE_SECRET || "dev-secret-change-in-production",
     RESEND_API_KEY: process.env.RESEND_API_KEY,
