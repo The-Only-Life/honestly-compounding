@@ -1,6 +1,7 @@
 import "../styles/HeroSection.css";
 import logoImage from "../assets/Logo.png";
 import Background from "../assets/Background.png";
+import bgvideo from "../assets/hero-video.mp4";
 
 export default function HeroSection() {
   return (
@@ -14,7 +15,7 @@ export default function HeroSection() {
         playsInline
       >
         {/* Change video to image if required (import from assets) */}
-        <source src="/hero-video.mp4" type="video/mp4" /> 
+        <source src={bgvideo} type="video/mp4" /> 
       </video>
       <header className="hero-header">
         <div className="hero-logo-container">
@@ -34,11 +35,13 @@ export default function HeroSection() {
               Built for Long Term{" "}
               <span className="hero-highlight">Investors.</span>
             </h1>
-            <h2 className="hero-subheading">Reserved for a Select <br></br>Few.</h2>
+            <h2 className="hero-subheading">Reserved for a Select Few.</h2>
 
             <p className="hero-description">
-              An invite-only platform offering honest, research driven investment
-              guidance.
+              An invite-only platform offering honest, research driven
+            </p>
+            <p className = "hero-description2">
+              investment guidance
             </p>
 
             {/* Request Invite Button - Mobile Only */}

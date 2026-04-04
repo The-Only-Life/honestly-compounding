@@ -24,6 +24,10 @@ export default function Footer() {
               Privacy policy
             </a>
           </div> */}
+          <p className="footer__copyright">
+            &copy; Honestly is a venture by
+Sarthaka Works Ventures Privated Limited. All rights reserved.
+          </p>
         </div>
 
         <div className="footer__bottom">
