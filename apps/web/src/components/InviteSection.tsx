@@ -2,6 +2,7 @@ import { useState } from "react";
 import "../styles/InviteSection.css";
 import InviteImage from "../assets/Invitation-Card.png";
 import { useJoinWaitlist } from "@/hooks/use-waitlist-api";
+import { MapPin, Phone, Mail } from "lucide-react";
 
 export default function InviteSection() {
   const joinWaitlist = useJoinWaitlist();
@@ -34,13 +35,23 @@ export default function InviteSection() {
   return (
     <section id="invite" className="invite-section">
       <div className="invite-container">
-        {/* Left Side - Image */}
+        {/* Left Side - Image + Contact */}
         <div className="invite-left">
           <img
             src={InviteImage}
             alt="Invitation"
             className="invite-image"
           />
+          <div className="invite-contact">
+            <div className="invite-contact-item">
+              <MapPin size={15} className="invite-contact-icon" />
+              <span>J P Nagar, Bangalore South, Bangalore</span>
+            </div>
+            <div className="invite-contact-item">
+              <Phone size={15} className="invite-contact-icon" />
+              <span>+ 91 89717 65177</span>
+            </div>
+          </div>
         </div>
 
         {/* Right Side - Form */}
@@ -109,6 +120,8 @@ export default function InviteSection() {
                 </button>
               </form>
             )}
+
+            
           </div>
         </div>
       </div>
