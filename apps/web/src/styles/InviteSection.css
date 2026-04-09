@@ -1,4 +1,3 @@
-
 :root {
   --accent: #a61fff;
   --dark: #1a1a3e;
@@ -45,22 +44,50 @@
   background: transparent;
   padding: 60px 40px;
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-start;
   justify-content: center;
   min-height: 500px;
+  padding-top: 80px;
 }
 
 .invite-image {
-  width: 100%;
+  width: 70%;
   max-width: 350px;
   height: auto;
   object-fit: contain;
+  margin-top: -6rem;
+  margin-left: 8rem;
   transition: transform 0.4s var(--smooth);
 }
 
 .invite-left:hover .invite-image {
   transform: scale(1.02);
 }
+
+
+.invite-contact {
+  display: flex;
+  flex-direction: column;
+  gap:25px;
+  margin-top: 70px;
+  margin-left: 10rem;
+}
+
+.invite-contact-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 20px;
+  color: #444;
+}
+
+.invite-contact-icon {
+  flex-shrink: 0;
+  margin-top: 7px;
+  color: var(--accent);
+}
+
 
 .invite-right {
   background: transparent;
@@ -191,6 +218,8 @@
 }
 
 
+
+
 @media (max-width: 1024px) {
   .invite-container {
     grid-template-columns: 1fr;
@@ -228,7 +257,6 @@
     position: relative;
   }
 
-  
   .invite-left {
     position: absolute;
     top: 40px;
@@ -237,6 +265,11 @@
     padding: 0;
     min-width: auto;
     display: block;
+  }
+
+  /* Hide contact details on mobile since left panel is absolutely positioned */
+  .invite-contact {
+    display: none;
   }
 
   .invite-image {
@@ -309,30 +342,30 @@
 
 
 @media (max-width: 480px) {
-.invite-section {
-  padding: 0;
-  height: 70dvh;
-  min-height: 50dvh;
-  overflow: hidden;
-  background: linear-gradient(
-    110deg,
-    #caa6ff 0%,
-    #e9d9ff 15%,
-    #f3effa 35%,
-    #f5f3f9 60%,
-    #f5f3f9 100%
-  );
-}
+  .invite-section {
+    padding: 0;
+    height: 70dvh;
+    min-height: 50dvh;
+    overflow: hidden;
+    background: linear-gradient(
+      110deg,
+      #caa6ff 0%,
+      #e9d9ff 15%,
+      #f3effa 35%,
+      #f5f3f9 60%,
+      #f5f3f9 100%
+    );
+  }
 
-.invite-container {
-  grid-template-columns: 1fr;
-  width: 100%;
-  height: 50vh;
-  margin: 0;
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
-}
+  .invite-container {
+    grid-template-columns: 1fr;
+    width: 100%;
+    height: 50vh;
+    margin: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
 
   .invite-left {
     top: 30px;
@@ -345,16 +378,15 @@
     max-width: 50px;
   }
 
-.invite-right {
-  height: 52%;
-  min-height: 52%;
-  margin-top: 30vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  background: transparent;
-}
+  .invite-right {
+    height: 52%;
+    min-height: 52%;
+    margin-top: 30vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+  }
 
   .invite-heading {
     font-size: clamp(25px, 4vw, 20px);
@@ -389,13 +421,13 @@
     gap: 18px;
   }
 
-  .invite-content{
+  .invite-content {
     max-width: 100%;
     margin-top: -85%;
   }
 
-  .invite-content span{
-    color: #a61fff;;
+  .invite-content span {
+    color: #a61fff;
   }
 
   .invite-container,
@@ -407,30 +439,30 @@
 }
 
 @media (max-width: 380px) {
-.invite-section {
-  padding: 0;
-  height: 100dvh;
-  min-height: 100dvh;
-  overflow: hidden;
-  background: linear-gradient(
-    110deg,
-    #caa6ff 0%,
-    #e9d9ff 15%,
-    #f3effa 35%,
-    #f5f3f9 60%,
-    #f5f3f9 100%
-  );
-}
+  .invite-section {
+    padding: 0;
+    height: 100dvh;
+    min-height: 100dvh;
+    overflow: hidden;
+    background: linear-gradient(
+      110deg,
+      #caa6ff 0%,
+      #e9d9ff 15%,
+      #f3effa 35%,
+      #f5f3f9 60%,
+      #f5f3f9 100%
+    );
+  }
 
-.invite-container {
-  grid-template-columns: 1fr;
-  width: 100%;
-  height: 100vh;
-  margin: 0;
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
-}
+  .invite-container {
+    grid-template-columns: 1fr;
+    width: 100%;
+    height: 100vh;
+    margin: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
 
   .invite-left {
     top: 30px;
@@ -444,15 +476,14 @@
     margin-top: 140%;
   }
 
-.invite-right {
-  height: 100%;
-  min-height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  background: transparent;
-}
+  .invite-right {
+    height: 100%;
+    min-height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+  }
 
   .invite-heading {
     font-size: clamp(16px, 4vw, 20px);
@@ -487,15 +518,16 @@
     gap: 18px;
   }
 
-  .invite-content{
+  .invite-content {
     max-width: 100%;
     margin-top: -135%;
   }
 
-  .invite-content span{
-    color: #a61fff;;
+  .invite-content span {
+    color: #a61fff;
   }
-  .invite-heading{
+
+  .invite-heading {
     font-size: 20px;
   }
 
